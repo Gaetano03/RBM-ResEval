@@ -1,0 +1,9 @@
+/home/gaetano/workspace/MODESgit/MODES/build/CMakeFiles/rebuild_cache.dir
+/home/gaetano/workspace/MODESgit/MODES/build/CMakeFiles/MODES.dir
+/home/gaetano/workspace/MODESgit/MODES/build/CMakeFiles/edit_cache.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/rebuild_cache.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/edit_cache.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/SingleMODES.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/Adaptive_ResEval.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/AdaptiveMODES.dir
+/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/Adaptive_Energy_Mode.dir

@@ -1,0 +1,1 @@
+/usr/bin/c++  -O4 -DNDEBUG -march=native  -rdynamic CMakeFiles/AdaptiveMODES.dir/AdaptiveMODES.cpp.o  -o AdaptiveMODES -Wl,-rpath,/home/gaetano/workspace/MODESgit/MODES/build ../libMODES.so -Wl,-Bstatic -lgsl -lgslcblas -Wl,-Bdynamic /usr/local/lib/libsmart-math.a /usr/local/lib/libsmart-uq.a 
