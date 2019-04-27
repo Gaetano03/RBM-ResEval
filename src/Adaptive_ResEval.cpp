@@ -20,7 +20,7 @@ int main( int argc, char *argv[] )
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
-    std::string su2dtr_string = "./SU2_DTR " + su2_conf; // + " > resEval_su2.log";
+    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf; // + " > resEval_su2.log";
     int len_s = su2dtr_string.length();
     char su2_sys_call[len_s + 1];
     strcpy(su2_sys_call, su2dtr_string.c_str());
