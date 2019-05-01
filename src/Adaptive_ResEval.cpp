@@ -111,8 +111,10 @@ int main( int argc, char *argv[] )
 
     double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
     double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
-    double rhotke = rho*tke;
-    double rhoomega = rho*omega;
+    // double rhotke = rho*tke;
+    // double rhoomega = rho*omega;
+    double rhotke = tke;
+    double rhoomega = omega;
 
     Eigen::VectorXd mean = sn_set.rowwise().mean();
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);

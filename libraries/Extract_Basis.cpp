@@ -853,7 +853,7 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
     int Np = sn_set.rows();
     int Ns = sn_set.cols();
 
-    Eigen::MatrixXd Phi_RDMD = Eigen::MatrixXd::Zero(Np, 3*Ns);
+    Eigen::MatrixXd Phi_RDMD = Eigen::MatrixXd::Zero(Np, Ns+1);
 
     Eigen::MatrixXd res_set = sn_set;
 
@@ -867,12 +867,12 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
 // std::cout << "Nmod = " << N_mod << std::endl;
     double eps = 0.0;
     Eigen::VectorXd svd_new = Eigen::VectorXd::Zero(Ns);
-    Eigen::VectorXd svd_old;
+    Eigen::VectorXd svd_old = Eigen::VectorXd::Zero(Ns);
     double count = 0;
 
     if ( rdmd == 0 )
     {
-        while ( eps < En && count < 3*Ns )
+        while ( eps < En && count < Ns+1 )
         {
 
             //Perform pure DMD
@@ -944,7 +944,7 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
     }
     else
     {
-         for ( int i = 0; i <= rdmd; i++ )
+         for ( int i = 0; i <= rdmd; i++ ) //Considering also i = rdmd only for computing energy at the last iteration
         {
             
             //Perform pure DMD
@@ -971,12 +971,9 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
             if ( i == rdmd )
                 break;
 
-        // std::cout << "size Phi : [" << Phi.rows() << ", " << Phi.cols() << "]" << std::endl; 
-        // std::cout << "Done line 767" << std::endl;
             Eigen::MatrixXd Phi_r = Phi.real();
-        // std::cout << "Done line 770" << std::endl;
             Eigen::MatrixXd coef_mod(Phi.cols(),Ns);
-        // std::cout << "Done line 772" << std::endl;
+        // Real part Modes normalization
             for ( int j = 0; j < Phi.cols(); j++ )
             {
                 double sum = 0.0;
@@ -986,7 +983,6 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                 Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
 
             }
-        // std::cout << "Done line 780" << std::endl;
             Eigen::VectorXd residual_average(Phi.cols());
             int min_idx;
 
