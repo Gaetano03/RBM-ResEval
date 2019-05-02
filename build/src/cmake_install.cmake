@@ -1,4 +1,4 @@
-# Install script for directory: /home/gaetano/workspace/MODESgit/MODES/src
+# Install script for directory: /home/gaetano/workspace/RBM-ResEval/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

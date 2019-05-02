@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/gaetano/workspace/MODESgit/MODES/src/SingleMODES.cpp" "/home/gaetano/workspace/MODESgit/MODES/build/src/CMakeFiles/SingleMODES.dir/SingleMODES.cpp.o"
+  "/home/gaetano/workspace/RBM-ResEval/src/SingleMODES.cpp" "/home/gaetano/workspace/RBM-ResEval/build/src/CMakeFiles/SingleMODES.dir/SingleMODES.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -17,7 +17,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/gaetano/workspace/MODESgit/MODES/build/CMakeFiles/MODES.dir/DependInfo.cmake"
+  "/home/gaetano/workspace/RBM-ResEval/build/CMakeFiles/MODES.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

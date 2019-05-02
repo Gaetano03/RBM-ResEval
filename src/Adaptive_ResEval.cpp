@@ -75,15 +75,16 @@ int main( int argc, char *argv[] )
     t_vec[0] = settings.nstart*settings.Dt_cfd;
     for ( int i = 1; i < settings.Ns; i++ )
         t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
-    
+        
     // std::vector<double> t_evaluate(2*settings.Ns-1);
     // t_evaluate[0] = settings.nstart*settings.Dt_cfd;
     // for ( int i = 1; i < t_evaluate.size(); i++)
     //     t_evaluate[i] = t_evaluate[i-1] + settings.Dt_cfd*(double)settings.Ds/2.0;
-    std::vector<double> t_evaluate(settings.Ns);
+    std::vector<double> t_evaluate(settings.Ns*settings.Ds-1);
+
     t_evaluate[0] = settings.nstart*settings.Dt_cfd;
-    for ( int i = 0; i < t_evaluate.size(); i++)
-        t_evaluate[i] = t_vec[i];// + settings.Dt_cfd*(double)settings.Ds/2.0;
+    for ( int i = 1; i < t_evaluate.size(); i++)
+        t_evaluate[i] = t_evaluate[i-1] + settings.Dt_cfd;// + settings.Dt_cfd*(double)settings.Ds/2.0;
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
@@ -157,7 +158,7 @@ int main( int argc, char *argv[] )
     {
 
         //Vector of MatrixXd where to store the evolution in time of conservative variables
-        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, settings.Ns);
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, t_evaluate.size());
 
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::VectorXd K_pc(settings.Ns);
@@ -167,7 +168,7 @@ int main( int argc, char *argv[] )
         //Check only for POD for now
         for ( int nfj = 0; nfj < Nf.size(); nfj++ )
         {
-            std::string mv_string = "mv history_rbm_00002.csv history_spod_" + std::to_string(nfj) + ".csv";
+            std::string mv_string = "mv history_rbm.csv history_spod_" + std::to_string(nfj) + ".csv";
             len_s = mv_string.length();
             char mv_sys_call[len_s + 1];
             strcpy(mv_sys_call, mv_string.c_str());
@@ -187,10 +188,10 @@ int main( int argc, char *argv[] )
                 else Nm = std::min(settings.r, N_notZero);
                 std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
                 std::vector<rbf> surr_coefs =  getSurrCoefs (t_vec, eig_vec, settings.flag_interp);                
-                Eigen::MatrixXd coef_t(settings.Ns, Nm);
+                Eigen::MatrixXd coef_t(t_evaluate.size(), Nm);
 
                 std::vector<double> tr(1);
-                for ( int j = 0; j < (settings.Ns); j++ )
+                for ( int j = 0; j < t_evaluate.size(); j++ )
                 {    
                     tr[0] = t_evaluate[j];
                     for ( int i = 0; i < Nm; i++ )
@@ -207,12 +208,12 @@ int main( int argc, char *argv[] )
             //Add mean or Initial condition if it is subtracted
             if ( settings.flag_mean == "YES" )
             {   
-                for ( int it = 0; it < (settings.Ns); it++ )
+                for ( int it = 0; it < t_evaluate.size(); it++ )
                     Sn_Cons_time.col(it) += Ic;
             }
             std::cout << "Writing time reconstruction " << std::endl;
             // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-            Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, settings.Ns-1, nC, alpha, binary );
+            Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
             //Executing SU2, removing all useless files, renaming files with residuals
             std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
             std::system( su2_sys_call );
@@ -234,12 +235,12 @@ int main( int argc, char *argv[] )
 
 //Defining scope for DMD ( Rank=-1 preferable, Coeffs = OPT )
     {
-        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, settings.Ns-1);
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, t_evaluate.size());
         Eigen::VectorXd lambda_POD;
         Eigen::MatrixXd eig_vec_POD;
         Eigen::VectorXcd lambda_DMD;
         Eigen::MatrixXcd eig_vec_DMD;
-        std::string mv_string = "mv history_rbm_00002.csv history_dmd_00002.csv";
+        std::string mv_string = "mv history_rbm.csv history_dmd.csv";
         len_s = mv_string.length();
         char mv_sys_call[len_s + 1];
         strcpy(mv_sys_call, mv_string.c_str());
@@ -321,14 +322,14 @@ int main( int argc, char *argv[] )
             }
             
 
-            Eigen::MatrixXcd V_and(lambda_DMD.size(), settings.Ns-1);      
+            Eigen::MatrixXcd V_and(lambda_DMD.size(), t_evaluate.size());      
             for ( int i = 0; i < lambda_DMD.size(); i++ )
             {
-                for ( int j = 0; j < settings.Ns-1; j++ )
-                    V_and(i,j) = std::pow(lambda_DMD(i), (double)j + 0.5);                                                                                         
+                for ( int j = 0; j < t_evaluate.size(); j++ )
+                    V_and(i,j) = std::pow(lambda_DMD(i), (double)j/(double)settings.Ds);                                                                                         
             }        
-            Eigen::MatrixXcd Psi = Eigen::MatrixXcd::Zero(alfa.size(), settings.Ns-1);
-            for ( int i = 0; i < settings.Ns-1; i++ )
+            Eigen::MatrixXcd Psi = Eigen::MatrixXcd::Zero(alfa.size(), t_evaluate.size());
+            for ( int i = 0; i < t_evaluate.size(); i++ )
                 Psi.col(i) = alfa.cwiseProduct(V_and.col(i));
 
 
@@ -338,12 +339,12 @@ int main( int argc, char *argv[] )
         
         if ( settings.flag_mean == "YES" )
         {   
-            for ( int it = 0; it < (settings.Ns-1); it++ )
+            for ( int it = 0; it < t_evaluate.size(); it++ )
                 Sn_Cons_time.col(it) += Ic;
         }
         std::cout << "Writing time reconstruction " << std::endl;
         // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, settings.Ns-1, nC, alpha, binary );
+        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
         //Executing SU2, removing all useless files, renaming files with residuals
         std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
         std::system( su2_sys_call );
@@ -364,8 +365,8 @@ int main( int argc, char *argv[] )
 // //energy level and rank rdmd to zero, for mode based just select
 //rank rdmd to the number of desired modes
     {
-        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, settings.Ns-1);
-        std::string mv_string = "mv history_rbm_00002.csv history_rdmd_00002.csv";
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, t_evaluate.size());
+        std::string mv_string = "mv history_rbm.csv history_rdmd.csv";
         len_s = mv_string.length();
         char mv_sys_call[len_s + 1];
         strcpy(mv_sys_call, mv_string.c_str());
@@ -435,10 +436,10 @@ int main( int argc, char *argv[] )
                                                         Coefs.transpose(),
                                                         settings.flag_interp);
             
-            Eigen::MatrixXd coef_t(settings.Ns-1, Nm);
+            Eigen::MatrixXd coef_t(t_evaluate.size(), Nm);
 
             std::vector<double> tr(1);
-            for ( int j = 0; j < settings.Ns - 1; j++ )
+            for ( int j = 0; j < t_evaluate.size(); j++ )
             {    
                 tr[0] = t_evaluate[j];
                 for ( int i = 0; i < Nm; i++ )
@@ -451,12 +452,12 @@ int main( int argc, char *argv[] )
                     //Add mean or Initial condition if it is subtracted
         if ( settings.flag_mean == "YES" )
         {   
-            for ( int it = 0; it < (settings.Ns-1); it++ )
+            for ( int it = 0; it < t_evaluate.size(); it++ )
                 Sn_Cons_time.col(it) += Ic;
         }
         std::cout << "Writing time reconstruction " << std::endl;
         // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, settings.Ns-1, nC, alpha, binary );
+        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
         //Executing SU2, removing all useless files, renaming files with residuals
         std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
         std::system( su2_sys_call );

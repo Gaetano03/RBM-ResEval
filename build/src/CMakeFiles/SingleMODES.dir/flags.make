@@ -6,5 +6,5 @@ CXX_FLAGS = -O4 -DNDEBUG -march=native -fPIE   -std=c++14
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/gaetano/workspace/MODESgit/MODES/include -I/usr/local/include/smart-math -I/usr/local/include/smart-uq 
+CXX_INCLUDES = -I/home/gaetano/workspace/RBM-ResEval/include -I/usr/local/include/smart-math -I/usr/local/include/smart-uq 
 

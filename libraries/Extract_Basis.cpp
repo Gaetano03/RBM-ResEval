@@ -870,6 +870,12 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
     Eigen::VectorXd svd_old = Eigen::VectorXd::Zero(Ns);
     double count = 0;
 
+    if ( rdmd > (Ns + 1) )
+    {
+        std::cout << "Rank RDMD too high for the number of snapshots available. Resetting it to maximum value admissable" << std::endl;
+        rdmd = Ns; 
+    }    
+
     if ( rdmd == 0 )
     {
         while ( eps < En && count < Ns+1 )

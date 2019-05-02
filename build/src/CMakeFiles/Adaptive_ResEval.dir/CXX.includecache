@@ -108,17 +108,17 @@ Reconstruction.hpp
 read_Inputs.hpp
 ../include/read_Inputs.hpp
 
-/home/gaetano/workspace/MODESgit/MODES/src/Adaptive_ResEval.cpp
+/home/gaetano/workspace/RBM-ResEval/src/Adaptive_ResEval.cpp
 Extract_Basis.hpp
-/home/gaetano/workspace/MODESgit/MODES/src/Extract_Basis.hpp
+/home/gaetano/workspace/RBM-ResEval/src/Extract_Basis.hpp
 read_Inputs.hpp
-/home/gaetano/workspace/MODESgit/MODES/src/read_Inputs.hpp
+/home/gaetano/workspace/RBM-ResEval/src/read_Inputs.hpp
 Generate_snset.hpp
-/home/gaetano/workspace/MODESgit/MODES/src/Generate_snset.hpp
+/home/gaetano/workspace/RBM-ResEval/src/Generate_snset.hpp
 Reconstruction.hpp
-/home/gaetano/workspace/MODESgit/MODES/src/Reconstruction.hpp
+/home/gaetano/workspace/RBM-ResEval/src/Reconstruction.hpp
 write_Outputs.hpp
-/home/gaetano/workspace/MODESgit/MODES/src/write_Outputs.hpp
+/home/gaetano/workspace/RBM-ResEval/src/write_Outputs.hpp
 
 /usr/local/include/smart-math/Dynamics/base_dynamics.h
 vector
