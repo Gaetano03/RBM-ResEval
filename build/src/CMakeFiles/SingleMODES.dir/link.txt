@@ -1,1 +1,0 @@
-/usr/bin/c++  -O4 -DNDEBUG -march=native  -rdynamic CMakeFiles/SingleMODES.dir/SingleMODES.cpp.o  -o SingleMODES -Wl,-rpath,/home/gaetano/workspace/RBM-ResEval/build ../libMODES.so -Wl,-Bstatic -lgsl -lgslcblas -Wl,-Bdynamic /usr/local/lib/libsmart-math.a /usr/local/lib/libsmart-uq.a 

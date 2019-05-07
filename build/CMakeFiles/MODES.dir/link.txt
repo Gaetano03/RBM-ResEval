@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -O4 -DNDEBUG -march=native  -shared -Wl,-soname,libMODES.so -o libMODES.so CMakeFiles/MODES.dir/libraries/Extract_Basis.cpp.o CMakeFiles/MODES.dir/libraries/Generate_snset.cpp.o CMakeFiles/MODES.dir/libraries/Reconstruction.cpp.o CMakeFiles/MODES.dir/libraries/read_Inputs.cpp.o CMakeFiles/MODES.dir/libraries/write_Outputs.cpp.o 
