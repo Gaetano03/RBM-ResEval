@@ -124,30 +124,17 @@ MODES/fast:
 .PHONY : MODES/fast
 
 #=============================================================================
-# Target rules for targets named SingleMODES
+# Target rules for targets named Adaptive_Energy_Mode
 
 # Build rule for target.
-SingleMODES: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 SingleMODES
-.PHONY : SingleMODES
+Adaptive_Energy_Mode: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Adaptive_Energy_Mode
+.PHONY : Adaptive_Energy_Mode
 
 # fast build rule for target.
-SingleMODES/fast:
-	$(MAKE) -f src/CMakeFiles/SingleMODES.dir/build.make src/CMakeFiles/SingleMODES.dir/build
-.PHONY : SingleMODES/fast
-
-#=============================================================================
-# Target rules for targets named Adaptive_ResEval
-
-# Build rule for target.
-Adaptive_ResEval: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Adaptive_ResEval
-.PHONY : Adaptive_ResEval
-
-# fast build rule for target.
-Adaptive_ResEval/fast:
-	$(MAKE) -f src/CMakeFiles/Adaptive_ResEval.dir/build.make src/CMakeFiles/Adaptive_ResEval.dir/build
-.PHONY : Adaptive_ResEval/fast
+Adaptive_Energy_Mode/fast:
+	$(MAKE) -f src/CMakeFiles/Adaptive_Energy_Mode.dir/build.make src/CMakeFiles/Adaptive_Energy_Mode.dir/build
+.PHONY : Adaptive_Energy_Mode/fast
 
 #=============================================================================
 # Target rules for targets named AdaptiveMODES
@@ -163,17 +150,56 @@ AdaptiveMODES/fast:
 .PHONY : AdaptiveMODES/fast
 
 #=============================================================================
-# Target rules for targets named Adaptive_Energy_Mode
+# Target rules for targets named Adaptive_ResEval
 
 # Build rule for target.
-Adaptive_Energy_Mode: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Adaptive_Energy_Mode
-.PHONY : Adaptive_Energy_Mode
+Adaptive_ResEval: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Adaptive_ResEval
+.PHONY : Adaptive_ResEval
 
 # fast build rule for target.
-Adaptive_Energy_Mode/fast:
-	$(MAKE) -f src/CMakeFiles/Adaptive_Energy_Mode.dir/build.make src/CMakeFiles/Adaptive_Energy_Mode.dir/build
-.PHONY : Adaptive_Energy_Mode/fast
+Adaptive_ResEval/fast:
+	$(MAKE) -f src/CMakeFiles/Adaptive_ResEval.dir/build.make src/CMakeFiles/Adaptive_ResEval.dir/build
+.PHONY : Adaptive_ResEval/fast
+
+#=============================================================================
+# Target rules for targets named SingleMODES
+
+# Build rule for target.
+SingleMODES: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 SingleMODES
+.PHONY : SingleMODES
+
+# fast build rule for target.
+SingleMODES/fast:
+	$(MAKE) -f src/CMakeFiles/SingleMODES.dir/build.make src/CMakeFiles/SingleMODES.dir/build
+.PHONY : SingleMODES/fast
+
+#=============================================================================
+# Target rules for targets named Adaptive_Rec_DTR
+
+# Build rule for target.
+Adaptive_Rec_DTR: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Adaptive_Rec_DTR
+.PHONY : Adaptive_Rec_DTR
+
+# fast build rule for target.
+Adaptive_Rec_DTR/fast:
+	$(MAKE) -f src/CMakeFiles/Adaptive_Rec_DTR.dir/build.make src/CMakeFiles/Adaptive_Rec_DTR.dir/build
+.PHONY : Adaptive_Rec_DTR/fast
+
+#=============================================================================
+# Target rules for targets named POD_Rec
+
+# Build rule for target.
+POD_Rec: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 POD_Rec
+.PHONY : POD_Rec
+
+# fast build rule for target.
+POD_Rec/fast:
+	$(MAKE) -f src/CMakeFiles/POD_Rec.dir/build.make src/CMakeFiles/POD_Rec.dir/build
+.PHONY : POD_Rec/fast
 
 libraries/Extract_Basis.o: libraries/Extract_Basis.cpp.o
 
@@ -319,10 +345,12 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... MODES"
 	@echo "... edit_cache"
-	@echo "... SingleMODES"
-	@echo "... Adaptive_ResEval"
-	@echo "... AdaptiveMODES"
 	@echo "... Adaptive_Energy_Mode"
+	@echo "... AdaptiveMODES"
+	@echo "... Adaptive_ResEval"
+	@echo "... SingleMODES"
+	@echo "... Adaptive_Rec_DTR"
+	@echo "... POD_Rec"
 	@echo "... libraries/Extract_Basis.o"
 	@echo "... libraries/Extract_Basis.i"
 	@echo "... libraries/Extract_Basis.s"

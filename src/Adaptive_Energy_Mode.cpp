@@ -141,7 +141,8 @@ int main( int argc, char *argv[] )
             }
             else
             {
-                Nm = settings.r;
+                int max_rank = Phi.cols();
+                Nm = std::min(settings.r, max_rank);
                 std::cout << "Number of modes (fixed): " << Nm << std::endl;
             }
             std::vector<rbf> surr_coefs =  getSurrCoefs (t_vec,
@@ -363,7 +364,8 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            Nm = settings.r;
+            int max_rank = Phi.cols();
+            Nm = std::min(settings.r, max_rank);
             std::cout << "Number of modes (fixed) : " << Nm << std::endl;
         }
         
@@ -528,7 +530,8 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            Nm = settings.r;
+            int max_rank = Phi.cols();
+            Nm = std::min(settings.r, max_rank);
             std::cout << "number of modes (fixed) " << Nm << std::endl;
         }
 

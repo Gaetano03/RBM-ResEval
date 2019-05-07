@@ -111,34 +111,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-src/CMakeFiles/SingleMODES.dir/rule:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/SingleMODES.dir/rule
-.PHONY : src/CMakeFiles/SingleMODES.dir/rule
+src/CMakeFiles/Adaptive_Energy_Mode.dir/rule:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
+.PHONY : src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
 
 # Convenience name for target.
-SingleMODES: src/CMakeFiles/SingleMODES.dir/rule
+Adaptive_Energy_Mode: src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
 
-.PHONY : SingleMODES
+.PHONY : Adaptive_Energy_Mode
 
 # fast build rule for target.
-SingleMODES/fast:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/SingleMODES.dir/build.make src/CMakeFiles/SingleMODES.dir/build
-.PHONY : SingleMODES/fast
-
-# Convenience name for target.
-src/CMakeFiles/Adaptive_ResEval.dir/rule:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/Adaptive_ResEval.dir/rule
-.PHONY : src/CMakeFiles/Adaptive_ResEval.dir/rule
-
-# Convenience name for target.
-Adaptive_ResEval: src/CMakeFiles/Adaptive_ResEval.dir/rule
-
-.PHONY : Adaptive_ResEval
-
-# fast build rule for target.
-Adaptive_ResEval/fast:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_ResEval.dir/build.make src/CMakeFiles/Adaptive_ResEval.dir/build
-.PHONY : Adaptive_ResEval/fast
+Adaptive_Energy_Mode/fast:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Energy_Mode.dir/build.make src/CMakeFiles/Adaptive_Energy_Mode.dir/build
+.PHONY : Adaptive_Energy_Mode/fast
 
 # Convenience name for target.
 src/CMakeFiles/AdaptiveMODES.dir/rule:
@@ -156,19 +141,64 @@ AdaptiveMODES/fast:
 .PHONY : AdaptiveMODES/fast
 
 # Convenience name for target.
-src/CMakeFiles/Adaptive_Energy_Mode.dir/rule:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
-.PHONY : src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
+src/CMakeFiles/Adaptive_ResEval.dir/rule:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/Adaptive_ResEval.dir/rule
+.PHONY : src/CMakeFiles/Adaptive_ResEval.dir/rule
 
 # Convenience name for target.
-Adaptive_Energy_Mode: src/CMakeFiles/Adaptive_Energy_Mode.dir/rule
+Adaptive_ResEval: src/CMakeFiles/Adaptive_ResEval.dir/rule
 
-.PHONY : Adaptive_Energy_Mode
+.PHONY : Adaptive_ResEval
 
 # fast build rule for target.
-Adaptive_Energy_Mode/fast:
-	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Energy_Mode.dir/build.make src/CMakeFiles/Adaptive_Energy_Mode.dir/build
-.PHONY : Adaptive_Energy_Mode/fast
+Adaptive_ResEval/fast:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_ResEval.dir/build.make src/CMakeFiles/Adaptive_ResEval.dir/build
+.PHONY : Adaptive_ResEval/fast
+
+# Convenience name for target.
+src/CMakeFiles/SingleMODES.dir/rule:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/SingleMODES.dir/rule
+.PHONY : src/CMakeFiles/SingleMODES.dir/rule
+
+# Convenience name for target.
+SingleMODES: src/CMakeFiles/SingleMODES.dir/rule
+
+.PHONY : SingleMODES
+
+# fast build rule for target.
+SingleMODES/fast:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/SingleMODES.dir/build.make src/CMakeFiles/SingleMODES.dir/build
+.PHONY : SingleMODES/fast
+
+# Convenience name for target.
+src/CMakeFiles/Adaptive_Rec_DTR.dir/rule:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/Adaptive_Rec_DTR.dir/rule
+.PHONY : src/CMakeFiles/Adaptive_Rec_DTR.dir/rule
+
+# Convenience name for target.
+Adaptive_Rec_DTR: src/CMakeFiles/Adaptive_Rec_DTR.dir/rule
+
+.PHONY : Adaptive_Rec_DTR
+
+# fast build rule for target.
+Adaptive_Rec_DTR/fast:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Rec_DTR.dir/build.make src/CMakeFiles/Adaptive_Rec_DTR.dir/build
+.PHONY : Adaptive_Rec_DTR/fast
+
+# Convenience name for target.
+src/CMakeFiles/POD_Rec.dir/rule:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/POD_Rec.dir/rule
+.PHONY : src/CMakeFiles/POD_Rec.dir/rule
+
+# Convenience name for target.
+POD_Rec: src/CMakeFiles/POD_Rec.dir/rule
+
+.PHONY : POD_Rec
+
+# fast build rule for target.
+POD_Rec/fast:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/POD_Rec.dir/build.make src/CMakeFiles/POD_Rec.dir/build
+.PHONY : POD_Rec/fast
 
 AdaptiveMODES.o: AdaptiveMODES.cpp.o
 
@@ -224,6 +254,33 @@ Adaptive_Energy_Mode.cpp.s:
 	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Energy_Mode.dir/build.make src/CMakeFiles/Adaptive_Energy_Mode.dir/Adaptive_Energy_Mode.cpp.s
 .PHONY : Adaptive_Energy_Mode.cpp.s
 
+Adaptive_Rec_DTR.o: Adaptive_Rec_DTR.cpp.o
+
+.PHONY : Adaptive_Rec_DTR.o
+
+# target to build an object file
+Adaptive_Rec_DTR.cpp.o:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Rec_DTR.dir/build.make src/CMakeFiles/Adaptive_Rec_DTR.dir/Adaptive_Rec_DTR.cpp.o
+.PHONY : Adaptive_Rec_DTR.cpp.o
+
+Adaptive_Rec_DTR.i: Adaptive_Rec_DTR.cpp.i
+
+.PHONY : Adaptive_Rec_DTR.i
+
+# target to preprocess a source file
+Adaptive_Rec_DTR.cpp.i:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Rec_DTR.dir/build.make src/CMakeFiles/Adaptive_Rec_DTR.dir/Adaptive_Rec_DTR.cpp.i
+.PHONY : Adaptive_Rec_DTR.cpp.i
+
+Adaptive_Rec_DTR.s: Adaptive_Rec_DTR.cpp.s
+
+.PHONY : Adaptive_Rec_DTR.s
+
+# target to generate assembly for a file
+Adaptive_Rec_DTR.cpp.s:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_Rec_DTR.dir/build.make src/CMakeFiles/Adaptive_Rec_DTR.dir/Adaptive_Rec_DTR.cpp.s
+.PHONY : Adaptive_Rec_DTR.cpp.s
+
 Adaptive_ResEval.o: Adaptive_ResEval.cpp.o
 
 .PHONY : Adaptive_ResEval.o
@@ -250,6 +307,33 @@ Adaptive_ResEval.s: Adaptive_ResEval.cpp.s
 Adaptive_ResEval.cpp.s:
 	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/Adaptive_ResEval.dir/build.make src/CMakeFiles/Adaptive_ResEval.dir/Adaptive_ResEval.cpp.s
 .PHONY : Adaptive_ResEval.cpp.s
+
+POD_Rec.o: POD_Rec.cpp.o
+
+.PHONY : POD_Rec.o
+
+# target to build an object file
+POD_Rec.cpp.o:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/POD_Rec.dir/build.make src/CMakeFiles/POD_Rec.dir/POD_Rec.cpp.o
+.PHONY : POD_Rec.cpp.o
+
+POD_Rec.i: POD_Rec.cpp.i
+
+.PHONY : POD_Rec.i
+
+# target to preprocess a source file
+POD_Rec.cpp.i:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/POD_Rec.dir/build.make src/CMakeFiles/POD_Rec.dir/POD_Rec.cpp.i
+.PHONY : POD_Rec.cpp.i
+
+POD_Rec.s: POD_Rec.cpp.s
+
+.PHONY : POD_Rec.s
+
+# target to generate assembly for a file
+POD_Rec.cpp.s:
+	cd /home/gaetano/workspace/RBM-ResEval/build && $(MAKE) -f src/CMakeFiles/POD_Rec.dir/build.make src/CMakeFiles/POD_Rec.dir/POD_Rec.cpp.s
+.PHONY : POD_Rec.cpp.s
 
 SingleMODES.o: SingleMODES.cpp.o
 
@@ -286,19 +370,27 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... SingleMODES"
-	@echo "... Adaptive_ResEval"
-	@echo "... AdaptiveMODES"
 	@echo "... Adaptive_Energy_Mode"
+	@echo "... AdaptiveMODES"
+	@echo "... Adaptive_ResEval"
+	@echo "... SingleMODES"
+	@echo "... Adaptive_Rec_DTR"
+	@echo "... POD_Rec"
 	@echo "... AdaptiveMODES.o"
 	@echo "... AdaptiveMODES.i"
 	@echo "... AdaptiveMODES.s"
 	@echo "... Adaptive_Energy_Mode.o"
 	@echo "... Adaptive_Energy_Mode.i"
 	@echo "... Adaptive_Energy_Mode.s"
+	@echo "... Adaptive_Rec_DTR.o"
+	@echo "... Adaptive_Rec_DTR.i"
+	@echo "... Adaptive_Rec_DTR.s"
 	@echo "... Adaptive_ResEval.o"
 	@echo "... Adaptive_ResEval.i"
 	@echo "... Adaptive_ResEval.s"
+	@echo "... POD_Rec.o"
+	@echo "... POD_Rec.i"
+	@echo "... POD_Rec.s"
 	@echo "... SingleMODES.o"
 	@echo "... SingleMODES.i"
 	@echo "... SingleMODES.s"

@@ -648,9 +648,9 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
         std::string Recx;
         std::string Recy;
 
-        Recx = "\"Rec_x\""; 
+        Recx = "\"rhoU\""; 
         flow_data << Recx << " ";
-        Recy = "\"Rec_y\""; 
+        Recy = "\"rhoV\""; 
         flow_data << Recy << " ";
         flow_data << std::endl;
 
@@ -687,11 +687,11 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
         std::string Recy;
         std::string Recz;
 
-        Recx = "\"Rec_x\""; 
+        Recx = "\"rhoU\""; 
         flow_data << Recx << " ";
-        Recy = "\"Rec_y\""; 
+        Recy = "\"rhoV\""; 
         flow_data << Recy << " ";
-        Recz = "\"Rec_z\""; 
+        Recz = "\"rhoW\""; 
         flow_data << Recz << " ";
         flow_data << std::endl;
 

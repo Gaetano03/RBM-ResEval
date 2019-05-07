@@ -200,7 +200,7 @@ bool check_linear_consistency( Eigen::MatrixXd X, Eigen::MatrixXd Y, Eigen::Matr
 std::string method_selected ( int n, int &Nf_SPOD, std::vector<int> Nf )
 {
 
-    if ( (n > -1) && (n < (Nf.size() + 1)) )
+    if ( (n > -1) && (n < (Nf.size())) )
     {
         for ( int i = 0; i < Nf.size(); i++ )
         {
