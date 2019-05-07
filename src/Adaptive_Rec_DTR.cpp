@@ -388,7 +388,7 @@ int main( int argc, char *argv[] )
                                         Coefs,
                                         lambda,
                                         K_pc,     
-                                        settings.r,
+                                        -1, //performing DMD with all non-zero eigenvalues
                                         settings.r_RDMD,
                                         settings.En );
                 
