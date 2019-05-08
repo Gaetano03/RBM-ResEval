@@ -825,6 +825,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                                     const int nt,
                                     const int nC,
                                     const double alpha,
+                                    const double beta,
                                     const std::string flag )
 {
 
@@ -864,7 +865,6 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                 restart_file << std::endl;
             }
             //Write Metadata
-            double beta = 0.0; //Since none of our simulations have been using sideslip angles so far
             restart_file << "EXT_ITER= " << it + 1 << std::endl;
             restart_file << "AOA= " << std::setprecision(12) << std::scientific << alpha << std::endl;
             restart_file << "SIDESLIP_ANGLE= " << std::setprecision(12) << std::scientific << beta << std::endl;
@@ -883,7 +883,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
             
             //Prepare metadata
             int Restart_ExtIter = it+1;
-            double Restart_Metadata[8] = { alpha, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+            double Restart_Metadata[8] = { alpha, beta, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
             //Prepare row of headers
             std::string Variable_Names[nC+nDim];

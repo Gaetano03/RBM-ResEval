@@ -48,7 +48,8 @@ int main( int argc, char *argv[] )
 
     int nC = settings.Cols.size();
     double alpha = settings.alpha;
-
+    double beta = settings.beta;
+    if (settings.ndim == 2) beta = 0.0;
 
     std::stringstream buffer;
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
@@ -101,8 +102,9 @@ int main( int argc, char *argv[] )
     double mu = mu_ref*std::pow(T/T_ref,1.5)*(T_ref + S)/(T + S);
     double V_magn = M*std::sqrt(gamma*R*T);
     double rho = Re*mu/(V_magn*length);
-    double rhoU = rho*V_magn*std::cos(alpha);
+    double rhoU = rho*V_magn*std::cos(alpha)*std::cos(beta);
     double rhoV = rho*V_magn*std::sin(alpha);
+    double rhoW = rho*V_magn*std::cos(alpha)*std::sin(beta);
     double rhoE = rho*(R/(gamma-1)*T + 0.5*V_magn*V_magn);
 
     //That only matters for turbulent calculation
@@ -139,13 +141,13 @@ int main( int argc, char *argv[] )
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(3*Nr, Nr) = Eigen::MatrixXd::Zero(Nr,1); //no sideslip angle
+        Ic.segment(3*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1); //no sideslip angle
         Ic.segment(4*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(5*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1); 
         Ic.segment(6*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);        
     }
 
-    std::string binary = "NO";
+    std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
     if ( settings.flag_mean == "YES" )
@@ -213,7 +215,7 @@ int main( int argc, char *argv[] )
             }
             std::cout << "Writing time reconstruction " << std::endl;
             // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-            Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
+            Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, beta, binary );
             //Executing SU2, removing all useless files, renaming files with residuals
             std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
             std::system( su2_sys_call );
@@ -344,7 +346,7 @@ int main( int argc, char *argv[] )
         }
         std::cout << "Writing time reconstruction " << std::endl;
         // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
+        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, beta, binary );
         //Executing SU2, removing all useless files, renaming files with residuals
         std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
         std::system( su2_sys_call );
@@ -457,7 +459,7 @@ int main( int argc, char *argv[] )
         }
         std::cout << "Writing time reconstruction " << std::endl;
         // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
-        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, binary );
+        Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha, beta, binary );
         //Executing SU2, removing all useless files, renaming files with residuals
         std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
         std::system( su2_sys_call );

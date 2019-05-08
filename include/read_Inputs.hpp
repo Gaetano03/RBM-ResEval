@@ -32,6 +32,7 @@ struct prob_settings
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
     double Dt_cfd;                  //delta t used in CFD simulation
     double alpha;                   //angle of attack of the problem
+    double beta;                    //angle of sideslip
     double Mach;                    //Mach number
     double Re;                      //Reynolds number
     double mu;                      //dynamic viscosity
@@ -77,7 +78,7 @@ struct prob_settings
 enum keywords 
             { 
                 NS, DS, EN, NF, SIGMA,
-                ALPHA, MACH, REYNOLDS, TEMPERATURE, VISCOSITY,
+                ALPHA, BETA, MACH, REYNOLDS, TEMPERATURE, VISCOSITY,
                 NSTART,
                 NDIM,
                 DT_CFD,

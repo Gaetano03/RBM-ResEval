@@ -48,6 +48,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                                     const int nt,
                                     const int nC,
                                     const double alpha,
+                                    const double beta,
                                     const std::string flag = "NO" );
 
 void write_modes ( const Eigen::MatrixXd &Phi_cut ); //write modes RDMD

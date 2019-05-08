@@ -16,6 +16,8 @@ keywords read_keyword_type( const std::string &key_string )
         return NSTART;
     else if( key_string == "ALPHA" )
         return ALPHA;
+    else if( key_string == "BETA" )
+        return BETA;
     else if( key_string == "MACH" )
         return MACH;
     else if( key_string == "TEMPERATURE" )
@@ -165,6 +167,13 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                 case ALPHA:
                 {
                     settings.alpha = std::stod(value);
+                    //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
+                    break;
+                }
+
+                case BETA:
+                {
+                    settings.beta = std::stod(value);
                     //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
                     break;
                 }
