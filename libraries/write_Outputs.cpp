@@ -936,12 +936,13 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                 restart_file.write(str_buf, CGNS_STRING_SIZE*sizeof(char));
             }
 
+
             for ( int iPoint = 0; iPoint < Np; iPoint ++)
             { 
                 for ( int iVar = 0; iVar < nDim; iVar ++ )
                     buf[iVar] = Coords(iPoint, iVar);
                 for ( int iVar = nDim; iVar < (nC + nDim); iVar ++ )
-                    buf[iVar] = Rec(iPoint, iVar-nDim);
+                    buf[iVar] = Rec( iPoint + (iVar-nDim)*Np, it);
 
                 restart_file.write((char*) buf, sizeof(double)*(nC+nDim));
             }
