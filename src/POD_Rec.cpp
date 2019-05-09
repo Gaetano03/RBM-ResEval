@@ -24,6 +24,7 @@ int main( int argc, char *argv[] )
     Read_cfg( filecfg, settings );
     double t_0 = settings.nstart*settings.Dt_cfd;
     double alpha = settings.alpha;
+    double beta  = settings.beta;
 
     int s_Nf = 5;
     int Nmethods = s_Nf + 2;
@@ -72,9 +73,9 @@ int main( int argc, char *argv[] )
     double mu = mu_ref*std::pow(T/T_ref,1.5)*(T_ref + S)/(T + S);
     double V_magn = M*std::sqrt(gamma*R*T);
     double rho = Re*mu/(V_magn*length);
-    double rhoU = rho*V_magn*std::cos(alpha);
+    double rhoU = rho*V_magn*std::cos(alpha)*std::cos(beta);
     double rhoV = rho*V_magn*std::sin(alpha);
-    double rhoW = 0.0; // no sideslip angle
+    double rhoW = rho*V_magn*std::cos(alpha)*std::sin(beta);
     double rhoE = rho*(R/(gamma-1)*T + 0.5*V_magn*V_magn);
 
     //That only matters for turbulent calculation
@@ -100,7 +101,7 @@ int main( int argc, char *argv[] )
     {
         Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = Eigen::MatrixXd::Zero(Nr,1); //no sideslip angle        
+        Ic.segment(2*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1);
     }
 
     if ( settings.flag_mean == "YES" )
