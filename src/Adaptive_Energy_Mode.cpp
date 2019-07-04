@@ -100,20 +100,34 @@ int main( int argc, char *argv[] )
     // Eigen::VectorXd mean_check = sn_set_check.rowwise().mean();
     // Eigen::VectorXd mean_check = sn_set.rowwise().mean();
 
-    for ( int i = 0; i < settings.Ns-1; i ++ )
+    if (settings.flag_mean == "YES")
     {
-        norm_sn_set(i) = sn_set_check.col(i).norm();
-    }
+        std::cout << "Subtracting mean from snapshots ... " << std::endl;
 
-    Eigen::VectorXd svd_cum_sum(settings.Ns);
-
-//Defining common scope for POD-SPOD
-    {
         for ( int nt = 0; nt < settings.Ns; nt++ )
             sn_set.col(nt) -= mean;
 
         for ( int nt = 0; nt < settings.Ns-1; nt++ )
             sn_set_check.col(nt) -= mean;
+    }
+
+    for ( int i = 0; i < settings.Ns-1; i ++ )
+    {
+        norm_sn_set(i) = sn_set_check.col(i).norm();
+    }
+
+
+std::cout << "Norm_sn_set rho:\n " << norm_sn_set << std::endl;
+
+    Eigen::VectorXd svd_cum_sum(settings.Ns);
+
+//Defining common scope for POD-SPOD
+    {
+        // for ( int nt = 0; nt < settings.Ns; nt++ )
+        //     sn_set.col(nt) -= mean;
+
+        // for ( int nt = 0; nt < settings.Ns-1; nt++ )
+        //     sn_set_check.col(nt) -= mean;
 
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::VectorXd K_pc(settings.Ns);
@@ -255,8 +269,11 @@ int main( int argc, char *argv[] )
 
                     std::cout << "Done" << std::endl;
 
-                    for ( int i = 0; i < Rec.cols(); i++)
-                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+                    if (settings.flag_mean == "YES")
+                    {
+                        for ( int i = 0; i < Rec.cols(); i++)
+                            Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+                    }
 
                     std::cout << "Writing reconstructed field ..." << "\t";
                     std::string filename = "Rec_flow_SPOD_Nf" + std::to_string(Nf[nfj]) + ".dat";
@@ -276,11 +293,11 @@ int main( int argc, char *argv[] )
     }
 
 
-    for ( int nt = 0; nt < settings.Ns; nt++ )
-        sn_set.col(nt) += mean;
+    // for ( int nt = 0; nt < settings.Ns; nt++ )
+    //     sn_set.col(nt) += mean;
     
-    for ( int nt = 0; nt < settings.Ns-1; nt++ )
-        sn_set_check.col(nt) += mean;
+    // for ( int nt = 0; nt < settings.Ns-1; nt++ )
+    //     sn_set_check.col(nt) += mean;
 
 //Defining scope for DMD ( Rank=-1 preferable, Coeffs = OPT )
     {
@@ -444,6 +461,12 @@ int main( int argc, char *argv[] )
                 std::cout << "Done" << std::endl;
                 std::cout << "Writing reconstructed field ..." << "\t";
 
+                if (settings.flag_mean == "YES")
+                {
+                    for ( int i = 0; i < Rec.cols(); i++)
+                        Rec.real().col(i) = Rec.real().col(i) + mean.segment(i*Nr, Nr);
+                }
+
                 std::string filename = "Rec_flow_DMD.dat";
                 write_Reconstructed_fields ( Rec.real(), Coords,
                                         filename,
@@ -459,11 +482,11 @@ int main( int argc, char *argv[] )
     }
     
 
-    for ( int nt = 0; nt < settings.Ns; nt++ )
-        sn_set.col(nt) -= mean;
+    // for ( int nt = 0; nt < settings.Ns; nt++ )
+    //     sn_set.col(nt) -= mean;
 
-    for ( int nt = 0; nt < settings.Ns-1; nt++ )
-        sn_set_check.col(nt) -= mean;
+    // for ( int nt = 0; nt < settings.Ns-1; nt++ )
+    //     sn_set_check.col(nt) -= mean;
 
 //Defining scope for RDMD
 //if using the function RDMD_modes_coefs for energybased select 
@@ -606,11 +629,11 @@ int main( int argc, char *argv[] )
                 std::cout << "Done" << std::endl;
 
 
-
-                for ( int i = 0; i < Rec.cols(); i++)
-                    Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
-
-                
+                if (settings.flag_mean == "YES")
+                {
+                    for ( int i = 0; i < Rec.cols(); i++)
+                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+                }
 
                 std::cout << "Writing reconstructed field ..." << "\t";
 

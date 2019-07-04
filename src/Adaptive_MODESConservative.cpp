@@ -47,7 +47,7 @@ int main( int argc, char *argv[] )
     double beta = settings.beta;
     if (settings.ndim == 2) beta = 0.0;
 
-    Eigen::VectorXd norm_sn_set = Eigen::MatrixXd::Zero(nC, settings.Ns*settings.Ds);
+    Eigen::MatrixXd norm_sn_set = Eigen::MatrixXd::Zero(nC, settings.Ns*settings.Ds);
     
     std::stringstream buffer;
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
@@ -174,11 +174,19 @@ int main( int argc, char *argv[] )
     }
 
 
+std::cout << "Dim sn_set: [" << sn_set.rows() << ", " << sn_set.cols() << "]" <<std::endl;
+std::cout << "Dim sn_setp: [" << sn_set_p.rows() << ", " << sn_set_p.cols() << "]" <<std::endl;
+std::cout << "Dim norm_sn_set: [" << norm_sn_set.rows() << ", " << norm_sn_set.cols() << "]" <<std::endl;
+
     for ( int j = 0; j < nC; j++ )   
     {
-        for ( int i = 0; i < settings.Ns*settings.Ds; i ++ )
+        for ( int i = 0; i < settings.Ns*settings.Ds; i++ )
             norm_sn_set(j, i) = sn_set.middleRows(j*Nr,Nr).col(i).norm();
+        
     }
+
+std::cout << "Norm_sn_set rho:\n " << norm_sn_set << std::endl;
+
 
 //Defining common scope for POD-SPOD
     {
