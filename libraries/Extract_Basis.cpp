@@ -888,6 +888,9 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                                                 lam_POD,
                                                 eig_vec_POD,
                                                 r );
+            
+            if ( Phi.cols() == 0 )
+                break;
     // std::cout << "size Phi : [" << Phi.rows() << ", " << Phi.cols() << "]" << std::endl; 
     // std::cout << "Done line 767" << std::endl;
             if ( count == 0)
@@ -960,6 +963,9 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                                                 lam_POD,
                                                 eig_vec_POD,
                                                 r );
+
+            if ( Phi.cols() == 0 )
+                break;
 
             if ( count == 0)
                 svd_old = lam_POD.cwiseProduct(lam_POD);

@@ -384,12 +384,12 @@ std::vector<rbf> getSurrCoefs ( const std::vector<double> &t_vec,
     avgDt = avgDt/(double)(t_vec.size()-1);
 
     // Create surrogates for coefficients
-    std::vector<rbf> surr_coefs;
+    std::vector<rbf> surr_coefs{};
     RBF_CONSTANTS rbf_const {avgDt, 0.0};
 
     for ( int i = 0; i < Nrec; i++ ){
         
-        std::vector<double> coefs ;
+        std::vector<double> coefs{} ;
         for (int j = 0 ; j < t_vec.size() ; j++)
             coefs.push_back(Coeffs(j,i));
 
