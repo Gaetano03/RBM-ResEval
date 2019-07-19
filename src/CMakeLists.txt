@@ -22,5 +22,5 @@ target_link_libraries (Adaptive_Rec_DTR MODES ${MANDATORY_LIBRARIES})
 add_executable (POD_Rec POD_Rec.cpp)
 target_link_libraries (POD_Rec MODES ${MANDATORY_LIBRARIES})
 
-add_executable (test test.cpp)
-target_link_libraries (test MODES ${MANDATORY_LIBRARIES})
+#add_executable (test test.cpp)
+#target_link_libraries (test MODES ${MANDATORY_LIBRARIES})

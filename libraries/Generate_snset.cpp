@@ -233,9 +233,7 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
             Eigen::MatrixXd snap(3*dum, Ns);
             for( int i = init; i < (Ns*ds + init); i += ds )
             {
-                int k = 0;
-                std::stringstream buffer;
-                buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
+                // int k = 0;
                 file_temp = std::to_string(i) + ".q"; 
                 std::cout << "Reading fields from : " << file_temp << "\t";
                 std::vector<Eigen::VectorXd> data_fields = read_plot3d (file_temp, Info);
@@ -250,12 +248,16 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
                     snap.middleRows(2*dum + dum1, np_block).col(k) = data_fields[iblock].middleRows(3*np_block, np_block).cwiseQuotient(data_fields[iblock].head(np_block));
                     dum1 += Info.ni[iblock]*Info.nj[iblock]*Info.nk[iblock];
                 }
-
+                // std::cout << "Done line 253 " << std::endl;
                 k++;
 
             }
 
             return snap;
+        } else {
+            
+            std::cout << "Only VELOCITY-3D implemented for CS3D so far. Set well FLAG_PROB! Now Exiting ..." << std::endl;
+            exit (EXIT_FAILURE);
         }
     }
 }
