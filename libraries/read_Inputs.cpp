@@ -3,7 +3,8 @@
 
 keywords read_keyword_type( const std::string &key_string )
 {
-
+    if( key_string == "SOLVER" )
+        return SOLVER;
     if( key_string == "NS" )
         return NS;
     else if( key_string == "DS" )
@@ -107,6 +108,12 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
             switch (read_keyword_type(name))
             {
+                case SOLVER:
+                {
+                    settings.solver = value;
+                    //std::cout << "Problem flag : " << value << std::endl;
+                    break;
+                }
 
                 case FLAG_PROB:
                 {
@@ -717,3 +724,121 @@ Eigen::MatrixXd read_err_j ( std::string filename, int Ns )
         return Err_map;
 
 }
+
+
+plot3d_info read_plot3d_info (std::string filename)
+{
+
+    plot3d_info Info;
+    int nC = 5; // Density, Momentum (3 Components), Total Energy
+
+    // open file in binary mode
+    std::ifstream input(filename, std::ios::binary);
+
+    if (input.good())
+    {
+     // read number of points
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        input.read((char*) &Info.nblocks, sizeof(int));
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        Info.ni.resize(Info.nblocks);
+        Info.nj.resize(Info.nblocks);
+        Info.nk.resize(Info.nblocks);
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        
+        for ( int i = 0; i < Info.nblocks; i++)
+        {
+            input.read((char*) &Info.ni[i], sizeof(int));
+            input.read((char*) &Info.nj[i], sizeof(int));
+            input.read((char*) &Info.nk[i], sizeof(int));
+        }
+
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        input.read((char*) &Info.M, sizeof(float));
+        input.read((char*) &Info.alpha, sizeof(float));
+        input.read((char*) &Info.Re, sizeof(float));
+        input.read((char*) &Info.T, sizeof(float));
+
+        input.close();
+        // std::cout << "Successfully read plot3d Info" << std::endl;
+    }
+    else
+    {
+     std::cout << "Unable to open file .q" << std::endl;
+    }
+
+    return Info;
+}
+
+
+std::vector<Eigen::VectorXd> read_plot3d (std::string filename, plot3d_info Info)
+{
+
+    int nC = 5; // Density, Momentum (3 Components), Total Energy
+    // Read .q file fortran binary
+
+    float dum_f;
+    int dum_i;
+    // open file in binary mode
+    std::ifstream input(filename, std::ios::binary);
+
+    std::vector<Eigen::VectorXd> flow_data(Info.nblocks);
+
+    if (input.good())
+    {
+     // read number of points
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        input.read((char*) &dum_i, sizeof(int));
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        
+        for ( int i = 0; i < Info.nblocks; i++)
+        {
+
+            input.read((char*) &dum_i, sizeof(int));
+            input.read((char*) &dum_i, sizeof(int));
+            input.read((char*) &dum_i, sizeof(int));
+        
+        }
+
+        input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        for ( int i = 0; i < Info.nblocks; i++ )
+        {
+            Eigen::VectorXf data_i(nC*Info.ni[i]*Info.nj[i]*Info.nk[i]);
+            input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+            input.read((char*) &dum_f, sizeof(float));
+            input.read((char*) &dum_f, sizeof(float));
+            input.read((char*) &dum_f, sizeof(float));
+            input.read((char*) &dum_f, sizeof(float));
+            input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+            input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+            
+            flow_data[i] = Eigen::VectorXd::Zero(nC*Info.ni[i]*Info.nj[i]*Info.nk[i]);
+            for ( int j = 0; j < nC*Info.ni[i]*Info.nj[i]*Info.nk[i]; j++ )
+                input.read((char*) &data_i(j), sizeof(float));
+
+            flow_data[i] = data_i.cast<double>();
+            input.seekg(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        }
+
+        input.close();
+        // std::cout << "Successfully read .q file" << std::endl;
+        return flow_data;
+
+    }
+    else
+    {
+     std::cout << "Unable to open .q file" << std::endl;
+     std::cout << "Terminating ... " << std::endl;
+     exit (EXIT_FAILURE);
+    }
+
+
+}
+

@@ -13,6 +13,9 @@
 #include "LinearAlgebra/Eigen/Dense"
 #include "LinearAlgebra/Eigen/Eigenvalues"
 
+//offset for reading fortran binary files
+const int RECORD_DELIMITER_LENGTH = 4;
+
 // Structure to be filled with information from cfg file
 struct prob_settings 
 {
@@ -22,6 +25,7 @@ struct prob_settings
     int Ds;                         //Delta between snapshots
     int nstart;                     //starting snapshot number
     int ndim;
+    std::string solver;
     std::string in_file;            //Input filename
     std::string out_file;           //Output filename (for reconstruction)
     std::string flag_dim;           //Problem dimension (2D/3D)
@@ -74,9 +78,19 @@ struct prob_settings
 };
 
 
+struct plot3d_info
+{
+    int nblocks; //number of blocks
+    std::vector<int> ni, nj, nk; // number of elements along the three spacial directions for each block
+    float M, alpha, Re, T; //Mach, angle of attack, Reynolds, Time non-dimensional
+};
+
+
+
 // List of Keywords in config file
 enum keywords 
-            { 
+            {
+                SOLVER, 
                 NS, DS, EN, NF, SIGMA,
                 ALPHA, BETA, MACH, REYNOLDS, TEMPERATURE, VISCOSITY,
                 NSTART,
@@ -130,6 +144,13 @@ Eigen::MatrixXd read_coefs( std::string filename, int Ns, int r_RDMD );
 
 // read Errors and Jaccard index for adaptive reconstruction
 Eigen::MatrixXd read_err_j ( std::string filename, int Ns );
+
+//read .q (plot3d) file for visualization info
+plot3d_info read_plot3d_info (std::string filename);
+
+// read .q (plot3d) file, fortran binary for flow field information
+std::vector<Eigen::VectorXd> read_plot3d (std::string filename, plot3d_info Info);
+
 
 
 #endif //READ_INPUTS_HPP

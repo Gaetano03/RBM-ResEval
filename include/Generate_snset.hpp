@@ -7,7 +7,8 @@
 Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, const int init,
                                         std::vector<int> Cols,
                                         std::string inputfile,
-                                        std::string flag_prob = "VELOCITY-2D");
+                                        std::string flag_prob = "VELOCITY-2D",
+                                        std::string solver = "SU2" );
 
 
 

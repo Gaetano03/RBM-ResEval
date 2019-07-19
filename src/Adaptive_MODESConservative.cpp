@@ -151,6 +151,13 @@ int main( int argc, char *argv[] )
         sn_set_p.col(is) = sn_set.col(settings.Ds*is);
     }
 
+    for ( int j = 0; j < nC; j++ )   
+    {
+        for ( int i = 0; i < settings.Ns*settings.Ds; i++ )
+            norm_sn_set(j, i) = sn_set.middleRows(j*Nr,Nr).col(i).norm();
+        
+    }
+
     Eigen::VectorXd mean = sn_set_p.rowwise().mean();
 
     if ( settings.flag_mean == "YES" )
@@ -177,13 +184,6 @@ int main( int argc, char *argv[] )
 std::cout << "Dim sn_set: [" << sn_set.rows() << ", " << sn_set.cols() << "]" <<std::endl;
 std::cout << "Dim sn_setp: [" << sn_set_p.rows() << ", " << sn_set_p.cols() << "]" <<std::endl;
 std::cout << "Dim norm_sn_set: [" << norm_sn_set.rows() << ", " << norm_sn_set.cols() << "]" <<std::endl;
-
-    for ( int j = 0; j < nC; j++ )   
-    {
-        for ( int i = 0; i < settings.Ns*settings.Ds; i++ )
-            norm_sn_set(j, i) = sn_set.middleRows(j*Nr,Nr).col(i).norm();
-        
-    }
 
 std::cout << "Norm_sn_set rho:\n " << norm_sn_set << std::endl;
 
@@ -263,83 +263,6 @@ std::cout << "Norm_sn_set rho:\n " << norm_sn_set << std::endl;
 
                 std::cout << "Done" << std::endl;
 
-//To remove after check %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                // if (ncons == 3)
-                // {
-                //     std::cout << "Writing Coefficients ..." << "\t";
-                    
-                //     std::string filename = "Coeffs_energySpod_" + std::to_string(nfj) + ".dat";
-                //     std::ofstream flow_data;
-                //     flow_data.open(filename.c_str());
-
-                //     // Write row of Headers
-                //     flow_data << "\"Time(s)\"" << " ";
-
-                //     std::string coef;
-
-                //     for ( int i = 0; i < coef_t.cols(); i++ )
-                //     {
-
-                //         coef = "\"Coef_mode_" + std::to_string(i+1) + "\""; 
-                //         flow_data << coef << " ";
-
-                //     }                     
-
-                //     flow_data << std::endl;
-
-                //     // Write coefficients
-                //     for ( int i = 0; i < coef_t.rows(); i++)
-                //     {
-
-                //         flow_data << std::setprecision(8) << t_evaluate[i] << " ";
-
-                //         for ( int j = 0; j < coef_t.cols(); j++ )
-                //             flow_data << std::setprecision(8) << coef_t(i,j) << " ";
-
-                //         flow_data << std::endl;
-
-                //     }
-
-                //     flow_data.close();
-
-
-
-
-                //     std::string filenameP = "CoeffsP_energySpod_" + std::to_string(nfj) + ".dat";
-                //     std::ofstream flow_dataP;
-                //     flow_dataP.open(filenameP.c_str());
-
-                //     // Write row of Headers
-                //     flow_dataP << "\"Time(s)\"" << " ";
-
-                //     for ( int i = 0; i < coef_t.cols(); i++ )
-                //     {
-
-                //         coef = "\"Coef_mode_" + std::to_string(i+1) + "\""; 
-                //         flow_dataP << coef << " ";
-
-                //     }                     
-                    
-                //     flow_dataP << std::endl;
-
-                //     dumCoefs = PhiTPhi.inverse()*dumCoefs;
-                //     // Write coefficients
-                //     for ( int i = 0; i < coef_t.rows(); i++)
-                //     {
-
-                //         flow_dataP << std::setprecision(8) << t_evaluate[i] << " ";
-
-                //         for ( int j = 0; j < coef_t.cols(); j++ )
-                //             flow_dataP << std::setprecision(8) << dumCoefs(i,j) << " ";
-
-                //         flow_dataP << std::endl;
-
-                //     }
-
-                //     flow_dataP.close();
-                // }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                // Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
             }
 
             std::ofstream errfile;
