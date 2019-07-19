@@ -87,7 +87,45 @@ keywords read_keyword_type( const std::string &key_string )
 void Read_cfg ( const std::string filename, prob_settings &settings )
 {
 
-    
+//Initializing values in settings to NULL or default values
+    settings.Ns = 0;                         
+    settings.Ds = 0;                         
+    settings.nstart = 0;                     
+    settings.ndim = 0;
+    settings.solver = "NONE" ;
+    settings.in_file = "NONE";            
+    settings.out_file = "NONE";           
+    settings.flag_dim = "NONE";           
+    settings.flag_prob = "NONE";          
+    settings.Cols = {};          
+    settings.Cols_coords = {};    
+    settings.flag_method = "NONE";        
+    settings.flag_wdb_be = "NONE";        
+    settings.Dt_cfd = 0.0;                
+    settings.alpha = 0.0;                 
+    settings.beta = 0.0;                  
+    settings.Mach = 0.0;                  
+    settings.Re = 0.0;                    
+    settings.mu = 0.0;                    
+    settings.T = 0.0;                     
+    settings.Nf = -1;                    
+    settings.En = -1.0;                  
+    settings.sigma = -1.0;               
+    settings.flag_filter = "NONE";    
+    settings.flag_mean = "NONE";      
+    settings.flag_bc = "NONE";       
+    settings.r = -2;                      
+    settings.dmd_coef_flag = "NONE"; 
+    settings.max_cycles = -1;
+    settings.max_levels = -1;
+    settings.d = 0;                      
+    settings.r_RDMD = -1;                
+    settings.flag_rec = "NONE";          
+    settings.flag_interp = "NONE";       
+    settings.t_rec = {};                  
+    settings.tol = 0.0;                    
+
+
     std::ifstream cFile ( filename );
     if ( cFile.is_open() )
     {
