@@ -55,7 +55,10 @@ void write_modes ( const Eigen::MatrixXd &Phi_cut ); //write modes RDMD
 
 void write_coefs ( const Eigen::MatrixXd &Coefs ); //write coefs RDMD
 
-void write_err_j ( const Eigen::MatrixXd data, std::string filename); //write error/jaccard surface for RBM method
+void write_err_j ( const Eigen::MatrixXd data, std::string filename ); //write error/jaccard surface for RBM method
 
+void Write_Plot3d_Modes( Eigen::MatrixXd Phi,           //Modes have to be scalar functions
+                        std::string filename, 
+                        plot3d_info Info );
 
 #endif // WRITE_OUTPUTS_HPP

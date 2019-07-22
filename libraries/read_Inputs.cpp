@@ -112,7 +112,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.En = -1.0;                  
     settings.sigma = -1.0;               
     settings.flag_filter = "NONE";    
-    settings.flag_mean = "NONE";      
+    settings.flag_mean = "NO";      
     settings.flag_bc = "NONE";       
     settings.r = -2;                      
     settings.dmd_coef_flag = "NONE"; 
@@ -120,7 +120,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.max_levels = -1;
     settings.d = 0;                      
     settings.r_RDMD = -1;                
-    settings.flag_rec = "NONE";          
+    settings.flag_rec = "NO";          
     settings.flag_interp = "NONE";       
     settings.t_rec = {};                  
     settings.tol = 0.0;                    

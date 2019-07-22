@@ -16,6 +16,13 @@ int main(int argc, char *argv[]) {
 
     //Reading configuration file
     Read_cfg( filecfg, settings );
+    std::string filename = std::to_string(settings.nstart) + ".q";
+    plot3d_info Info = read_plot3d_info (filename);
+    int Np = 0;
+    //computing number of points of the whole grid
+    for ( int iblock = 0; iblock < Info.nblocks; iblock++ )
+        Np += Info.ni[iblock]*Info.nj[iblock]*Info.nk[iblock];
+    
     Eigen::VectorXd K_pc(settings.Ns);
     
     Config_stream ( settings );
@@ -34,14 +41,14 @@ int main(int argc, char *argv[]) {
     if ( settings.flag_method == "SPOD")
     {
 
-        std::vector<double> t_vec( settings.Ns );
-        t_vec[0] = 0.0;
+        // std::vector<double> t_vec( settings.Ns );
+        // t_vec[0] = 0.0;
 
-        for ( int i = 1; i < settings.Ns; i++ )
-            t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
+        // for ( int i = 1; i < settings.Ns; i++ )
+        //     t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
 
-        std::cout << std::endl;
-        std::cout << "Initialized vector of times " << std::endl;
+        // std::cout << std::endl;
+        // std::cout << "Initialized vector of times " << std::endl;
 
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
@@ -81,20 +88,21 @@ int main(int argc, char *argv[]) {
             std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
         }
 
-
-        // if ( settings.flag_wdb_be == "YES" )
-        // {
+        if ( settings.flag_wdb_be == "YES" )
+        {
             
-        //     std::cout << "Writing modes ..." << "\t";
-        //     write_modes_sPOD ( Phi.leftCols(Nrec), Coords, settings.flag_prob );
-        //     std::cout << "Complete!" << std::endl;
+            std::cout << "Writing modes ..." << std::endl;
+            Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
+            Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
+            Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+            std::cout << "Complete!" << std::endl;
 
-        //     std::cout << "Writing Coefficients ..." << "\t";
-        //     write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
-        //     std::cout << "Complete!" << std::endl;
-        //     std::cout << std::endl;
+            // std::cout << "Writing Coefficients ..." << "\t";
+            // write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
+            // std::cout << "Complete!" << std::endl;
+            // std::cout << std::endl;
 
-        // }
+        }
 
         // if ( settings.flag_rec == "YES" )
         // {

@@ -957,3 +957,59 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
         }
     }
 }
+
+
+
+void Write_Plot3d_Modes( Eigen::MatrixXd Phi, std::string filename, plot3d_info Info )
+{
+
+    std::ofstream Modes_Data(filename, std::ios::binary);
+    int n_var = Phi.cols();
+
+    if (Modes_Data.good())
+    {
+     // read number of points
+        Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        Modes_Data.write((char*) &Info.nblocks, sizeof(int));
+        Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+        
+        for ( int iblock = 0; iblock < Info.nblocks; iblock++)
+        {
+            Modes_Data.write((char*) &Info.ni[iblock], sizeof(int));
+            Modes_Data.write((char*) &Info.nj[iblock], sizeof(int));
+            Modes_Data.write((char*) &Info.nk[iblock], sizeof(int));
+            Modes_Data.write((char*) &n_var, sizeof(int));
+        }
+
+        Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        int dum = 0;
+        for ( int iblock = 0; iblock < Info.nblocks; iblock++ )
+        {
+            int np_blocks = Info.ni[iblock]*Info.nj[iblock]*Info.nk[iblock];
+            Eigen::VectorXf data_field = Eigen::VectorXf::Zero(n_var*np_blocks);
+            for ( int ivar = 0; ivar < n_var; ivar++ )
+            {
+                data_field.middleRows(ivar*np_blocks, np_blocks) = Phi.middleRows(dum, np_blocks).col(ivar).cast<float>();
+            }
+            dum += np_blocks;
+            Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+            
+            for ( int j = 0; j < n_var*Info.ni[iblock]*Info.nj[iblock]*Info.nk[iblock]; j++ )
+                Modes_Data.write((char*) &data_field(j), sizeof(float));
+
+            Modes_Data.seekp(RECORD_DELIMITER_LENGTH, std::ios::cur);
+
+        }
+
+        Modes_Data.close();
+        std::cout << "Successfully written .f file" << std::endl;
+    }
+    else
+    {
+        std::cout << "Unable to write file .f" << std::endl;
+    }
+
+}
