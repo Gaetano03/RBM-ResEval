@@ -19,6 +19,10 @@ keywords read_keyword_type( const std::string &key_string )
         return ALPHA;
     else if( key_string == "BETA" )
         return BETA;
+    else if( key_string == "RHO_FREE" )
+        return RHO_FREE;
+    else if( key_string == "P_FREE" )
+        return P_FREE;
     else if( key_string == "MACH" )
         return MACH;
     else if( key_string == "TEMPERATURE" )
@@ -77,7 +81,7 @@ keywords read_keyword_type( const std::string &key_string )
         return TOL;
     else
     {
-        std::cout << "Something wrong in cfg file" << std::endl;
+        std::cout << key_string << " Not Available ... Something wrong in cfg file" << std::endl;
         exit (EXIT_FAILURE);       
     }
 
@@ -100,7 +104,9 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.Cols = {};          
     settings.Cols_coords = {};    
     settings.flag_method = "NONE";        
-    settings.flag_wdb_be = "NONE";        
+    settings.flag_wdb_be = "NONE"; 
+    settings.P = 101325;
+    settings.Rho = 1.228;       
     settings.Dt_cfd = 0.0;                
     settings.alpha = 0.0;                 
     settings.beta = 0.0;                  
@@ -219,6 +225,20 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                 case BETA:
                 {
                     settings.beta = std::stod(value);
+                    //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
+                    break;
+                }
+
+                case P_FREE:
+                {
+                    settings.P = std::stod(value);
+                    //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
+                    break;
+                }
+
+                case RHO_FREE:
+                {
+                    settings.Rho = std::stod(value);
                     //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
                     break;
                 }

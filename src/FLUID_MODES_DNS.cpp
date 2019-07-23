@@ -18,6 +18,26 @@ int main(int argc, char *argv[]) {
     Read_cfg( filecfg, settings );
     std::string filename = std::to_string(settings.nstart) + ".q";
     plot3d_info Info = read_plot3d_info (filename);
+    std::vector<double> time(settings.Ns);
+
+    std::string file_temp;
+    int count = 0;
+
+    std::cout << "Storing Vector of time ... " << "\t";
+
+    for ( int it = settings.nstart; it < (settings.Ns*settings.Ds + settings.nstart); it += settings.Ds )
+    {
+        file_temp = std::to_string(it) + ".q";
+        plot3d_info Info_time = read_plot3d_info (file_temp);
+        time[count] = (double)Info_time.T/(settings.Mach*std::sqrt(1.4*settings.P/settings.Rho)); 
+        count++;
+    }
+
+    // for ( int i = 0; i < 5; i++ )
+    //     std::cout << time[i] << std::endl;
+
+    std::cout << "Complete!" << std::endl;
+
     int Np = 0;
     //computing number of points of the whole grid
     for ( int iblock = 0; iblock < Info.nblocks; iblock++ )
@@ -38,6 +58,13 @@ int main(int argc, char *argv[]) {
 
     Eigen::VectorXd mean = sn_set.rowwise().mean();
 
+    if ( settings.flag_mean == "YES" )
+    {
+        std::cout << "Subtracting mean from snapshots ... " << std::endl << std::endl;
+        for ( int i = 0; i < settings.Ns; i++ )
+            sn_set.col(i) -= mean;
+    }
+
     if ( settings.flag_method == "SPOD")
     {
 
@@ -52,14 +79,6 @@ int main(int argc, char *argv[]) {
 
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
-
-        if ( settings.flag_mean == "YES" )
-        {
-            std::cout << "Subtracting mean from snapshots ... " << std::endl << std::endl;
-            for ( int i = 0; i < settings.Ns; i++ )
-                sn_set.col(i) -= mean;
-        }
-
 
         std::cout << "Extracting basis ... " << "\t";        
 
@@ -80,29 +99,33 @@ int main(int argc, char *argv[]) {
         if ( settings.r == 0 )
         {    
             Nrec = Nmod( settings.En, K_pc);
-            std::cout << "Number of modes for the desired energy content (needs fixes for sPOD) : " << Nrec << std::endl;
+            std::cout << "Number of modes for the desired energy content : " << Nrec << std::endl;
         }
         else
         {
             Nrec = settings.r;
-            std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
+            std::cout << " Number of modes : " << Nrec << std::endl;
         }
 
         if ( settings.flag_wdb_be == "YES" )
         {
             
-            std::cout << "Writing modes ..." << std::endl;
-            Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
-            Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
-            Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
-            std::cout << "Complete!" << std::endl;
+            std::cout << "Writing modes and Coeffs..." << std::endl;
 
-            // std::cout << "Writing Coefficients ..." << "\t";
-            // write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
-            // std::cout << "Complete!" << std::endl;
-            // std::cout << std::endl;
+            if ( settings.flag_prob == "VELOCITY-3D" )
+            {
+                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
+                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
+                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+            }
+            
+            std::cout << "Writing Coefficients ..." << "\t";
+            write_coeffs_sPOD ( eig_vec.transpose(), time, lambda );
+            std::cout << "Complete!" << std::endl;
+            std::cout << std::endl;
 
         }
+        
 
         // if ( settings.flag_rec == "YES" )
         // {
@@ -140,16 +163,95 @@ int main(int argc, char *argv[]) {
 
         // }
 
+    } else if ( settings.flag_method == "RDMD")
+    {
+
+        Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
+        Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+        Eigen::MatrixXd Phi;
+
+        
+        std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";        
+    
+        Phi = RDMD_modes_coefs ( sn_set,
+                                Coefs,
+                                lambda,
+                                K_pc,     
+                                settings.r,
+                                settings.r_RDMD,
+                                settings.En );
+                                
+        
+
+        // std::cout << "Check mode orthogonality\n PhiT*Phi :\n " << Phi.transpose()*Phi << std::endl; 
+
+        int Nrec = Phi.cols();
+
+        std::cout << " Done! " << std::endl << std::endl;
+
+        if ( settings.flag_wdb_be == "YES" )
+        {
+            std::cout << "Writing modes and coeffs..." << "\t"; 
+
+            if ( settings.flag_prob == "VELOCITY-3D" )
+            {
+                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
+                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
+                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+            }
+
+            std::cout << "Writing Coefficients ..." << "\t";
+            write_coeffs_sPOD ( Coefs.transpose(), time, lambda );
+            std::cout << "Complete!" << std::endl;
+            std::cout << std::endl;
+        }
+
+        // if ( settings.flag_rec == "YES" )
+        // {
+                               
+        //     for ( int nt = 0; nt < settings.t_rec.size(); nt ++)
+        //     {
+        //         Eigen::MatrixXd Rec;
+        //         std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
+
+
+        //         Rec = Reconstruction_RDMD ( settings.t_rec[nt],
+        //                                 t_st_vec,
+        //                                 Coefs,
+        //                                 Phi,
+        //                                 settings.flag_prob,
+        //                                 settings.flag_interp );
+
+
+        //         std::cout << "Done" << std::endl;
+
+        //         if ( settings.flag_mean == "YES" )
+        //         {
+
+        //             for ( int i = 0; i < Rec.cols(); i++)
+        //                 Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+
+        //         }
+
+        //         std::cout << "Writing reconstructed field ..." << "\t";
+
+        //         write_Reconstructed_fields ( Rec, Coords,
+        //                                 settings.out_file,
+        //                                 settings.flag_prob, nt );
+
+        //         std::cout << "Done" << std::endl << std::endl;
+
+        //     }
 
     } else {
 
-        std::cout << "Only SPOD implemented so far for DNS" << std::endl;
+        std::cout << "Only SPOD and RDMD implemented for CS3D" << std::endl;
 
     }
 
 
     std::cout << std::endl;    
-    std::cout << "-----------RBM-Clyde end-------------" << std::endl << std::endl;
+    std::cout << "-----------FLUID MODAL ANALYSIS ends-------------" << std::endl << std::endl;
 
     return 0;
 

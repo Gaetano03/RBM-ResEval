@@ -41,6 +41,8 @@ struct prob_settings
     double Re;                      //Reynolds number
     double mu;                      //dynamic viscosity
     double T;                       //Temperature
+    double P;                       //Pressure
+    double Rho;                     //Density
 
     //------Parameters for POD-SPOD---------
     int Nf;                     //filter size for SPOD
@@ -92,6 +94,7 @@ enum keywords
             {
                 SOLVER, 
                 NS, DS, EN, NF, SIGMA,
+                RHO_FREE, P_FREE,
                 ALPHA, BETA, MACH, REYNOLDS, TEMPERATURE, VISCOSITY,
                 NSTART,
                 NDIM,
