@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
             }
             
             std::cout << "Writing Coefficients ..." << "\t";
-            write_coeffs_sPOD ( eig_vec.transpose(), time, lambda );
+            write_coeffs_sPOD ( eig_vec, time, lambda );
             std::cout << "Complete!" << std::endl;
             std::cout << std::endl;
 

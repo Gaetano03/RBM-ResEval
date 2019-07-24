@@ -319,8 +319,8 @@ Eigen::MatrixXd SPOD_basis( const Eigen::MatrixXd &snap_set,
         K_pc(i) = sum;
     }
 
-    // double tol = lam(0)*1e-12;
-    double tol = 1e-16;
+    double tol = lam(0)*1e-12;
+    // double tol = 1e-16;
     phi_c = snap_set*eig_vec;
 
     count = 0;
