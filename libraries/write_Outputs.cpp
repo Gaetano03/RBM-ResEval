@@ -493,6 +493,7 @@ void write_alfa_lam_DMD( const Eigen::VectorXcd Alfa,
     dmd_data << "Lam_I" << " ";
     dmd_data << "Alfa_R" << " ";
     dmd_data << "Alfa_I" << " ";
+    dmd_data << std::endl;
 
     int N = Alfa.size();
 
