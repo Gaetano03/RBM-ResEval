@@ -23,6 +23,9 @@ void write_modes_DMD ( const Eigen::MatrixXcd &Phi_cut,
                     const Eigen::MatrixXd &Coords, 
                     std::string flag_prob );
 
+void write_alfa_lam_DMD( const Eigen::VectorXcd Alfa,
+                        const Eigen::VectorXcd Lambda);
+
 void write_coeffs_sPOD ( const Eigen::MatrixXd &Coeffs,
                         const std::vector<double> &t_vec,
                         const Eigen::VectorXd &lam );

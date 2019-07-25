@@ -442,7 +442,7 @@ void write_coeffs_sPOD ( const Eigen::MatrixXd &Coeffs,
 
     int Ns = t_vec.size(); 
 
-    std::string filename = "Coeffs_sPOD.dat";
+    std::string filename = "Coeffs_RBM.dat";
     std::ofstream flow_data;
     flow_data.open(filename.c_str());
 
@@ -477,6 +477,33 @@ void write_coeffs_sPOD ( const Eigen::MatrixXd &Coeffs,
     }
 
     flow_data.close();
+
+
+}
+
+
+void write_alfa_lam_DMD( const Eigen::VectorXcd Alfa,
+                        const Eigen::VectorXcd Lambda)
+{
+    std::string filename = "Alfa_Lambda_DMD.dat";
+    std::ofstream dmd_data;
+    dmd_data.open(filename);
+
+    dmd_data << "Lam_R" << " ";
+    dmd_data << "Lam_I" << " ";
+    dmd_data << "Alfa_R" << " ";
+    dmd_data << "Alfa_I" << " ";
+
+    int N = Alfa.size();
+
+    for( int i = 0; i < N; i++ )
+    {
+        dmd_data << Lambda(i).real() << " ";
+        dmd_data << Lambda(i).imag() << " ";
+        dmd_data << Alfa(i).real() << " ";
+        dmd_data << Alfa(i).imag() << " ";
+        dmd_data << std::endl;
+    }
 
 
 }

@@ -33,6 +33,12 @@ int main(int argc, char *argv[]) {
         count++;
     }
 
+    double Dt_avg = 0.0;
+
+    for ( int i = 0; i < time.size()-1; i++ ) Dt_avg += time[i+1] - time[i]; 
+    
+    Dt_avg = Dt_avg/(time.size()-1);
+
     // for ( int i = 0; i < 5; i++ )
     //     std::cout << time[i] << std::endl;
 
@@ -67,15 +73,6 @@ int main(int argc, char *argv[]) {
 
     if ( settings.flag_method == "SPOD")
     {
-
-        // std::vector<double> t_vec( settings.Ns );
-        // t_vec[0] = 0.0;
-
-        // for ( int i = 1; i < settings.Ns; i++ )
-        //     t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
-
-        // std::cout << std::endl;
-        // std::cout << "Initialized vector of times " << std::endl;
 
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
@@ -125,67 +122,34 @@ int main(int argc, char *argv[]) {
             std::cout << std::endl;
 
         }
-        
-
-        // if ( settings.flag_rec == "YES" )
-        // {
-
-        //     for ( int nt = 0; nt < settings.t_rec.size(); nt++ )
-        //     {
-
-        //         std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
-
-        //         Eigen::MatrixXd Rec = Reconstruction_S_POD ( t_vec,
-        //                             K_pc, lambda, eig_vec.transpose(),
-        //                             Phi, settings.t_rec[nt],
-        //                             Nrec,
-        //                             settings.flag_prob,
-        //                             settings.flag_interp ) ;
-
-        //         std::cout << "Done" << std::endl;
-
-        //         if ( settings.flag_mean == "YES" )
-        //         {
-
-        //             for ( int i = 0; i < Rec.cols(); i++)
-        //                 Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
-
-        //         }
-
-        //         std::cout << "Writing reconstructed field ..." << "\t";
-
-        //         write_Reconstructed_fields ( Rec, Coords,
-        //                                 settings.out_file,
-        //                                 settings.flag_prob, nt );
-
-        //         std::cout << "Done" << std::endl << std::endl;
-        //     }
-
-        // }
 
     } else if ( settings.flag_method == "RDMD")
     {
 
         Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
         Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
-        Eigen::MatrixXd Phi;
-
         
         std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";        
-    
-        Phi = RDMD_modes_coefs ( sn_set,
-                                Coefs,
-                                lambda,
-                                K_pc,     
-                                settings.r,
-                                settings.r_RDMD,
-                                settings.En );
-                                
-        
+        Eigen::MatrixXd Phi = RDMD_modes_coefs ( sn_set,
+                                                Coefs,
+                                                lambda,
+                                                K_pc,     
+                                                settings.r,
+                                                settings.r_RDMD,
+                                                settings.En );
 
-        // std::cout << "Check mode orthogonality\n PhiT*Phi :\n " << Phi.transpose()*Phi << std::endl; 
+        int Nrec;
 
-        int Nrec = Phi.cols();
+        if ( settings.r_RDMD == 0 )
+        {    
+            Nrec = Nmod( settings.En, K_pc);
+            std::cout << "Number of modes for the desired energy content : " << Nrec << std::endl;
+        }
+        else
+        {
+            Nrec = settings.r_RDMD;
+            std::cout << " Number of modes : " << Nrec << std::endl;
+        }
 
         std::cout << " Done! " << std::endl << std::endl;
 
@@ -206,46 +170,152 @@ int main(int argc, char *argv[]) {
             std::cout << std::endl;
         }
 
-        // if ( settings.flag_rec == "YES" )
-        // {
-                               
-        //     for ( int nt = 0; nt < settings.t_rec.size(); nt ++)
-        //     {
-        //         Eigen::MatrixXd Rec;
-        //         std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
+    } else if ( settings.flag_method == "DMD")
+    {
+        double tol = 1e-8;
+        double t_0 = time[0];
+
+        Eigen::VectorXd t_vec(time.size()); //Building a vector of uniform times for DMD
+        t_vec(0) = t_0;
+
+        for ( int it = 1; it < time.size(); it++ ) t_vec(it) = t_vec(it-1) + Dt_avg; 
+
+        Eigen::VectorXd lambda_POD;
+        Eigen::MatrixXd eig_vec_POD;
+        Eigen::VectorXcd lambda_DMD;
+        Eigen::MatrixXcd eig_vec_DMD;
+
+        std::cout << "Extracting basis ... " << "\t";        
+        Eigen::MatrixXcd Phi;
+        Eigen::VectorXcd alfa;
+        Eigen::MatrixXcd Alfas;
+           
+        Phi = DMD_basis( sn_set,
+                        lambda_DMD,
+                        eig_vec_DMD,
+                        lambda_POD,
+                        eig_vec_POD,
+                        settings.r );
+
+        std::cout << " Done! " << std::endl << std::endl;
+
+        int Nm = Phi.cols();
+        std::cout << "Number of modes extracted : " << Nm << std::endl;
+
+        Eigen::VectorXcd omega(Nm);
+        for ( int i = 0; i < Nm; i++ )
+                omega(i) = std::log(lambda_DMD(i))/(Dt_avg);
+        
+        std::cout << "Calculating coefficients DMD ... " << "\t";
+
+        //Calculating coefficients solving optimization problem
+        if ( settings.dmd_coef_flag == "OPT" )
+        {
+            alfa = Calculate_Coefs_DMD_exact ( sn_set.leftCols(settings.Ns-1),  //matrix of first Ns-1 snaps 
+                                                                lambda_DMD,  //slow eigenvalues
+                                                                Phi ); //slow exact DMD modes
+        }
+        //Calculating coefficients with ls
+        else if ( settings.dmd_coef_flag == "LS" )
+        {
+            Eigen::VectorXcd b = Eigen::VectorXcd::Zero(sn_set.rows()); 
+            for ( int k = 0; k < sn_set.rows(); k++ )
+                b(k).real(sn_set(k,0)); 
+
+            alfa = Phi.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+        }
+        //Calculating coefficients with Hybrid method
+        else if ( settings.dmd_coef_flag == "HYBRID" )
+        {
+        
+            Alfas = Calculate_Coefs_Matrix_DMD ( sn_set,
+                                                Phi,
+                                                omega,
+                                                t_0,
+                                                Dt_avg );
 
 
-        //         Rec = Reconstruction_RDMD ( settings.t_rec[nt],
-        //                                 t_st_vec,
-        //                                 Coefs,
-        //                                 Phi,
-        //                                 settings.flag_prob,
-        //                                 settings.flag_interp );
+            std::cout << "Writing training points ..." << std::endl;
+
+            std::ofstream train_real;
+            train_real.open("train_real.dat");
 
 
-        //         std::cout << "Done" << std::endl;
+            for ( int k = 0; k < settings.Ns; k++ )
+            {
+            
+                for( int j = 0; j < Alfas.cols(); j++ ) 
+                    train_real << Alfas(k,j).real() << " ";   
 
-        //         if ( settings.flag_mean == "YES" )
-        //         {
+            train_real << std::endl;
 
-        //             for ( int i = 0; i < Rec.cols(); i++)
-        //                 Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+            }
 
-        //         }
+            train_real.close();
 
-        //         std::cout << "Writing reconstructed field ..." << "\t";
 
-        //         write_Reconstructed_fields ( Rec, Coords,
-        //                                 settings.out_file,
-        //                                 settings.flag_prob, nt );
+            std::ofstream train_imag;
+            train_imag.open("train_imag.dat");
 
-        //         std::cout << "Done" << std::endl << std::endl;
 
-        //     }
+            for ( int k = 0; k < settings.Ns; k++ )
+            {
+            
+                for( int j = 0; j < Alfas.cols(); j++ ) 
+                    train_imag << Alfas(k,j).imag() << " ";   
+
+            train_imag << std::endl;
+
+            }
+
+            train_imag.close();
+
+        }
+        else
+        {
+            std::cout << "Method to Calculate DMD coefficients not available! " << std::endl;
+            std::cout << "Exiting ... " << std::endl;
+            std::exit( EXIT_FAILURE );
+        }
+
+        std::cout << " Done! " << std::endl << std::endl;
+        
+
+        if ( settings.flag_wdb_be == "YES" )
+        {
+            
+            std::cout << "Writing modes ..." << "\t";
+
+            if ( settings.flag_prob == "VELOCITY-3D" )
+            {
+                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).real(), "Modes_U_r.f", Info );
+                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).real(), "Modes_V_r.f", Info );
+                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).real(), "Modes_W_r.f", Info );
+                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).imag(), "Modes_U_i.f", Info );
+                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).imag(), "Modes_V_i.f", Info );
+                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).imag(), "Modes_W_i.f", Info );
+            }
+
+
+            if ( settings.dmd_coef_flag!= "HYBRID" )
+            {
+                std::cout << "Writing dmd data and time dynamics ..." << "\t";
+                write_TimeDynamics_DMD ( omega, alfa, t_vec );
+                write_alfa_lam_DMD( alfa, lambda_DMD);
+                std::cout << "Complete!" << std::endl;
+                std::cout << std::endl;
+
+
+
+
+            }
+
+        }
 
     } else {
 
-        std::cout << "Only SPOD and RDMD implemented for CS3D" << std::endl;
+        std::cout << "Only SPOD, DMD and RDMD implemented for CS3D" << std::endl;
 
     }
 
