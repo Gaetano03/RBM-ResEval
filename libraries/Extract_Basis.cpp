@@ -1201,3 +1201,56 @@ Eigen::MatrixXcd HODMD_basis( const Eigen::MatrixXd &snap_set,
     return U.leftCols(N_svd2)*eig_vec;
 
 }
+
+
+Eigen::MatrixXd GPOD_basis( const double Dt,
+                                const Eigen::MatrixXd &snap_set,
+                                Eigen::VectorXd &lam,
+                                Eigen::VectorXd &K_pc,
+                                Eigen::MatrixXd &eig_vec )
+{
+    int Ns = snap_set.cols();
+    int Nr = snap_set.rows();
+    Eigen::MatrixXd Gradients_T(Nr, Ns-2);
+
+    for ( int i = 2; i < Ns; i++ )
+        Gradients_T.col(i-2) = 0.5*(3.0*snap_set.col(i) - 4.0*snap_set.col(i-1) + snap_set.col(i))/Dt; 
+
+    int count;
+
+    Eigen::MatrixXd R(Ns-2, Ns-2);
+    Eigen::MatrixXd phi_c(Nr, Ns-2);
+    Eigen::VectorXd mean(Nr);
+
+    R.setZero(Ns, Ns);
+
+    R = Gradients_T.transpose()*Gradients_T;
+
+
+    Eigen::EigenSolver<Eigen::MatrixXd> es(R); 
+    lam = es.eigenvalues().real();
+    eig_vec = es.eigenvectors().real();
+    eig_sort( lam, eig_vec);
+
+    double sum = 0;
+
+    for (int i = 0; i < Ns-2; i++){
+        sum += lam(i)/lam.sum();
+        K_pc(i) = sum;
+    }
+
+    double tol = lam(0)*1e-12;
+    // double tol = 1e-16;
+    phi_c = snap_set*eig_vec;
+
+    count = 0;
+    while ( count < lam.size() && lam(count) > tol)
+            count++;
+
+    // Eigen::MatrixXd phi(Nr,count);
+    // for ( int i = 0 ; i < count ; i++ )
+    //     phi.col(i) = phi_c.col(i);
+
+    return phi_c.leftCols(count);   
+
+}

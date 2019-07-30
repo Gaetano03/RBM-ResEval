@@ -34,10 +34,11 @@ int main(int argc, char *argv[]) {
     }
 
     double Dt_avg = 0.0;
+    double Dt;
 
     for ( int i = 0; i < time.size()-1; i++ ) Dt_avg += time[i+1] - time[i]; 
     
-    Dt_avg = Dt_avg/(time.size()-1);
+    Dt_avg = Dt_avg/((double)time.size()-1.0);
 
     // for ( int i = 0; i < 5; i++ )
     //     std::cout << time[i] << std::endl;
@@ -100,7 +101,8 @@ int main(int argc, char *argv[]) {
         }
         else
         {
-            Nrec = settings.r;
+            int du = Phi.cols();
+            Nrec = std::min(settings.r, du);
             std::cout << " Number of modes : " << Nrec << std::endl;
         }
 
@@ -111,9 +113,15 @@ int main(int argc, char *argv[]) {
 
             if ( settings.flag_prob == "VELOCITY-3D" )
             {
-                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
-                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
-                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+                // Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
+                // Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
+                // Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+                Eigen::MatrixXd PHI(Np,3*Nrec);
+                PHI << Phi.topRows(Np).leftCols(Nrec), 
+                        Phi.middleRows(Np,Np).leftCols(Nrec), 
+                        Phi.bottomRows(Np).leftCols(Nrec);
+                Write_Plot3d_Modes( PHI, "Modes_POD.f", Info );
+
             }
             
             std::cout << "Writing Coefficients ..." << "\t";
@@ -147,7 +155,8 @@ int main(int argc, char *argv[]) {
         }
         else
         {
-            Nrec = settings.r_RDMD;
+            int du = Phi.cols();
+            Nrec = std::min(settings.r_RDMD, du);
             std::cout << " Number of modes : " << Nrec << std::endl;
         }
 
@@ -159,9 +168,15 @@ int main(int argc, char *argv[]) {
 
             if ( settings.flag_prob == "VELOCITY-3D" )
             {
-                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
-                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
-                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+                // Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nrec), "Modes_U.f", Info );
+                // Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nrec), "Modes_V.f", Info );
+                // Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nrec), "Modes_W.f", Info );
+                Eigen::MatrixXd PHI(Np,3*Nrec);
+                PHI << Phi.topRows(Np).leftCols(Nrec), 
+                        Phi.middleRows(Np,Np).leftCols(Nrec), 
+                        Phi.bottomRows(Np).leftCols(Nrec);
+                Write_Plot3d_Modes( PHI, "Modes_RDMD.f", Info );
+
             }
 
             std::cout << "Writing Coefficients ..." << "\t";
@@ -289,12 +304,24 @@ int main(int argc, char *argv[]) {
 
             if ( settings.flag_prob == "VELOCITY-3D" )
             {
-                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).real(), "Modes_U_r.f", Info );
-                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).real(), "Modes_V_r.f", Info );
-                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).real(), "Modes_W_r.f", Info );
-                Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).imag(), "Modes_U_i.f", Info );
-                Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).imag(), "Modes_V_i.f", Info );
-                Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).imag(), "Modes_W_i.f", Info );
+                // Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).real(), "Modes_U_r.f", Info );
+                // Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).real(), "Modes_V_r.f", Info );
+                // Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).real(), "Modes_W_r.f", Info );
+                // Write_Plot3d_Modes( Phi.topRows(Np).leftCols(Nm).imag(), "Modes_U_i.f", Info );
+                // Write_Plot3d_Modes( Phi.middleRows(Np,Np).leftCols(Nm).imag(), "Modes_V_i.f", Info );
+                // Write_Plot3d_Modes( Phi.bottomRows(Np).leftCols(Nm).imag(), "Modes_W_i.f", Info );
+                
+                Eigen::MatrixXd PHI(Np,3*Nm);
+                PHI << Phi.topRows(Np).leftCols(Nm).real(), 
+                        Phi.middleRows(Np,Np).leftCols(Nm).real(), 
+                        Phi.bottomRows(Np).leftCols(Nm).real();
+                Write_Plot3d_Modes( PHI, "Modes_DMD_r.f", Info );
+                
+                PHI << Phi.topRows(Np).leftCols(Nm).imag(), 
+                        Phi.middleRows(Np,Np).leftCols(Nm).imag(), 
+                        Phi.bottomRows(Np).leftCols(Nm).imag();
+                Write_Plot3d_Modes( PHI, "Modes_DMD_i.f", Info );
+
             }
 
 
@@ -305,9 +332,6 @@ int main(int argc, char *argv[]) {
                 write_alfa_lam_DMD( alfa, lambda_DMD);
                 std::cout << "Complete!" << std::endl;
                 std::cout << std::endl;
-
-
-
 
             }
 

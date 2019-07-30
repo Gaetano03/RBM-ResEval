@@ -142,4 +142,13 @@ Eigen::MatrixXcd HODMD_basis( const Eigen::MatrixXd &snap_set,  //Initial set of
                             const int d );                       //levels of high order DMD
 
 
+
+//SPOD/POD basis extraction (calculates also coefficients)
+Eigen::MatrixXd GPOD_basis( const double Dt,
+                                const Eigen::MatrixXd &snap_set,
+                                Eigen::VectorXd &lam,
+                                Eigen::VectorXd &K_pc,
+                                Eigen::MatrixXd &eig_vec );
+
+
 #endif //EXTRACT_BASIS_HPP
