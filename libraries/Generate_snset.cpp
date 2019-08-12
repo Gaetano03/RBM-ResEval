@@ -138,23 +138,56 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
         } else if ( flag_prob == "SCALAR" )
         {
 
-                Eigen::MatrixXd snap(Nr, Ns);
+            Eigen::MatrixXd snap(Nr, Ns);
 
-                for( int i = init; i < (Ns*ds + init); i += ds )
+            for( int i = init; i < (Ns*ds + init); i += ds )
+            {
+
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
+                file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
+                std::cout << "Reading fields from : " << file_temp << "\t";
+                field = read_col(file_temp, Nr, Cols);
+                std::cout << "Complete!" << std::endl;
+
+                snap.col(k) = field.col(0);
+
+                k++;
+
+            }
+
+            return snap;
+
+
+        } else if ( flag_prob == "Q-CRITERION" )
+        {
+
+            Eigen::MatrixXd snap(Nr, Ns);
+
+            for( int i = init; i < (Ns*ds + init); i += ds )
+            {
+
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
+                file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
+                std::cout << "Reading fields from : " << file_temp << "\t";
+                field = read_col(file_temp, Nr, Cols);
+                std::cout << "Complete!" << std::endl;
+
+                snap.col(k) = field.col(0);
+
+                k++;
+
+            }
+
+            //Setting to zero where the shear is dominant
+            for ( int i = 0; i < Nr; i++ )
+            {
+                for ( int j = 0; j < Ns; j++ )
                 {
-
-                    std::stringstream buffer;
-                    buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
-                    file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
-                    std::cout << "Reading fields from : " << file_temp << "\t";
-                    field = read_col(file_temp, Nr, Cols);
-                    std::cout << "Complete!" << std::endl;
-
-                    snap.col(k) = field.col(0);
-
-                    k++;
-
+                    if ( snap(i,j) < 0.0 ) snap(i,j) = 0.0;
                 }
+            }
 
             return snap;
 
@@ -162,49 +195,49 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
         } else if ( flag_prob == "CONSERVATIVE" )
         {
 
-                Eigen::MatrixXd snap(Cols.size()*Nr, Ns);
+            Eigen::MatrixXd snap(Cols.size()*Nr, Ns);
 
-                for( int i = init; i < (Ns*ds + init); i += ds )
+            for( int i = init; i < (Ns*ds + init); i += ds )
+            {
+
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
+                file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
+                std::cout << "Reading fields from : " << file_temp << "\t";
+                field = read_col(file_temp, Nr, Cols);
+                std::cout << "Complete!" << std::endl;
+
+                if ( Cols.size() == 4 )
                 {
-
-                    std::stringstream buffer;
-                    buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
-                    file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
-                    std::cout << "Reading fields from : " << file_temp << "\t";
-                    field = read_col(file_temp, Nr, Cols);
-                    std::cout << "Complete!" << std::endl;
-
-                    if ( Cols.size() == 4 )
-                    {
-                        snap.col(k) << field.col(0),
-                                    field.col(1),
-                                    field.col(2),
-                                    field.col(3);
-                    } else if ( Cols.size() == 6 )
-                    {
-                        snap.col(k) << field.col(0),
-                                    field.col(1),
-                                    field.col(2),
-                                    field.col(3),
-                                    field.col(4),
-                                    field.col(5);
-                    } else if ( Cols.size() == 7 )
-                    {
-                        snap.col(k) << field.col(0),
-                                    field.col(1),
-                                    field.col(2),
-                                    field.col(3),
-                                    field.col(4),
-                                    field.col(5),
-                                    field.col(6);
-                    } else
-                    {
-                        std::cout << "Check the number of conservtive variables in use " << std::endl;
-                    }
-                                
-                    k++;
-
+                    snap.col(k) << field.col(0),
+                                field.col(1),
+                                field.col(2),
+                                field.col(3);
+                } else if ( Cols.size() == 6 )
+                {
+                    snap.col(k) << field.col(0),
+                                field.col(1),
+                                field.col(2),
+                                field.col(3),
+                                field.col(4),
+                                field.col(5);
+                } else if ( Cols.size() == 7 )
+                {
+                    snap.col(k) << field.col(0),
+                                field.col(1),
+                                field.col(2),
+                                field.col(3),
+                                field.col(4),
+                                field.col(5),
+                                field.col(6);
+                } else
+                {
+                    std::cout << "Check the number of conservtive variables in use " << std::endl;
                 }
+                            
+                k++;
+
+            }
 
             return snap;
 

@@ -58,7 +58,7 @@ void write_modes_sPOD ( const Eigen::MatrixXd &Phi_cut,
     std::ofstream flow_data;
     flow_data.open(filename.c_str());
 
-    if ( flag_prob == "SCALAR" )
+    if ( flag_prob == "SCALAR" || flag_prob == "Q-CRITERION" )
     {
 
         // Write row of Headers
@@ -223,7 +223,7 @@ void write_modes_DMD ( const Eigen::MatrixXcd &Phi_cut,
         flow_dataI.open(filenameI.c_str());
         flow_dataR.open(filenameR.c_str());
 
-        if ( flag_prob == "SCALAR" )
+        if ( flag_prob == "SCALAR" || flag_prob == "Q-CRITERION" )
         {
 
             // Write row of Headers
@@ -632,7 +632,7 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
     std::ofstream flow_data;
     flow_data.open(filename);
 
-    if ( flag_prob == "SCALAR" )
+    if ( flag_prob == "SCALAR" || flag_prob == "Q-CRITERION" )
     {
 
         // Write row of Headers

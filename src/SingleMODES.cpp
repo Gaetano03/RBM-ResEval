@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
             std::cout << "Complete!" << std::endl;
 
             std::cout << "Writing Coefficients ..." << "\t";
-            write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
+            write_coeffs_sPOD ( eig_vec, t_vec, lambda );
             std::cout << "Complete!" << std::endl;
             std::cout << std::endl;
 
@@ -329,6 +329,7 @@ int main(int argc, char *argv[]) {
 
             std::cout << "Writing time dynamics ..." << "\t";
             write_TimeDynamics_DMD ( omega, alfa, t_vec );
+            write_alfa_lam_DMD( alfa, lambda_DMD);
             std::cout << "Complete!" << std::endl;
             std::cout << std::endl;
 

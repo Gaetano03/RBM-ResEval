@@ -181,13 +181,6 @@ int main( int argc, char *argv[] )
     }
 
 
-std::cout << "Dim sn_set: [" << sn_set.rows() << ", " << sn_set.cols() << "]" <<std::endl;
-std::cout << "Dim sn_setp: [" << sn_set_p.rows() << ", " << sn_set_p.cols() << "]" <<std::endl;
-std::cout << "Dim norm_sn_set: [" << norm_sn_set.rows() << ", " << norm_sn_set.cols() << "]" <<std::endl;
-
-std::cout << "Norm_sn_set rho:\n " << norm_sn_set << std::endl;
-
-
 //Defining common scope for POD-SPOD
     {
 
