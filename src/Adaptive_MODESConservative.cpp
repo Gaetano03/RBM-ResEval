@@ -245,8 +245,10 @@ int main( int argc, char *argv[] )
                         J_SPOD_Nm_time(i) += Err_PSPOD_map(j,i)*Err_PSPOD_map(j,i);
                     }
                     
-                    Err_SPOD_Nm_time(i) = std::sqrt(Err_SPOD_Nm_time(i))/norm_sn_set(ncons,i);
-                    J_SPOD_Nm_time(i) = std::sqrt(J_SPOD_Nm_time(i))/norm_sn_set(ncons,i);
+                    // Err_SPOD_Nm_time(i) = std::sqrt(Err_SPOD_Nm_time(i))/norm_sn_set(ncons,i);
+                    // J_SPOD_Nm_time(i) = std::sqrt(J_SPOD_Nm_time(i))/norm_sn_set(ncons,i);
+                    Err_SPOD_Nm_time(i) = std::sqrt(Err_SPOD_Nm_time(i)/(double)Nr);
+                    J_SPOD_Nm_time(i) = std::sqrt(J_SPOD_Nm_time(i)/(double)Nr);
                 
                 }     
 
@@ -428,8 +430,10 @@ int main( int argc, char *argv[] )
                     J_DMD_Nm_time(i) += Err_PDMD_map(j,i)*Err_PDMD_map(j,i);
                 }
                 
-                Err_DMD_Nm_time(i) = std::sqrt(Err_DMD_Nm_time(i))/norm_sn_set(ncons,i);
-                J_DMD_Nm_time(i) = std::sqrt(J_DMD_Nm_time(i))/norm_sn_set(ncons,i);
+                // Err_DMD_Nm_time(i) = std::sqrt(Err_DMD_Nm_time(i))/norm_sn_set(ncons,i);
+                // J_DMD_Nm_time(i) = std::sqrt(J_DMD_Nm_time(i))/norm_sn_set(ncons,i);
+                Err_DMD_Nm_time(i) = std::sqrt(Err_DMD_Nm_time(i)/(double)Nr);
+                J_DMD_Nm_time(i) = std::sqrt(J_DMD_Nm_time(i)/(double)Nr);
             
             }     
 
@@ -586,8 +590,10 @@ int main( int argc, char *argv[] )
 
                 }
 
-                Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i))/norm_sn_set(ncons,i);
-                J_RDMD_Nm_time(i) = std::sqrt(J_RDMD_Nm_time(i))/norm_sn_set(ncons,i);
+                // Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i))/norm_sn_set(ncons,i);
+                // J_RDMD_Nm_time(i) = std::sqrt(J_RDMD_Nm_time(i))/norm_sn_set(ncons,i);
+                Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i)/(double)Nr);
+                J_RDMD_Nm_time(i) = std::sqrt(J_RDMD_Nm_time(i)/(double)Nr);
             }
     
             Err_RBM_Nm_time.push_back(Err_RDMD_Nm_time);
