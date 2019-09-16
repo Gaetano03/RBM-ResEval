@@ -69,6 +69,7 @@ struct prob_settings
     std::string flag_method;        //Method to use
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
     double Dt_cfd;                  //delta t used in CFD simulation
+    double Dt_res;                  //delta t used for residual evaluation
     double alpha;                   //angle of attack of the problem
     double beta;                    //angle of sideslip
     double Mach;                    //Mach number
@@ -108,7 +109,7 @@ struct prob_settings
     std::string flag_rec;           //Activate-deactivate field reconstruction 
     std::string flag_interp;        //Interpolation technique for rbf
     std::vector<double> t_rec;                   //times desired for reconstruction
-
+    std::vector<double> t_res;                   //times desired for computing residuals
     double tol;                     //Error tolerance for adaptive reconstruction
 
 };
@@ -133,6 +134,7 @@ enum keywords
                 NSTART,
                 NDIM,
                 DT_CFD,
+                DT_RES,
                 FLAG_DIM,
                 FLAG_PROB,
                 FLAG_METHOD, 
@@ -147,6 +149,7 @@ enum keywords
                 FLAG_REC,
                 FLAG_INTERP,
                 T_REC,
+                T_RES,
                 RANK,
                 DMD_COEF_FLAG,
                 RANK_RDMD,

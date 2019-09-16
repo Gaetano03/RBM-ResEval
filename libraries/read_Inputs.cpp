@@ -65,6 +65,10 @@ keywords read_keyword_type( const std::string &key_string )
         return FLAG_INTERP;
     else if( key_string == "T_REC" )
         return T_REC;
+    else if( key_string == "T_RES" )
+        return T_RES;
+    else if( key_string == "DT_RES" )
+        return DT_RES;
     else if( key_string == "RANK_RDMD" )
         return RANK_RDMD;
     else if( key_string == "RANK" )
@@ -212,6 +216,13 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                 {
                     settings.nstart = std::stoi(value);
                     //std::cout << "Initial snapshot number : " << value << std::endl;
+                    break;
+                }
+
+                case DT_RES:
+                {
+                    settings.Dt_res = std::stod(value);
+                    //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
                     break;
                 }
 
@@ -407,6 +418,32 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                     while ( ss >> i ) {
 
                         settings.t_rec.push_back(i);
+
+                        if (ss.peek() != ',' || ss.peek() != ' ')
+                            ss.ignore();
+
+                    }
+
+                    //std::cout << "Times desired for reconstruction: \t";
+                    
+                    //for ( i = 0; i < settings.t_rec.size(); i++ )
+                        //std::cout << settings.t_rec[i] << "\t";
+
+                    //std::cout << std::endl;
+
+                    break;
+                }
+
+                case T_RES:
+                {
+                    std::string str = value;
+                    std::stringstream ss(str);
+
+                    double i;
+
+                    while ( ss >> i ) {
+
+                        settings.t_res.push_back(i);
 
                         if (ss.peek() != ',' || ss.peek() != ' ')
                             ss.ignore();

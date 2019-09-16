@@ -853,7 +853,7 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
     int Np = sn_set.rows();
     int Ns = sn_set.cols();
 
-    Eigen::MatrixXd Phi_RDMD = Eigen::MatrixXd::Zero(Np, Ns+1);
+    Eigen::MatrixXd Phi_RDMD = Eigen::MatrixXd::Zero(Np, Ns);
 
     Eigen::MatrixXd res_set = sn_set;
 
@@ -870,7 +870,7 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
     Eigen::VectorXd svd_old = Eigen::VectorXd::Zero(Ns);
     double count = 0;
 
-    if ( rdmd > (Ns + 1) )
+    if ( rdmd > Ns )
     {
         std::cout << "Rank RDMD too high for the number of snapshots available. Resetting it to maximum value admissable" << std::endl;
         rdmd = Ns; 

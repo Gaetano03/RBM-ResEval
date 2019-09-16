@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
         Eigen::VectorXd lambda(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
 
-        std::cout << "Extracting basis ... " << "\t";        
+        std::cout << "Extracting basis SPOD using Nf " << settings.Nf << " ... " << "\t";        
 
         Eigen::MatrixXd Phi = SPOD_basis( sn_set,
                                 lambda, K_pc, eig_vec,
