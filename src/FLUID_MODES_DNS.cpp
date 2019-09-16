@@ -63,14 +63,31 @@ int main(int argc, char *argv[]) {
                                         settings.flag_prob,
                                         settings.solver);
 
-    Eigen::VectorXd mean = sn_set.rowwise().mean();
+    //Eigen::VectorXd mean = sn_set.rowwise().mean();
 
     if ( settings.flag_mean == "YES" )
     {
+        Eigen::VectorXd mean = sn_set.rowwise().mean();
         std::cout << "Subtracting mean from snapshots ... " << std::endl << std::endl;
         for ( int i = 0; i < settings.Ns; i++ )
             sn_set.col(i) -= mean;
     }
+
+    if ( settings.flag_mean == "IC" && settings.flag_prob == "VELOCITY-3D" )
+    {
+        double Ufree = settings.Mach*std::sqrt(1.4*settings.P/settings.Rho);
+        Eigen::VectorXd Ic = Eigen::VectorXd::Zero(sn_set.rows());
+        Ic.head(sn_set.rows()/3) = Eigen::VectorXd::Ones(sn_set.rows()/3)*Ufree;
+        std::cout << "Subtracting IC from snapshots ... " << std::endl << std::endl;
+        for ( int i = 0; i < settings.Ns; i++ )
+            sn_set.col(i) -= Ic;
+    }
+    else if ( settings.flag_mean == "IC" && settings.flag_prob != "VELOCITY-3D" )
+    {
+        std::cout << "Initial condition only implemented for Velocity 3D so far" << std::endl;
+        exit( EXIT_FAILURE );
+    }
+
 
     if ( settings.flag_method == "SPOD")
     {
