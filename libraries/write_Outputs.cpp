@@ -878,6 +878,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
             restart_file.open(file_temp);
             //Row of Headers
             if ( nC == 4 ) restart_file << "\"PoinID\"\t\"x\"\t\"y\"\t\"Density\"\t\"X-Momentum\"\t\"Y-Momentum\"\t\"Energy\"" << std::endl;
+	    else if ( nC == 5 ) restart_file << "\"PoinID\"\t\"x\"\t\"y\"\t\"Density\"\t\"X-Momentum\"\t\"Y-Momentum\"\t\"Energy\"\t\"Nu_Tilde\"" << std::endl;
             else if ( nC == 6 ) restart_file << "\"PoinID\"\t\"x\"\t\"y\"\t\"Density\"\t\"X-Momentum\"\t\"Y-Momentum\"\t\"Energy\"\t\"TKE\"\t\"Omega\"" << std::endl;
             else if ( nC == 7 ) restart_file << "\"PoinID\"\t\"x\"\t\"y\"\t\"z\"\t\"Density\"\t\"X-Momentum\"\t\"Y-Momentum\"\t\"Z-Momentum\"\t\"Energy\"\t\"TKE\"\t\"Omega\"" << std::endl;
             else std::cout << "List of headers not compatible with problem definition" << std::endl;
@@ -923,6 +924,15 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                 Variable_Names[3] = "X-Momentum";
                 Variable_Names[4] = "Y-Momentum";
                 Variable_Names[5] = "Energy";
+       	    } else if ( nC == 5 )
+            {
+                Variable_Names[0] = "x";
+                Variable_Names[1] = "y";
+                Variable_Names[2] = "Density";
+                Variable_Names[3] = "X-Momentum";
+                Variable_Names[4] = "Y-Momentum";
+                Variable_Names[5] = "Energy";
+                Variable_Names[6] = "Nu_Tilde";
             } else if ( nC == 6 )
             {
                 Variable_Names[0] = "x";

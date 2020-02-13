@@ -213,7 +213,14 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
                                 field.col(1),
                                 field.col(2),
                                 field.col(3);
-                } else if ( Cols.size() == 6 )
+		} else if ( Cols.size() == 5 ) 			
+		{
+		    snap.col(k) << field.col(0),
+                                field.col(1),
+                                field.col(2),
+                                field.col(3),
+				field.col(4);
+		} else if ( Cols.size() == 6 )
                 {
                     snap.col(k) << field.col(0),
                                 field.col(1),
