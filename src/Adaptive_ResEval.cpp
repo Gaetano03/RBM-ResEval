@@ -107,7 +107,7 @@ int main( int argc, char *argv[] )
     double n_turb = 0.05;
     double mu_turb2lam_ratio = 10.0;
 	
-    double nu;
+    double nuTilde;
     double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
     double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
     // double rhotke = rho*tke;
