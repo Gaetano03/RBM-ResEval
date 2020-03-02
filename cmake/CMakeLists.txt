@@ -5,7 +5,6 @@
 # Include external libraries
 include(ExternalProject)
 
-
 # When gsl is required
 if (ENABLE_GSL)
     find_package(GSL REQUIRED)
@@ -14,7 +13,7 @@ if (ENABLE_GSL)
 endif()
 
 # Smart math is required
-include(cmake/External/smart-math.cmake)
+include(cmake/external/smart-math.cmake)
 list (APPEND MANDATORY_LIBRARIES "${SMART_MATH_STATIC_LIBRARY}")
 list (APPEND MANDATORY_LIBRARIES "${SMART_MATH_LIBRARY}")
 include_directories (${SMART_MATH_INCLUDE_DIR})
@@ -25,7 +24,7 @@ if (ENABLE_UQ)
     # Add compiler flag
     add_definitions(-D__USE_SMARTUQ)
 
-    include(cmake/External/smart-uq.cmake)
+    include(cmake/external/smart-uq.cmake)
     list (APPEND MANDATORY_LIBRARIES "${SMART_UQ_STATIC_LIBRARY}")
     list (APPEND MANDATORY_LIBRARIES "${SMART_UQ_LIBRARY}")
     include_directories (${SMART_UQ_INCLUDE_DIR})
