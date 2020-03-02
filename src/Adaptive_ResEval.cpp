@@ -35,20 +35,21 @@ int main( int argc, char *argv[] )
     input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
     std::string rmf_string = "rm -f " + root_outputfile + "_*";
     len_s = rmf_string.length();
-    char rmf_sys_call[len_s + 1];
+    char rmf_sys_call[len_s + 20];
     strcpy(rmf_sys_call, rmf_string.c_str());
 
-    int s_Nf = 5;   //Number of values for the SPOD filter (POD included)
+    int s_Nf = 2;   //Number of values for the SPOD filter (POD included)
     std::vector<int> Nf(s_Nf);
     Nf[0] = 0;
-    Nf[1] = std::ceil(settings.Ns/10.0);
-    Nf[2] = std::ceil(settings.Ns/2.0);
-    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-    Nf[4] = settings.Ns;
+    //Nf[1] = std::ceil(settings.Ns/10.0);
+    //Nf[2] = std::ceil(settings.Ns/2.0);
+    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+     Nf[1] = settings.Ns;
 
     int nC = settings.Cols.size();
     double alpha = settings.alpha;
     double beta = settings.beta;
+    double Dt_res = settings.Dt_res;
     if (settings.ndim == 2) beta = 0.0;
 
     std::stringstream buffer;
@@ -107,7 +108,7 @@ int main( int argc, char *argv[] )
     double n_turb = 0.05;
     double mu_turb2lam_ratio = 10.0;
 	
-    double nuTilde;
+    double nuTilde=0.1*mu/rho;				// initial value spalart allmaras model 
     double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
     double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
     // double rhotke = rho*tke;
@@ -124,7 +125,15 @@ int main( int argc, char *argv[] )
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-    } else if ( nC == 6 ) //Turbulent 2D Navier-Stokes
+    }else if (nC== 5) // Turbolent 2D Spalart Allmaras 
+    {
+	Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(4*Nr, Nr) = nuTilde*Eigen::MatrixXd::Ones(Nr,1);
+
+    }else if ( nC == 6 ) //Turbulent 2D Navier-Stokes
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
@@ -169,7 +178,7 @@ int main( int argc, char *argv[] )
         std::vector< std::vector<rbf> > surr_coefs(nC);
         Eigen::VectorXd K_pc(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
-        int Nm;
+        std::vector<int> Nm(nC);
         int N_notZero;
         //Check only for POD for now
         for ( int nfj = 0; nfj < Nf.size(); nfj++ )
@@ -193,13 +202,13 @@ int main( int argc, char *argv[] )
                                                 settings.flag_filter,  
                                                 settings.sigma);            
                         N_notZero = Phi[ncons].cols();
-                        if ( settings.r == 0 ) Nm = Nmod(settings.En, K_pc);
-                        else Nm = std::min(settings.r, N_notZero);
-                        std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
+                        if ( settings.r == 0 ) Nm[ncons] = Nmod(settings.En, K_pc);
+                        else Nm[ncons] = std::min(settings.r, N_notZero);
+                        std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
                         surr_coefs[ncons] =  getSurrCoefs (t_vec, eig_vec, settings.flag_interp);                
                     }
 
-                    Eigen::MatrixXd coef_t(3, Nm);
+                    Eigen::MatrixXd coef_t(3, Nm[ncons]);
                     if ( settings.t_res[itr] - 2.0*settings.Dt_res < t_vec[0] && settings.t_res[itr] > t_vec[t_vec.size()-1] && 2*settings.Dt_res > settings.Dt_cfd )
                     {
                         std::cout 
@@ -214,16 +223,16 @@ int main( int argc, char *argv[] )
                         for ( int j = 0; j < 3; j++ )
                         {    
                             tr[0] = t_evaluate[j];
-                            for ( int i = 0; i < Nm; i++ )
+                            for ( int i = 0; i < Nm[ncons]; i++ )
                                 surr_coefs[ncons][i].evaluate(tr, coef_t(j,i));
                         }
 
 
                     }   
-                    Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
-                    for ( int i = 0; i < Nm; i++ )
+                    Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm[ncons], Nm[ncons]);
+                    for ( int i = 0; i < Nm[ncons]; i++ )
                         Sig(i,i) = std::sqrt(lambda[ncons](i));
-                    Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm)*Sig*coef_t.transpose();
+                    Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm[ncons])*Sig*coef_t.transpose();
                 }
 
                 if ( settings.flag_mean == "YES" )
@@ -231,9 +240,15 @@ int main( int argc, char *argv[] )
                     for ( int it = 0; it < 3; it++ )
                         Sn_Cons_time.col(it) += Ic;
                 }
-                std::string mv_string = "mv history_rbm_00002.csv history_spod_" + std::to_string(nfj) + "_" + std::to_string(itr) + ".csv";
+
+                std::string mv_string;
+                if ( settings.Ns == settings.r )
+                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_AllModes_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+                else
+                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+
                 len_s = mv_string.length();
-                char mv_sys_call[len_s + 1];
+                char mv_sys_call[len_s + 10];
                 strcpy(mv_sys_call, mv_string.c_str());
                 std::cout << "Writing time reconstruction " << std::endl;
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );       
@@ -278,7 +293,7 @@ int main( int argc, char *argv[] )
             alfa[i] = Eigen::VectorXcd::Zero(settings.Ns);
             lambda_DMD[i] = Eigen::VectorXcd::Zero(settings.Ns);
         }
-        int Nm;
+        std::vector<int> Nm(nC);
 
         for ( int itr = 0; itr < settings.t_res.size(); itr++ )
         {
@@ -355,13 +370,13 @@ int main( int argc, char *argv[] )
                     }
                     if ( settings.r == 0)
                     {
-                        Nm = Nmod(settings.En, K_pc);
-                        std::cout << "Number of modes for the desired energetic content : " << Nm << std::endl;   
+                        Nm[ncons] = Nmod(settings.En, K_pc);
+                        std::cout << "Number of modes for the desired energetic content : " << Nm[ncons] << std::endl;
                     }
                     else
                     {
-                        Nm = std::min(settings.r,settings.Ns-1);
-                        std::cout << "Number of modes (fixed) : " << Nm << std::endl;
+                        Nm[ncons] = std::min(settings.r,settings.Ns-1);
+                        std::cout << "Number of modes (fixed) : " << Nm[ncons] << std::endl;
                     }
                 
                 }
@@ -409,7 +424,13 @@ int main( int argc, char *argv[] )
                     Sn_Cons_time.col(it) += Ic;
             }
 
-            std::string mv_string = "mv history_rbm_00002.csv history_dmd_" + std::to_string(itr) + ".csv";
+            std::string mv_string;
+            if ( settings.Ns == settings.r )
+                mv_string = "mv history_rbm_00002.csv history_dmd_AllModes_"+ std::to_string(Dt_res)+"_" + std::to_string(itr)+".csv";
+            else
+                mv_string = "mv history_rbm_00002.csv history_dmd_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+
+
             len_s = mv_string.length();
             char mv_sys_call[len_s + 1];
             strcpy(mv_sys_call, mv_string.c_str());
@@ -519,7 +540,7 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
-                std::string mv_string = "mv history_rbm_00002.csv history_rdmd_" + std::to_string(itr) + ".csv";
+                std::string mv_string = "mv history_rbm_00002.csv history_rdmd_" + std::to_string(Nm) + "_" + std::to_string(Dt_res) + "_" + std::to_string(itr) + ".csv";
                 len_s = mv_string.length();
                 char mv_sys_call[len_s + 1];
                 strcpy(mv_sys_call, mv_string.c_str());
