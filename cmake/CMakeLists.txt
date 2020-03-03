@@ -29,3 +29,22 @@ if (ENABLE_UQ)
     list (APPEND MANDATORY_LIBRARIES "${SMART_UQ_LIBRARY}")
     include_directories (${SMART_UQ_INCLUDE_DIR})
 endif()
+
+# Pagmo is optional
+if (ENABLE_PAGMO)
+
+    # Add compiler flag
+    add_definitions(-D__USE_PAGMO)
+
+    include(cmake/external/pagmo.cmake)
+    list (APPEND MANDATORY_LIBRARIES "${PAGMO_STATIC_LIBRARY}")
+    list (APPEND MANDATORY_LIBRARIES "${PAGMO_LIBRARY}")
+
+    # Eigen is requested to be installed in the system
+    set(EIGEN_INCLUDE_DIR /usr/include/eigen3/)
+
+    include_directories (${PAGMO_INCLUDE_DIR} ${EIGEN_INCLUDE_DIR})
+
+endif()
+
+

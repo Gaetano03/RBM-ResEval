@@ -22,3 +22,6 @@ target_link_libraries (Adaptive_Rec_DTR MODES ${MANDATORY_LIBRARIES})
 add_executable (POD_Rec POD_Rec.cpp)
 target_link_libraries (POD_Rec MODES ${MANDATORY_LIBRARIES})
 
+add_executable (pagmo_test pagmo_test.cpp)
+target_link_libraries (pagmo_test MODES ${MANDATORY_LIBRARIES})
+

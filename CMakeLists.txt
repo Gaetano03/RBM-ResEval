@@ -40,6 +40,7 @@ option(BUILD_STATIC         "Build static library"     OFF)
 option(BUILD_EXAMPLES       "Build examples"           ON)
 option(ENABLE_UQ            "Use smartuq"              ON)
 option(ENABLE_GSL           "Use GSL"                  OFF)
+option(ENABLE_PAGMO           "Use pagmo"                  ON)
 
 #find_package(Threads REQUIRED)
 
@@ -58,14 +59,14 @@ file(GLOB_RECURSE SOURCES "libraries/*.cpp")
 
 #add library
 add_library (MODES SHARED ${SOURCES})
-target_link_libraries(MODES ${MANDATORY_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(MODES ${MANDATORY_LIBRARIES})
 set_target_properties(MODES PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION})
 
 if(BUILD_STATIC)
     add_library (MODES-static STATIC ${SOURCES})
-    target_link_libraries(MODES-static ${MANDATORY_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(MODES-static ${MANDATORY_LIBRARIES})
     set_target_properties(MODES-static PROPERTIES
             VERSION ${PROJECT_VERSION}
             SOVERSION ${PROJECT_VERSION}
