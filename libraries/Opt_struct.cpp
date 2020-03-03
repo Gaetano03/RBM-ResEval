@@ -1,5 +1,7 @@
 #include "Opt_struct.hpp"
 
+#ifdef __USE_PAGMO
+
 //Leave this blank:
 std::pair<std::vector<double>, std::vector<double> > SPOD_Adapt_Samp::get_bounds() const {
     return {problemBounds_[0], problemBounds_[1]};
@@ -339,3 +341,5 @@ std::vector<double> SPOD_Adapt_Samp_Int_::fitness(const std::vector<double> &var
     return fitness_vector;
 
 }
+
+#endif
