@@ -1,6 +1,8 @@
 #ifndef OPT_STRUCT_HPP
 #define OPT_STRUCT_HPP
 
+#ifdef __USE_PAGMO
+
 #include <initializer_list>
 #include <utility>
 
@@ -142,5 +144,6 @@ private:
     int m_Nf;
 };
 
+#endif
 
 #endif //OPT_STRUCT_HPP
