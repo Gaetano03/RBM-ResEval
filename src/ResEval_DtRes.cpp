@@ -17,6 +17,7 @@ int main( int argc, char *argv[] )
     std::cout << "-----------MODES Adaptive Residual Evaluation starts-------------" << std::endl << std::endl;
 
     std::cout << "Initializing common variables ... " << std::endl << std::endl;
+
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
@@ -24,9 +25,7 @@ int main( int argc, char *argv[] )
     int len_s = su2dtr_string.length();
     char su2_sys_call[len_s + 1];
     strcpy(su2_sys_call, su2dtr_string.c_str());
-
     Read_cfg( filecfg, settings );
-
     std::string root_outputfile;
     root_outputfile.assign ( settings.out_file, 0, settings.out_file.size() - 4);
     std::string root_inputfile;
@@ -74,6 +73,7 @@ int main( int argc, char *argv[] )
                                                    settings.in_file,
                                                    settings.flag_prob);
 
+    std::cout << std::endl;
     std::cout << "Initializing Vector of times ... " << std::endl;
     std::vector<double> t_vec( settings.Ns );
     t_vec[0] = settings.nstart*settings.Dt_cfd;
@@ -181,7 +181,11 @@ int main( int argc, char *argv[] )
         std::vector<int> Nm(nC);
         int N_notZero;
         //Check only for POD for now
-
+        for (int i = 0; i < nC; i++) {
+            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
+        }
+        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
         for ( int ncons = 0; ncons < nC; ncons ++ ) {
             std::cout << "Processing conservative variable " << ncons << std::endl;
             Phi[ncons] = SPOD_basis(sn_set.middleRows(ncons * Nr, Nr),
@@ -277,6 +281,12 @@ int main( int argc, char *argv[] )
         std::vector<Eigen::VectorXcd> alfa(nC);
         std::vector<int> Nm(nC);
 
+        for ( int i = 0; i < nC; i++ ) {
+            Phi[i] = Eigen::MatrixXcd::Zero(Nr, settings.Ns);
+            alfa[i] = Eigen::VectorXcd::Zero(settings.Ns);
+            lambda_DMD[i] = Eigen::VectorXcd::Zero(settings.Ns);
+        }
+        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
         for ( int ncons = 0; ncons < nC; ncons++ ) {
 
             std::cout << "Processing conservative variable " << ncons << std::endl;
@@ -430,6 +440,12 @@ int main( int argc, char *argv[] )
         int Nm;
         int N_notZero;
 
+
+        for (int i = 0; i < nC; i++) {
+            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
+        }
+        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
         for ( int ncons = 0; ncons < nC; ncons ++ ) {
 
                 std::cout << "Processing conservative variable " << ncons << std::endl;
@@ -451,25 +467,6 @@ int main( int argc, char *argv[] )
                 std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
 
         }
-
-
-//        for ( int ncons = 0; ncons < nC; ncons++ ) {
-//            std::cout << "Processing conservative variable " << ncons << std::endl;
-//            Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
-//                                          Coefs,
-//                                          lambda[ncons],
-//                                          K_pc,
-//                                          -1, //Performing singular value hard threshold for DMD reduction at each step
-//                                          settings.r_RDMD,
-//                                          settings.En);
-//            surr_coefs[ncons] = getSurrCoefs(t_vec,
-//                                             Coefs.transpose(),
-//                                             settings.flag_interp);
-//            N_notZero = Phi[ncons].cols();
-//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
-//            else Nm = std::min(settings.r, N_notZero);
-//            std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
-//        }
 
         for ( int idtr = 0; idtr < settings.t_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
