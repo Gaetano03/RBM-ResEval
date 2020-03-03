@@ -8,12 +8,9 @@ based on residual evaluation
 
 #include <iostream>
 
-
-int main( int argc, char *argv[] )
+int main( )
 {
-    std::cout << "main starts " << std::endl;
-
-    std::cout << "main ends " << std::endl;
+    std::cout << "Welkommen to RBM code" << std::endl;
 
     return 0;
 }

@@ -167,6 +167,8 @@ keywords read_keyword_type( const std::string &key_string );
 // Read config file and store info in prob_settings
 void Read_cfg ( std::string filename, prob_settings &settings );
 
+// Read and change su2 file
+void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res );
 
 //Get Number of grid points
 int N_gridpoints ( const std::string file_in );

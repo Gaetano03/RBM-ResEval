@@ -543,6 +543,45 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
 }
 
+// Read and change su2 file
+void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res ) {
+
+    std::ifstream inFile ( file_in );
+    std::ofstream outFile ( file_out );
+
+    if ( inFile.is_open() && outFile.is_open() ) {
+
+        size_t delimiterPos;
+        std::string name, value;
+        std::string line;
+
+        while (getline(inFile, line)) {
+
+            line.erase(remove_if(line.begin(), line.end(), isspace),
+                       line.end());  //include ::  in front of isspace if using namespace std
+            if (line[0] == '#' || line.empty())
+                continue;
+
+            delimiterPos = line.find("=");
+            name = line.substr(0, delimiterPos);
+
+            if ( name == "UNST_TIMESTEP" )
+                line = "UNST_TIMESTEP=" + std::to_string(dt_res);
+
+            outFile << line;
+            outFile << std::endl;
+
+        }
+
+        outFile.close();
+        inFile.close();
+    } else {
+        std::cout << "Problem with SU2 config file " << std::endl;
+        exit (EXIT_FAILURE);
+    }
+
+}
+
 
 int N_gridpoints( const std::string file_in) {
 

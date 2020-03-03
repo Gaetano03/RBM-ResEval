@@ -21,7 +21,10 @@ int main( int argc, char *argv[] )
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
-    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf + " > SU2.log"; // + " > resEval_su2.log";
+    std::string root_conf;
+    root_conf.assign ( su2_conf, 0, su2_conf.size() - 4);
+    std::string su2_conf_new = root_conf + "-reseval.cfg";
+    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";
     int len_s = su2dtr_string.length();
     char su2_sys_call[len_s + 1];
     strcpy(su2_sys_call, su2dtr_string.c_str());
@@ -206,6 +209,8 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
+
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << " Computing residuals at time t = " << settings.t_res[itr] << std::endl;
                 for (int ncons = 0; ncons < nC; ncons++) {
@@ -358,6 +363,7 @@ int main( int argc, char *argv[] )
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
 
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residual at time t = " << settings.t_res[itr] << std::endl;
                 std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
@@ -470,6 +476,7 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.t_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
 
