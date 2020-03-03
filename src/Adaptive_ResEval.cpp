@@ -38,18 +38,18 @@ int main( int argc, char *argv[] )
     char rmf_sys_call[len_s + 20];
     strcpy(rmf_sys_call, rmf_string.c_str());
 
-    int s_Nf = 2;   //Number of values for the SPOD filter (POD included)
+    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
     std::vector<int> Nf(s_Nf);
     Nf[0] = 0;
     //Nf[1] = std::ceil(settings.Ns/10.0);
     //Nf[2] = std::ceil(settings.Ns/2.0);
     //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-     Nf[1] = settings.Ns;
+//     Nf[1] = settings.Ns;
 
     int nC = settings.Cols.size();
     double alpha = settings.alpha;
     double beta = settings.beta;
-    double Dt_res = settings.Dt_res;
+    auto Dt_res = settings.Dt_res;
     if (settings.ndim == 2) beta = 0.0;
 
     std::stringstream buffer;
@@ -209,15 +209,15 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
-                    if ( settings.t_res[itr] - 2.0*settings.Dt_res < t_vec[0] && settings.t_res[itr] > t_vec[t_vec.size()-1] && 2*settings.Dt_res > settings.Dt_cfd )
+                    if ( settings.t_res[itr] - 2.0*settings.Dt_res[0] < t_vec[0] && settings.t_res[itr] > t_vec[t_vec.size()-1] && 2*settings.Dt_res[0] > settings.Dt_cfd )
                     {
                         std::cout 
                         << "Define proper Delta_t_res and T_RES vector " << std::endl;
                         exit (EXIT_FAILURE);
                     }else{
                         std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res,
-                                                            settings.t_res[itr] - settings.Dt_res,
+                        std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res[0],
+                                                            settings.t_res[itr] - settings.Dt_res[0],
                                                             settings.t_res[itr] };
                        
                         for ( int j = 0; j < 3; j++ )
@@ -243,9 +243,9 @@ int main( int argc, char *argv[] )
 
                 std::string mv_string;
                 if ( settings.Ns == settings.r )
-                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_AllModes_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_AllModes_"+std::to_string(Dt_res[0])+"_"+std::to_string(itr)+".csv";
                 else
-                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+                     mv_string = "mv history_rbm_00002.csv history_spod_"+ std::to_string(nfj)+"_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res[0])+"_"+std::to_string(itr)+".csv";
 
                 len_s = mv_string.length();
                 char mv_sys_call[len_s + 10];
@@ -298,8 +298,8 @@ int main( int argc, char *argv[] )
         for ( int itr = 0; itr < settings.t_res.size(); itr++ )
         {
 
-            std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res,
-                                                settings.t_res[itr] - settings.Dt_res,
+            std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res[0],
+                                                settings.t_res[itr] - settings.Dt_res[0],
                                                 settings.t_res[itr] };
 
             for ( int ncons = 0; ncons < nC; ncons ++ )
@@ -381,7 +381,7 @@ int main( int argc, char *argv[] )
                 
                 }
 
-                if ( ((settings.t_res[itr] - 2.0*settings.Dt_res) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res > settings.Dt_cfd) )
+                if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res[0] > settings.Dt_cfd) )
                 {
                     std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
                     exit (EXIT_FAILURE);
@@ -426,9 +426,9 @@ int main( int argc, char *argv[] )
 
             std::string mv_string;
             if ( settings.Ns == settings.r )
-                mv_string = "mv history_rbm_00002.csv history_dmd_AllModes_"+ std::to_string(Dt_res)+"_" + std::to_string(itr)+".csv";
+                mv_string = "mv history_rbm_00002.csv history_dmd_AllModes_"+ std::to_string(Dt_res[0])+"_" + std::to_string(itr)+".csv";
             else
-                mv_string = "mv history_rbm_00002.csv history_dmd_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res)+"_"+std::to_string(itr)+".csv";
+                mv_string = "mv history_rbm_00002.csv history_dmd_" +std::to_string(Nm[0])+"_"+std::to_string(Dt_res[0])+"_"+std::to_string(itr)+".csv";
 
 
             len_s = mv_string.length();
@@ -512,14 +512,14 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm);
-                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res > settings.Dt_cfd) )
+                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res[0] > settings.Dt_cfd) )
                     {
                         std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
                         exit (EXIT_FAILURE);
                     }else{
                         std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res,
-                                                            settings.t_res[itr] - settings.Dt_res,
+                        std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res[0],
+                                                            settings.t_res[itr] - settings.Dt_res[0],
                                                             settings.t_res[itr] };
                        
                         for ( int j = 0; j < 3; j++ )
@@ -540,7 +540,7 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
-                std::string mv_string = "mv history_rbm_00002.csv history_rdmd_" + std::to_string(Nm) + "_" + std::to_string(Dt_res) + "_" + std::to_string(itr) + ".csv";
+                std::string mv_string = "mv history_rbm_00002.csv history_rdmd_" + std::to_string(Nm) + "_" + std::to_string(Dt_res[0]) + "_" + std::to_string(itr) + ".csv";
                 len_s = mv_string.length();
                 char mv_sys_call[len_s + 1];
                 strcpy(mv_sys_call, mv_string.c_str());

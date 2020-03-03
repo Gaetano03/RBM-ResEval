@@ -69,7 +69,7 @@ struct prob_settings
     std::string flag_method;        //Method to use
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
     double Dt_cfd;                  //delta t used in CFD simulation
-    double Dt_res;                  //delta t used for residual evaluation
+    std::vector<double> Dt_res;     //delta t used for residual evaluation
     double alpha;                   //angle of attack of the problem
     double beta;                    //angle of sideslip
     double Mach;                    //Mach number

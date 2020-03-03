@@ -221,8 +221,19 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                 case DT_RES:
                 {
-                    settings.Dt_res = std::stod(value);
-                    //std::cout << "Sigma for SPOD gaussian filter : " << value << std::endl;
+                    std::string str = value;
+                    std::stringstream ss(str);
+
+                    double i;
+
+                    while (ss >> i) {
+
+                        settings.Dt_res.push_back(i);
+
+                        if (ss.peek() != ',' || ss.peek() != ' ')
+                            ss.ignore();
+                    }
+
                     break;
                 }
 
