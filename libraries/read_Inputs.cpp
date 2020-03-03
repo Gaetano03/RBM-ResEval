@@ -566,9 +566,10 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res )
             name = line.substr(0, delimiterPos);
 
             if ( name == "UNST_TIMESTEP" )
-                line = "UNST_TIMESTEP=" + std::to_string(dt_res);
+                outFile << "UNST_TIMESTEP=" << std::setprecision(16) << dt_res;
+            else
+                outFile << line;
 
-            outFile << line;
             outFile << std::endl;
 
         }
