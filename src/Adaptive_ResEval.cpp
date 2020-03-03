@@ -77,7 +77,9 @@ int main( int argc, char *argv[] )
     t_vec[0] = settings.nstart*settings.Dt_cfd;
     for ( int i = 1; i < settings.Ns; i++ )
         t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
-        
+
+    std::cout << settings.t_res[0] - 2.0*settings.Dt_res[0] << std::endl;
+
     // std::vector<double> t_evaluate(2*settings.Ns-1);
     // t_evaluate[0] = settings.nstart*settings.Dt_cfd;
     // for ( int i = 1; i < t_evaluate.size(); i++)
@@ -209,7 +211,7 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
-                    if ( settings.t_res[itr] - 2.0*settings.Dt_res[0] < t_vec[0] && settings.t_res[itr] > t_vec[t_vec.size()-1] && 2*settings.Dt_res[0] > settings.Dt_cfd )
+                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]) || (2*settings.Dt_res[0] > settings.Dt_cfd) )
                     {
                         std::cout 
                         << "Define proper Delta_t_res and T_RES vector " << std::endl;
@@ -381,7 +383,7 @@ int main( int argc, char *argv[] )
                 
                 }
 
-                if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res[0] > settings.Dt_cfd) )
+                if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]) || (2*settings.Dt_res[0] > settings.Dt_cfd) )
                 {
                     std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
                     exit (EXIT_FAILURE);
@@ -512,7 +514,7 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm);
-                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) && (settings.t_res[itr] > t_vec[t_vec.size()-1]) && (2*settings.Dt_res[0] > settings.Dt_cfd) )
+                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]) || (2*settings.Dt_res[0] > settings.Dt_cfd) )
                     {
                         std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
                         exit (EXIT_FAILURE);
