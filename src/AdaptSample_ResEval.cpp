@@ -216,15 +216,15 @@ int main( int argc, char *argv[] )
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
 
                 Eigen::MatrixXd coef_t(3, Nm);
-                if (settings.t_res[itr] - 2.0 * settings.Dt_res < t_vec[0] &&
-                    settings.t_res[itr] > t_vec[t_vec.size() - 1] && 2 * settings.Dt_res > settings.Dt_cfd) {
+                if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
+                    settings.t_res[itr] > t_vec[t_vec.size() - 1] ) {
                     std::cout
                             << "Define proper Delta_t_res and T_RES vector " << std::endl;
                     exit(EXIT_FAILURE);
                 } else {
                     std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res,
-                                                      settings.t_res[itr] - settings.Dt_res,
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
                                                       settings.t_res[itr]};
 
                     for (int j = 0; j < 3; j++) {
@@ -348,15 +348,15 @@ int main( int argc, char *argv[] )
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
 
                 Eigen::MatrixXd coef_t(3, Nm);
-                if (settings.t_res[itr] - 2.0 * settings.Dt_res < t_vec[0] &&
-                    settings.t_res[itr] > t_vec[t_vec.size() - 1] && 2 * settings.Dt_res > settings.Dt_cfd) {
+                if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
+                    settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
                     std::cout
                             << "Define proper Delta_t_res and T_RES vector " << std::endl;
                     exit(EXIT_FAILURE);
                 } else {
                     std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res,
-                                                      settings.t_res[itr] - settings.Dt_res,
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
                                                       settings.t_res[itr]};
 
                     for (int j = 0; j < 3; j++) {
