@@ -147,23 +147,23 @@ int main( int argc, char *argv[] )
 
         rho_max = sn_set.middleRows(0, Np).maxCoeff();
         rho_min = sn_set.middleRows(0, Np).minCoeff();
-        temp = ( sn_set.middleRows(0, Np).array() - rho_min)/(rho_max - rho_min);
-        sn_set.middleRows(0, Np) = temp.matrix();
+        temp = ( sn_set.middleRows(0, Np).array() - rho_min);
+        sn_set.middleRows(0, Np) = temp.matrix()/(rho_max - rho_min);
 
         rhoU_max = sn_set.middleRows(Np, Np).maxCoeff();
         rhoU_min = sn_set.middleRows(Np, Np).minCoeff();
-        temp = ( sn_set.middleRows(0, Np).array() - rhoU_min)/(rhoU_max - rhoU_min);
-        sn_set.middleRows(Np, Np) = temp.matrix();
+        temp = ( sn_set.middleRows(0, Np).array() - rhoU_min);
+        sn_set.middleRows(Np, Np) = temp.matrix()/(rhoU_max - rhoU_min);
 
         rhoV_max = sn_set.middleRows(2*Np, Np).maxCoeff();
         rhoV_min = sn_set.middleRows(2*Np, Np).minCoeff();
-        temp = ( sn_set.middleRows(2*Np, Np).array() - rhoV_min)/(rhoV_max - rhoV_min);
-        sn_set.middleRows(2*Np, Np) = temp.matrix();
+        temp = ( sn_set.middleRows(2*Np, Np).array() - rhoV_min);
+        sn_set.middleRows(2*Np, Np) = temp.matrix()/(rhoV_max - rhoV_min);
 
         rhoE_max = sn_set.middleRows(3*Np, Np).maxCoeff();
         rhoE_min = sn_set.middleRows(3*Np, Np).minCoeff();
-        temp = ( sn_set.middleRows(3*Np, Np).array() - rhoE_min)/(rhoE_max - rhoE_min);
-        sn_set.middleRows(3*Np, Np) = temp.matrix();
+        temp = ( sn_set.middleRows(3*Np, Np).array() - rhoE_min);
+        sn_set.middleRows(3*Np, Np) = temp.matrix()/(rhoE_max - rhoE_min);
 
     }
 

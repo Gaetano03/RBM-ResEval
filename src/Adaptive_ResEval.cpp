@@ -157,7 +157,7 @@ int main( int argc, char *argv[] )
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
-    if ( settings.flag_mean == "YES" )
+    if ( settings.flag_mean == "IC" )
     {
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
@@ -237,7 +237,7 @@ int main( int argc, char *argv[] )
                     Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm[ncons])*Sig*coef_t.transpose();
                 }
 
-                if ( settings.flag_mean == "YES" )
+                if ( settings.flag_mean == "IC" )
                 {   
                     for ( int it = 0; it < 3; it++ )
                         Sn_Cons_time.col(it) += Ic;
@@ -420,7 +420,7 @@ int main( int argc, char *argv[] )
             //     Sn_Cons_time.middleRows(ncons*Nr,Nr) = D_dmd.real();
             // }
             
-            if ( settings.flag_mean == "YES" )
+            if ( settings.flag_mean == "IC" )
             {   
                 for ( int it = 0; it < 3; it++ )
                     Sn_Cons_time.col(it) += Ic;
@@ -536,7 +536,7 @@ int main( int argc, char *argv[] )
                 
                 }
 
-                if ( settings.flag_mean == "YES" )
+                if ( settings.flag_mean == "IC" )
                 {   
                     for ( int it = 0; it < 3; it++ )
                         Sn_Cons_time.col(it) += Ic;
