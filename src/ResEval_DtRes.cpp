@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
             Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
 
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
-                std::cout << " Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+                std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
                 for (int ncons = 0; ncons < nC; ncons++) {
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
@@ -474,7 +474,7 @@ int main( int argc, char *argv[] )
 
         }
 
-        for ( int idtr = 0; idtr < settings.t_res.size(); idtr++ ) {
+        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
             Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
