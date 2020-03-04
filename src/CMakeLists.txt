@@ -44,3 +44,8 @@ ADD_RBM_TESTCASE(ResEval_DtRes)
 #ADD_RBM_TESTCASE(test)
 #ADD_RBM_TESTCASE(SingleMODES)
 
+if(ENABLE_PAGMO)
+    ADD_RBM_TESTCASE(Adaptive_Sampling)
+    ADD_RBM_TESTCASE(AdaptSample_ResEval)
+endif()
+
