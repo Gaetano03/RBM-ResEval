@@ -78,7 +78,22 @@ int main( int argc, char *argv[] )
     for ( int i = 1; i < settings.Ns; i++ )
         t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
 
-    std::cout << settings.t_res[0] - 2.0*settings.Dt_res[0] << std::endl;
+    std::cout << t_vec[0] << "-------time of first snapshot" << std::endl;
+    std::cout << t_vec[t_vec.size()-1] <<"-------time of last snapshot" << std::endl;
+    std::cout << settings.t_res[0] <<"----time of first residual evaluation"<< std::endl;
+    std::cout << settings.t_res[settings.t_res.size()-1]<< "----time of last residual evaluation"<< std::endl;
+
+    for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ){
+        if (settings.t_res[0] - 2.0 * settings.Dt_res[idtr] < t_vec[0] ||
+            settings.t_res[settings.t_res.size()-1] > t_vec[t_vec.size() - 1])
+        {
+            std::cout
+                    << "Define proper Delta_t_res and T_RES vector " << std::endl;
+            exit(EXIT_FAILURE);
+        }else
+        { std::cout << "Perfect usage of time... chapeau "<< std::endl;}
+    }
+
 
     // std::vector<double> t_evaluate(2*settings.Ns-1);
     // t_evaluate[0] = settings.nstart*settings.Dt_cfd;
@@ -211,12 +226,12 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
-                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
-                    {
-                        std::cout 
-                        << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit (EXIT_FAILURE);
-                    }else{
+                   // if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
+                    //{
+                      //  std::cout
+                       // << "Define proper Delta_t_res and T_RES vector " << std::endl;
+                        //exit (EXIT_FAILURE);
+                    //}else{
                         std::vector<double> tr(1);
                         std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res[0],
                                                             settings.t_res[itr] - settings.Dt_res[0],
@@ -230,7 +245,7 @@ int main( int argc, char *argv[] )
                         }
 
 
-                    }   
+                   // }
                     Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm[ncons], Nm[ncons]);
                     for ( int i = 0; i < Nm[ncons]; i++ )
                         Sig(i,i) = std::sqrt(lambda[ncons](i));
@@ -383,11 +398,11 @@ int main( int argc, char *argv[] )
                 
                 }
 
-                if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
-                {
-                    std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                    exit (EXIT_FAILURE);
-                }else{
+               // if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
+               // {
+                //    std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
+                 //   exit (EXIT_FAILURE);
+               // }else{
 
                     for ( int j = 0; j < 3; j++ )
                     {
@@ -402,7 +417,7 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.middleRows(ncons*Nr,Nr).col(j) = Rec.real();
 
                     }
-                }
+               // }
 
             }
             //     Eigen::MatrixXcd V_and(lambda_DMD.size(), 3);      
@@ -514,11 +529,11 @@ int main( int argc, char *argv[] )
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm);
-                    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
-                    {
-                        std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit (EXIT_FAILURE);
-                    }else{
+                //    if ( ((settings.t_res[itr] - 2.0*settings.Dt_res[0]) < t_vec[0]) || (settings.t_res[itr] > t_vec[t_vec.size()-1]))
+                 //   {
+                //        std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
+                 //       exit (EXIT_FAILURE);
+                //    }else{
                         std::vector<double> tr(1);
                         std::vector<double> t_evaluate = { settings.t_res[itr] - 2.0*settings.Dt_res[0],
                                                             settings.t_res[itr] - settings.Dt_res[0],
@@ -530,7 +545,7 @@ int main( int argc, char *argv[] )
                             for ( int i = 0; i < Nm; i++ )
                                 surr_coefs[ncons][i].evaluate(tr, coef_t(j,i));
                         }
-                    }   
+                 //   }
 
                     Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm)*coef_t.transpose();
                 
