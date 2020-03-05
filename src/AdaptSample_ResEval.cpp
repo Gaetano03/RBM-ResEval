@@ -357,7 +357,7 @@ int main( int argc, char *argv[] )
 
                 std::cout << "Reconstructing Momentum at time : " << settings.t_rec[nt] << "\t";
                 Eigen::MatrixXd Rec = Reconstruction_S_POD(t_vec,
-                                                           K_pc, lambda, eig_vec.transpose(),
+                                                           K_pc, lambda, Coeffs,
                                                            Phi.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
                                                            Nm,
                                                            "VECTOR-2D",
