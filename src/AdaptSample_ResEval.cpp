@@ -167,19 +167,19 @@ int main( int argc, char *argv[] )
 
         rho_max = sn_set.middleRows(0, Nr).maxCoeff();
         rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        sn_set.middleRows(0, Nr) = ( sn_set.middleRows(0, Nr).array() - rho_min)/(rho_max - rho_min);
+        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
 
         rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
         rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        sn_set.middleRows(Nr, Nr) = ( sn_set.middleRows(0, Nr).array() - rhoU_min)/(rhoU_max - rhoU_min);
+        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
 
         rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
         rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        sn_set.middleRows(2*Nr, Nr) = ( sn_set.middleRows(2*Nr, Nr).array() - rhoV_min)/(rhoV_max - rhoV_min);
+        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
 
         rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
         rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        sn_set.middleRows(3*Nr, Nr) = ( sn_set.middleRows(3*Nr, Nr).array() - rhoE_min)/(rhoE_max - rhoE_min);
+        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
 
     }
 
@@ -242,10 +242,10 @@ int main( int argc, char *argv[] )
 
 
                 //Introduce an if on the number of conservative variables
- //                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr).array() * (rho_max - rho_min) + rho_min;
- //                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr).array() * (rhoU_max - rhoU_min) + rhoU_min;
- //                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr).array() * (rhoV_max - rhoV_min) + rhoV_min;
- //                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr).array() * (rhoE_max - rhoE_min) + rhoE_min;
+                 Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min;
+                 Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min;
+                 Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min;
+                 Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min;
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
@@ -281,14 +281,20 @@ int main( int argc, char *argv[] )
 
                 std::cout << "Done" << std::endl;
 
-                Rec.col(0) = Rec.col(0).array() * (rhoU_max - rhoU_min) + rhoU_min;
-                Rec.col(1) = Rec.col(1).array() * (rhoV_max - rhoV_min) + rhoV_min;
+                Rec.col(0) = Rec.col(0) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 1)*rhoU_min;
+                Rec.col(1) = Rec.col(1) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 1)*rhoV_min;
 
-                if (settings.flag_mean == "IC") Rec = Rec + Ic.middleRows(Nr, 2 * Nr);
-                if (settings.flag_mean == "YES") Rec = Rec + mean.middleRows(Nr, 2 * Nr);
+                if (settings.flag_mean == "IC") {
+                    Rec.col(0) = Rec.col(0) + Ic.middleRows(Nr, Nr);
+                    Rec.col(1) = Rec.col(1) + Ic.middleRows(2*Nr, Nr);
+                }
+                if (settings.flag_mean == "YES") {
+                    Rec.col(0) = Rec.col(0) + mean.middleRows(Nr, Nr);
+                    Rec.col(1) = Rec.col(1) + mean.middleRows(2*Nr, Nr);
+                }
 
                 std::cout << "Writing reconstructed field ..." << "\t";
-                std::string filename = root_outputfile + "_uni_" + std::to_string(nt) + ".dat";
+                std::string filename = root_outputfile + "_uni.dat";
 
                 write_Reconstructed_fields(Rec, Coords,
                                            filename,
@@ -303,10 +309,7 @@ int main( int argc, char *argv[] )
  //                 Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
     }
 
-
-
-
-    //Defining common scope for adaptive sampling
+//    Defining common scope for adaptive sampling
     {
         int nVar = 10; //that has to contain also first and last snapshot
         Eigen::VectorXi t_pos(nVar);
@@ -329,7 +332,7 @@ int main( int argc, char *argv[] )
         Eigen::MatrixXd eig_vec(nVar, nVar);
         int N_notZero;
         //Check only for POD for now
-        std::cout << "Computing adaptive SPOD modes with Nf (only for first time instant): " << settings.Nf << "\n";
+        std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
 
         Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),t_pos);
         Phi = SPOD_basis( sub_sn_set,
@@ -374,10 +377,10 @@ int main( int argc, char *argv[] )
 
 
                 //Introduce an if on the number of conservative variables
-                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr).array() * (rho_max - rho_min) + rho_min;
-                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr).array() * (rhoU_max - rhoU_min) + rhoU_min;
-                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr).array() * (rhoV_max - rhoV_min) + rhoV_min;
-                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr).array() * (rhoE_max - rhoE_min) + rhoE_min;
+                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min;
+                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min;
+                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min;
+                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min;
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
@@ -414,14 +417,20 @@ int main( int argc, char *argv[] )
 
                 std::cout << "Done" << std::endl;
 
-                Rec.col(0) = Rec.col(0).array() * (rhoU_max - rhoU_min) + rhoU_min;
-                Rec.col(1) = Rec.col(1).array() * (rhoV_max - rhoV_min) + rhoV_min;
+                Rec.col(0) = Rec.col(0) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr,1) * rhoU_min;
+                Rec.col(1) = Rec.col(1) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr,1) * rhoV_min;
 
-                if (settings.flag_mean == "IC") Rec = Rec + Ic.middleRows(Nr, 2 * Nr);
-                if (settings.flag_mean == "YES") Rec = Rec + mean.middleRows(Nr, 2 * Nr);
+                if (settings.flag_mean == "IC") {
+                    Rec.col(0) = Rec.col(0) + Ic.middleRows(Nr, Nr);
+                    Rec.col(1) = Rec.col(1) + Ic.middleRows(2*Nr, Nr);
+                }
+                if (settings.flag_mean == "YES") {
+                    Rec.col(0) = Rec.col(0) + mean.middleRows(Nr, Nr);
+                    Rec.col(1) = Rec.col(1) + mean.middleRows(2*Nr, Nr);
+                }
 
                 std::cout << "Writing reconstructed field ..." << "\t";
-                std::string filename = root_outputfile + "_adapt_" + std::to_string(nt) + ".dat";
+                std::string filename = root_outputfile + "_adapt.dat";
 
                 write_Reconstructed_fields(Rec, Coords,
                                            filename,
@@ -439,3 +448,6 @@ int main( int argc, char *argv[] )
     return 0;
 
 }
+
+
+
