@@ -258,14 +258,14 @@ int main( int argc, char *argv[] )
 
 //    Defining common scope for adaptive sampling
     {
-        int nVar = 12; //that has to contain also first and last snapshot
+        int nVar = 5; //that has to contain also first and last snapshot
         Eigen::VectorXi t_pos(nVar);
         std::cout << "Nm =  " << Nm << std::endl;
  //        0, 1, 2, 5, 7, 10, 13, 14, 17, 21, 24, 26, 28, 33, 36, 39, 42, 48, 53, 56, 62, 65, 68, 73, 76, 77,
  //                82, 88, 93, 99;
  //        t_pos << 0, 1, 2, 4, 5, 7, 8, 9, 11, 14, 16, 19, 22, 25, 29, 33, 38, 42, 48, 51, 55, 62, 65, 70, 76, 82, 93, 99;
-//        t_pos << 0, 1, 3, 7, 17, 29, 41, 58, 78, 99;
-        t_pos << 0, 1, 6, 10, 19, 28, 39, 44, 52, 67, 83,  99;
+        t_pos << 0, 1, 2, 3, 9;
+//        t_pos << 0, 1, 6, 10, 19, 28, 39, 44, 52, 67, 83,  99;
 //        std::vector<double> t_vec( nVar );
  //        for ( int i = 0; i < nVar; i++ )
  //            t_vec[i] = settings.Dt_cfd*settings.Ds*t_pos(i);
@@ -291,6 +291,9 @@ int main( int argc, char *argv[] )
                           settings.sigma);
 
         Eigen::MatrixXd Coeffs = Phi.transpose()*sn_set;
+        for ( int it = 0; it < lambda.size(); it ++)
+                Coeffs.row(it) = Coeffs.row(it)/std::sqrt(lambda(it));
+
         surr_coefs = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
 
  //             Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
