@@ -686,10 +686,10 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
         for ( int i = 0; i < Nr; i++ )
         {
             
-            if ( abs(Rec(i,0)) < 1e-12 )    /*It*/
-                Rec(i,0) = 0.0;             /*doesn't*/
-            if ( abs(Rec(i,1)) < 1e-12 )    /*mean*/
-                Rec(i,1) = 0.0;             /*anything*/
+//            if ( std::abs(Rec(i,0)) < 1e-12 )    /*It*/
+//                Rec(i,0) = 0.0;             /*doesn't*/
+//            if ( std::abs(Rec(i,1)) < 1e-12 )    /*mean*/
+//                Rec(i,1) = 0.0;             /*anything*/
             flow_data << i+1 << " ";
             flow_data << std::setprecision(12) << std::scientific <<  Coords(i,0)  << " ";
             flow_data << std::setprecision(12) << std::scientific << Coords(i,1)  << " ";
