@@ -6,6 +6,7 @@ Config File RBM + Config File SU2
 
 #include "Extract_Basis.hpp"
 #include "read_Inputs.hpp"
+#include "Pre-Process.hpp"
 #include "Generate_snset.hpp"
 #include "Reconstruction.hpp"
 #include "write_Outputs.hpp"
@@ -50,11 +51,7 @@ int main( int argc, char *argv[] )
     int nfj = 0;
 
     int nC = settings.Cols.size();
-    double alpha = settings.alpha;
-    double beta = settings.beta;
     std::vector<double> Dt_res = settings.Dt_res;
-
-    if (settings.ndim == 2) beta = 0.0;
 
     std::stringstream buffer;
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
@@ -106,72 +103,7 @@ int main( int argc, char *argv[] )
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
-    double M = settings.Mach;
-    double Re = settings.Re;
-    double T = settings.T;
-    double length = 1.0;
-    double R = 287.058;
-    double gamma = 1.4;
-    double mu_ref = 1.716E-5;
-    double T_ref = 273.15;
-    double S = 110.4;
-
-    double mu = mu_ref*std::pow(T/T_ref,1.5)*(T_ref + S)/(T + S);
-    double V_magn = M*std::sqrt(gamma*R*T);
-    double rho = Re*mu/(V_magn*length);
-    double rhoU = rho*V_magn*std::cos(alpha)*std::cos(beta);
-    double rhoV = rho*V_magn*std::sin(alpha);
-    double rhoW = rho*V_magn*std::cos(alpha)*std::sin(beta);
-    double rhoE = rho*(R/(gamma-1)*T + 0.5*V_magn*V_magn);
-
-    //That only matters for turbulent calculation
-    //since these values are used as default values in SU2, they are not present in config file but hard coded
-    double n_turb = 0.05;
-    double mu_turb2lam_ratio = 10.0;
-
-    double nuTilde=0.1*mu/rho;				// initial value spalart allmaras model
-    double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
-    double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
-    // double rhotke = rho*tke;
-    // double rhoomega = rho*omega;
-    double rhotke = tke;
-    double rhoomega = omega;
-
-    Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
-
-    if ( nC == 4 ) //Laminar 2D Navier-Stokes
-    {
-        Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-    }else if (nC== 5) // Turbolent 2D Spalart Allmaras
-    {
-        Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(4*Nr, Nr) = nuTilde*Eigen::MatrixXd::Ones(Nr,1);
-
-    }else if ( nC == 6 ) //Turbulent 2D Navier-Stokes
-    {
-        Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(4*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(5*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
-    } else if ( nC == 7 ) //Turbulent 3D Navier-Stokes
-    {
-        Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(3*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1); //no sideslip angle
-        Ic.segment(4*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(5*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(6*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
-    }
+    Eigen::VectorXd Ic = IC(settings, nC, Nr);
 
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
@@ -238,17 +170,16 @@ int main( int argc, char *argv[] )
                         //        << "Define proper Delta_t_res and T_RES vector " << std::endl;
                        // exit(EXIT_FAILURE);
                    // } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
-                                                          settings.t_res[itr] - settings.Dt_res[idtr],
-                                                          settings.t_res[itr]};
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                      settings.t_res[itr] - settings.Dt_res[idtr],
+                                                      settings.t_res[itr]};
 
-                        for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm[ncons]; i++)
-                                surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
-                        }
-
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm[ncons]; i++)
+                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                    }
 
                 //    }
                     Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm[ncons], Nm[ncons]);
@@ -275,7 +206,7 @@ int main( int argc, char *argv[] )
                 char mv_sys_call[len_s + 10];
                 strcpy(mv_sys_call, mv_string.c_str());
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary);
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 std::system(su2_sys_call);
@@ -429,7 +360,7 @@ int main( int argc, char *argv[] )
 
                 std::cout << "Writing time reconstruction " << std::endl;
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary);
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 std::system(su2_sys_call);
@@ -539,7 +470,7 @@ int main( int argc, char *argv[] )
                 strcpy(mv_sys_call, mv_string.c_str());
                 std::cout << "Writing time reconstruction " << std::endl;
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary);
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 std::system(su2_sys_call);
