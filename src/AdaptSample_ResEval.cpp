@@ -188,10 +188,10 @@ int main( int argc, char *argv[] )
 
 
                 //Introduce an if on the number of conservative variables
-                 Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min;
-                 Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min;
-                 Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min;
-                 Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min;
+                 Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                 Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                 Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                 Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
@@ -291,8 +291,8 @@ int main( int argc, char *argv[] )
                           settings.sigma);
 
         Eigen::MatrixXd Coeffs = Phi.transpose()*sn_set;
-        for ( int it = 0; it < lambda.size(); it ++)
-                Coeffs.row(it) = Coeffs.row(it)/std::sqrt(lambda(it));
+//        for ( int it = 0; it < lambda.size(); it ++)
+//                Coeffs.row(it) = Coeffs.row(it)/std::sqrt(lambda(it));
 
         surr_coefs = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
 
@@ -328,10 +328,10 @@ int main( int argc, char *argv[] )
 
 
                 //Introduce an if on the number of conservative variables
-                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min;
-                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min;
-                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min;
-                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min;
+                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
