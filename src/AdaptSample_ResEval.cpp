@@ -255,6 +255,8 @@ int main( int argc, char *argv[] )
  //                 Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
     }
 
+
+    return 0;
 //    Defining common scope for adaptive sampling
     {
         int nVar = 10; //that has to contain also first and last snapshot
