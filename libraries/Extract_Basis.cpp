@@ -391,7 +391,7 @@ Eigen::MatrixXcd DMD_basis ( const Eigen::MatrixXd &snap_set,
         std::cout << "DMD rank based on non zero singular values : " << Nm << std::endl;
     }
     
-    Eigen::MatrixXcd phi = Eigen::MatrixXd::Zero(snap_set.rows(), Nm);
+    Eigen::MatrixXcd phi = Eigen::MatrixXcd::Zero(snap_set.rows(), Nm);
     if ( Nm == 0)
     {
         std::cout << " Rank is zero, bad data to define low order evolution " << std::endl;
