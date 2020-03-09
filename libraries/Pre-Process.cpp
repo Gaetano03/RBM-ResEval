@@ -71,7 +71,7 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
         Ic.segment(5*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(6*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
     } else {
-        std::cout << "Set well numbe rof conservative Variables" << std::endl;
+        std::cout << "Set well number of conservative Variables" << std::endl;
         exit(EXIT_FAILURE);
     }
 

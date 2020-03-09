@@ -131,6 +131,7 @@ int main( int argc, char *argv[] )
 
 
     int Nm;
+    int nVar = settings.t_pos.size(); //that has to contain also first and last snapshot
  //Defining common scope for uniform sampling
     {
 
@@ -162,20 +163,25 @@ int main( int argc, char *argv[] )
             N_notZero = Phi_POD.cols();
             if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
             else Nm = std::min(settings.r, N_notZero);
+
+            if ( Nm != nVar) {
+                std::cout << "-----------------------------WARNING:------------------------"
+                             "Truncation and adaptation don't have the same number of modes" << std::endl << std::endl;
+                exit(EXIT_FAILURE);
+            }
             std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
             surr_coefs_POD = getSurrCoefs(t_vec, eig_vec, settings.flag_interp);
 
-        } else if ( settings.flag_method == "DMD" ){
+        } else if ( settings.flag_method == "DMD" ) {
 
             Eigen::MatrixXcd eig_vec_DMD;
             std::cout << "Computing uniform DMD modes" << std::endl;
-            Nm = 12; //Plug in manually for now
             Phi_DMD = DMD_basis(sn_set,
                                    lambda_DMD,
                                    eig_vec_DMD,
                                    lambda_POD,
                                    eig_vec,
-                                   Nm);
+                                   nVar);
 
             Eigen::MatrixXcd PhiTPhi = Phi_DMD.leftCols(Nm).transpose()*Phi_DMD.leftCols(Nm);
             Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.leftCols(Nm).transpose()*sn_set);
@@ -331,11 +337,13 @@ int main( int argc, char *argv[] )
 
 //    Defining common scope for adaptive sampling
     {
-        int nVar = 12; //that has to contain also first and last snapshot
-        Eigen::VectorXi t_pos(nVar);
-        std::cout << "Nm =  " << Nm << std::endl;
+        if ( nVar != Nm ) std::cout << "-----------------WARNING-----------------\n "
+                                       "comparison with different number of modes" << std::endl << std::endl;
 
-        t_pos << 0, 1, 6, 10, 19, 28, 39, 44, 52, 67, 83,  99;
+        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
+        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
+
+//        t_pos << 0, 1, 6, 10, 19, 28, 39, 44, 52, 67, 83,  99;
 
         //Vector of MatrixXd where to store the evolution in time of conservative variables
         Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
@@ -354,7 +362,7 @@ int main( int argc, char *argv[] )
         //Check only for POD for now
         std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
 
-        Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),t_pos);
+        Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
 
         if ( settings.flag_method == "SPOD") {
             Phi_POD = SPOD_basis(sub_sn_set,
@@ -376,7 +384,7 @@ int main( int argc, char *argv[] )
                                 eig_vec_DMD,
                                 lambda_POD,
                                 eig_vec,
-                                t_pos);
+                                Ipos);
 
             Eigen::MatrixXcd PhiTPhi = Phi_DMD.transpose()*Phi_DMD;
             Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);

@@ -299,6 +299,9 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
             std::cout << "Only VELOCITY-3D implemented for CS3D so far. Set well FLAG_PROB! Now Exiting ..." << std::endl;
             exit (EXIT_FAILURE);
         }
+    } else {
+        std::cout << "Set well problem solver " << std::endl;
+        exit (EXIT_FAILURE);
     }
 }
 

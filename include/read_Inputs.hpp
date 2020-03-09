@@ -73,6 +73,7 @@ struct prob_settings
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
     double Dt_cfd;                  //delta t used in CFD simulation
     std::vector<double> Dt_res;     //delta t used for residual evaluation
+    std::vector<int> t_pos;          //Position vector for adaptive sampling
     double alpha;                   //angle of attack of the problem
     double beta;                    //angle of sideslip
     double Mach;                    //Mach number
@@ -130,6 +131,7 @@ struct plot3d_info
 // List of Keywords in config file
 enum keywords 
             {
+                ADAPT_POS,
                 SOLVER, 
                 NS, DS, EN, NF, SIGMA,
                 RHO_FREE, P_FREE,

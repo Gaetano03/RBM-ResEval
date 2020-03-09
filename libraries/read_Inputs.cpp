@@ -3,6 +3,8 @@
 
 keywords read_keyword_type( const std::string &key_string )
 {
+    if( key_string == "ADAPT_POS" )
+        return ADAPT_POS;
     if( key_string == "SOLVER" )
         return SOLVER;
     if( key_string == "NS" )
@@ -461,13 +463,6 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                     }
 
-                    //std::cout << "Times desired for reconstruction: \t";
-                    
-                    //for ( i = 0; i < settings.t_rec.size(); i++ )
-                        //std::cout << settings.t_rec[i] << "\t";
-
-                    //std::cout << std::endl;
-
                     break;
                 }
 
@@ -487,12 +482,24 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                     }
 
-                    //std::cout << "Number of columns with coordinates: \t";
-                    
-                    //for ( i = 0; i < settings.Cols_coords.size(); i++ )
-                        //std::cout << settings.Cols_coords[i] << "\t";
+                    break;
+                }
 
-                    ///std::cout << std::endl;
+                case ADAPT_POS:
+                {
+                    std::string str = value;
+                    std::stringstream ss(str);
+
+                    int i;
+
+                    while ( ss >> i ) {
+
+                        settings.t_pos.push_back(i);
+
+                        if (ss.peek() != ',' || ss.peek() != ' ')
+                            ss.ignore();
+
+                    }
 
                     break;
                 }
@@ -512,13 +519,6 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                             ss.ignore();
 
                     }
-
-                    //std::cout << "Number of columns to process: \t";
-                    
-                    //for ( i = 0; i < settings.Cols.size(); i++ )
-                        //std::cout << settings.Cols[i] << "\t";
-
-                    //std::cout << std::endl;
 
                     break;
                 }
