@@ -362,12 +362,11 @@ int main( int argc, char *argv[] )
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
 
         int N_notZero;
-        //Check only for POD for now
-        std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
 
         Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
 
         if ( settings.flag_method == "SPOD") {
+            std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
             Phi_POD = SPOD_basis(sub_sn_set,
                                  lambda_POD, K_pc, eig_vec,
                                  settings.Nf,
@@ -379,10 +378,10 @@ int main( int argc, char *argv[] )
             surr_coefs_POD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
         } else if ( settings.flag_method == "DMD") {
             Eigen::MatrixXcd eig_vec_DMD;
-            std::cout << "Computing uniform DMD modes" << std::endl;
+            std::cout << "Computing adaptive DMD modes" << std::endl;
             if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
             else Nm = std::min(settings.r, settings.Ns);
-            Phi_DMD = DMD_Adaptive_basis(sub_sn_set,
+            Phi_DMD = DMD_Adaptive_basis(sn_set,
                                 lambda_DMD,
                                 eig_vec_DMD,
                                 lambda_POD,
