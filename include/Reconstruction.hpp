@@ -1,19 +1,8 @@
 #ifndef RECONSTRUCTION_HPP
 #define RECONSTRUCTION_HPP
 
-#include <iostream>
-#include <sstream>
-#include <stdio.h> 
-#include <fstream>
-#include <string>
-#include <vector>
-#include <iomanip>
-#include <complex>
 #include "Extract_Basis.hpp"
-#include "smartmath.h"
 #include "smart-uq/Surrogates/rbf.h"
-#include "LinearAlgebra/Eigen/Dense"
-#include "LinearAlgebra/Eigen/Eigenvalues"
 
 using namespace smartuq::surrogate;
 
