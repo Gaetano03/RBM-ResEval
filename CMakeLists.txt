@@ -58,7 +58,7 @@ include_directories(${HEADERS})
 file(GLOB_RECURSE SOURCES "libraries/*.cpp")
 
 #add library
-add_library (MODES SHARED ${SOURCES} src/ResEval_DtRes.cpp include/Pre-Process.hpp libraries/Pre-Process.cpp)
+add_library (MODES SHARED ${SOURCES})
 target_link_libraries(MODES ${MANDATORY_LIBRARIES})
 set_target_properties(MODES PROPERTIES
         VERSION ${PROJECT_VERSION}

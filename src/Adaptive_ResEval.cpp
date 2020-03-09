@@ -210,9 +210,9 @@ int main( int argc, char *argv[] )
                 Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary );
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                std::system( su2_sys_call );
-                std::system( rmf_sys_call );
-                std::system( mv_sys_call );
+                auto otp = std::system( su2_sys_call );
+                otp = std::system( rmf_sys_call );
+                otp = std::system( mv_sys_call );
 
 
                 // Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
@@ -395,9 +395,9 @@ int main( int argc, char *argv[] )
             Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary );
             //Executing SU2, removing all useless files, renaming files with residuals
             std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-            std::system( su2_sys_call );
-            std::system( rmf_sys_call );
-            std::system( mv_sys_call );
+            auto otp = std::system( su2_sys_call );
+            otp = std::system( rmf_sys_call );
+            otp = std::system( mv_sys_call );
         }
 
     }
@@ -504,9 +504,9 @@ int main( int argc, char *argv[] )
                 Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary );
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                std::system( su2_sys_call );
-                std::system( rmf_sys_call );
-                std::system( mv_sys_call );
+                auto otp = std::system( su2_sys_call );
+                otp = std::system( rmf_sys_call );
+                otp = std::system( mv_sys_call );
 
                 // Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi.leftCols(Nm)*Sig*eig_vec.leftCols(Nm).transpose();
             }

@@ -5,6 +5,9 @@
 # Include external libraries
 include(ExternalProject)
 
+set(EIGEN_INCLUDE_DIR /usr/include/eigen3/)
+include_directories (${EIGEN_INCLUDE_DIR})
+
 # When gsl is required
 if (ENABLE_GSL)
     find_package(GSL REQUIRED)
@@ -40,10 +43,7 @@ if (ENABLE_PAGMO)
     list (APPEND MANDATORY_LIBRARIES "${PAGMO_STATIC_LIBRARY}")
     list (APPEND MANDATORY_LIBRARIES "${PAGMO_LIBRARY}")
 
-    # Eigen is requested to be installed in the system
-    set(EIGEN_INCLUDE_DIR /usr/include/eigen3/)
-
-    include_directories (${PAGMO_INCLUDE_DIR} ${EIGEN_INCLUDE_DIR})
+    include_directories (${PAGMO_INCLUDE_DIR})
 
 endif()
 
