@@ -21,8 +21,11 @@ int main( int argc, char *argv[] )
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
+    std::string root_conf;
+    root_conf.assign ( su2_conf, 0, su2_conf.size() - 4);
+    std::string su2_conf_new = root_conf + "-reseval.cfg";
     std::string decision = argv[3];
-    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf + " > SU2.log"; // + " > resEval_su2.log";
+    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";
     int len_s = su2dtr_string.length();
     char su2_sys_call[len_s + 1];
     strcpy(su2_sys_call, su2dtr_string.c_str());
@@ -130,7 +133,7 @@ int main( int argc, char *argv[] )
     }
 
 
-    int Nm;
+    int Nm = settings.t_pos.size();
     int nVar = settings.t_pos.size(); //that has to contain also first and last snapshot
  //Defining common scope for uniform sampling
     {
@@ -194,7 +197,7 @@ int main( int argc, char *argv[] )
 
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
-
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[0] );
                 if ( settings.flag_method == "SPOD" ) {
 
                     Eigen::MatrixXd coef_t(3, Nm);
