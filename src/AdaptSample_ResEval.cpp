@@ -270,7 +270,7 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += mean;
                 }
 
-                std::string mv_string = "mv history_rbm_00002.csv history_pod_uniform_" + std::to_string(itr) + ".csv";
+                std::string mv_string = "mv history_rbm_00002.csv history_uniform_" + std::to_string(itr) + ".csv";
                 len_s = mv_string.length();
                 char mv_sys_call[len_s + 1];
                 strcpy(mv_sys_call, mv_string.c_str());
@@ -467,7 +467,7 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += mean;
                 }
 
-                std::string mv_string = "mv history_rbm_00002.csv history_pod_adaptive_" + std::to_string(itr) + ".csv";
+                std::string mv_string = "mv history_rbm_00002.csv history_adaptive_" + std::to_string(itr) + ".csv";
                 len_s = mv_string.length();
                 char mv_sys_call[len_s + 1];
                 strcpy(mv_sys_call, mv_string.c_str());
