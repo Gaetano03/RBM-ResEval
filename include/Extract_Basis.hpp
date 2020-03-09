@@ -3,18 +3,9 @@
 
 
 #include "ctime"
-#include <iostream>
-#include <stdio.h> 
-#include <vector>
-#include <fstream>
-#include <sstream>
 #include <complex> 
 #include <cmath>
-#include <iomanip>
-#include <string>
-#include "LinearAlgebra/Eigen/Dense"
-#include "LinearAlgebra/Eigen/Eigenvalues"
-#include "LinearAlgebra/Eigen/MatrixFunctions"
+#include "read_Inputs.hpp"
 
 
 int Nmod ( double En, Eigen::VectorXd K_pc );
@@ -149,6 +140,15 @@ Eigen::MatrixXd GPOD_basis( const double Dt,
                                 Eigen::VectorXd &lam,
                                 Eigen::VectorXd &K_pc,
                                 Eigen::MatrixXd &eig_vec );
+
+
+//DMD basis extraction with non-uniform sampling
+Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
+                                      Eigen::VectorXcd &lam,
+                                      Eigen::MatrixXcd &eig_vec,
+                                      Eigen::VectorXd &lam_POD,
+                                      Eigen::MatrixXd &eig_vec_POD,
+                                      Eigen::VectorXi &tpos );
 
 
 #endif //EXTRACT_BASIS_HPP

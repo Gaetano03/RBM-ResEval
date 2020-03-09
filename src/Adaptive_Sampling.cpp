@@ -184,13 +184,15 @@ int main( int argc, char *argv[] )
             std::vector<std::vector<double> > bounds(2, std::vector<double>(nVar_Opt, 0.0));
             for (int iVar_Opt = 0; iVar_Opt < nVar_Opt; iVar_Opt++) {
                 bounds[0][iVar_Opt] = settings.Dt_cfd * settings.Ds;
-                bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double) settings.Ns - 2.0);
+//                bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double) settings.Ns - 2.0); //for POD
+                bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double)settings.Ns - 3.0); //for DMD
 //            bounds[0][iVar_Opt] = 1.0;
 //            bounds[1][iVar_Opt] = (double)settings.Ns-2.0;
 
             }
 
-            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf)};
+            pagmo::problem prob{DMD_Adapt_Samp(bounds, sn_set, settings)};
+//            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf)};
 //            pagmo::algorithm algo{pagmo::pso(1u,0.7298,2.05,2.05,0.5,
 //                    5u,2u,4u,true,1)};
             pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,

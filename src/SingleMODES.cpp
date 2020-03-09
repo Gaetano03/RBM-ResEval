@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         }
         else
         {
-            Nrec = settings.r;
+            Nrec = std::min(settings.r,Phi.cols());
             std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
         }
 

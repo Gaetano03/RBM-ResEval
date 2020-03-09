@@ -179,6 +179,106 @@ std::vector<double> SPOD_Adapt_Samp_::fitness(const std::vector<double> &variabl
 }
 
 
+
+
+std::pair<std::vector<double>, std::vector<double> > DMD_Adapt_Samp::get_bounds() const {
+    return {problemBounds_[0], problemBounds_[1]};
+}
+
+//Fitness Function:
+std::vector<double> DMD_Adapt_Samp::fitness(const std::vector<double> &variables) const {
+
+    // Initializing meaningful quantities
+    double Dt_cfd = m_settings.Dt_cfd;
+    double D_Samp = (double)m_settings.Ds;
+    int Np = m_sn_set.rows();
+    int Ns = m_settings.Ns;
+
+    Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(Ns);
+    for ( int it = 0; it < Ns; it ++)
+        norm_sn_set(it) = m_sn_set.col(it).norm();
+
+    //Generating the vector of column indices to read in the full snapshot matrix
+    int N_Var = static_cast<int>(variables.size());
+
+    std::vector<int> ci_vec(N_Var+2); //+2 takes into account first and last snapshots (always included in the sampling)
+    ci_vec[0] = 0;
+    ci_vec[N_Var+1] = Ns-2;
+
+    for ( int iVar = 1; iVar<(N_Var+1); iVar++ )
+        ci_vec[iVar] = static_cast<int>(std::round(variables[iVar-1]/(Dt_cfd*D_Samp)));
+
+    std::sort(ci_vec.begin(),ci_vec.end());
+    ci_vec.erase(std::unique(ci_vec.begin(),ci_vec.end()),ci_vec.end());
+
+    N_Var = static_cast<int>(ci_vec.size())-2;
+    Eigen::VectorXi t_pos(ci_vec.size());
+    for ( int i = 0; i < ci_vec.size(); i++ )
+        t_pos(i) = ci_vec[i];
+
+    //Performing basis extraction
+    Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(N_Var+2);
+    Eigen::MatrixXcd eig_vec_DMD = Eigen::MatrixXd::Zero(N_Var+2,N_Var+2);
+    Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(N_Var+2);
+    Eigen::MatrixXd eig_vec_POD = Eigen::MatrixXd::Zero(N_Var+2,N_Var+2);
+
+    Eigen::MatrixXcd Phi = DMD_Adaptive_basis( m_sn_set,
+                            lambda_DMD,
+                            eig_vec_DMD,
+                            lambda_POD,
+                            eig_vec_POD,
+                            t_pos );
+
+    int Nm = Phi.cols();
+
+    //Computing projection error
+
+    Eigen::MatrixXd ErrP_DMD_map = Eigen::MatrixXd::Zero(Np, Ns);
+    Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(Ns);
+
+    Eigen::MatrixXcd PhiTPhi = Phi.transpose()*Phi;
+    Eigen::MatrixXcd dumCoefs = Phi.transpose()*m_sn_set;
+    Eigen::MatrixXcd P_u = Phi*(PhiTPhi.inverse()*dumCoefs);
+
+    ErrP_DMD_map = m_sn_set - P_u.real();
+
+    for ( int it = 0; it < Ns; it++ ) {
+        int count = 0;
+        for ( int iP = 0; iP < Np; iP++ )
+            ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+
+        ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+    }
+
+    //Computing final value of the objective function
+    std::vector<double> fitness_vector;
+    fitness_vector.push_back(ErrP_DMD_time.maxCoeff());
+
+    return fitness_vector;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 std::pair<std::vector<double>, std::vector<double> > SPOD_Adapt_Samp_Int::get_bounds() const {
     return {problemBounds_[0], problemBounds_[1]};
 }

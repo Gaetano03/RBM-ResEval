@@ -10,8 +10,11 @@
 #include <vector>
 #include <iomanip>
 
-#include "LinearAlgebra/Eigen/Dense"
-#include "LinearAlgebra/Eigen/Eigenvalues"
+#include "Eigen/Dense"
+#include "Eigen/Eigenvalues"
+
+//#include "LinearAlgebra/Eigen/Dense"
+//#include "LinearAlgebra/Eigen/Eigenvalues"
 
 using namespace Eigen;
 

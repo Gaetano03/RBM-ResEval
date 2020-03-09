@@ -1008,86 +1008,86 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
 
 
 
-Eigen::MatrixXcd fbDMD_basis ( const Eigen::MatrixXd &snap_set,
-                            Eigen::VectorXcd &lam,
-                            Eigen::MatrixXcd &eig_vec,
-                            const int r )
-{   
-
-    int Ns = snap_set.cols() - 1;
-    int Nm;
-
-    Eigen::BDCSVD<Eigen::MatrixXd> svdX( snap_set.leftCols(Ns), 
-                                        Eigen::ComputeThinU | Eigen::ComputeThinV );
-    Eigen::VectorXd lam_PODX = svdX.singularValues();
-    Eigen::MatrixXd eig_vec_PODX = svdX.matrixV();
-    eig_sort(lam_PODX, eig_vec_PODX);
-    Eigen::MatrixXd Nullspace = nullspace( lam_PODX, eig_vec_PODX );
-    bool test = check_linear_consistency( snap_set.leftCols(Ns), snap_set.rightCols(Ns), Nullspace );
-
-
-    Eigen::MatrixXd UX = svdX.matrixU();                         
-    Eigen::MatrixXd Sig_invX = Eigen::MatrixXd::Zero(UX.cols(), UX.cols()); 
-
-    for ( int i = 0; i < UX.cols(); i++ )
-        Sig_invX(i, i) = 1.0/lam_PODX(i); 
-
-
-    Eigen::BDCSVD<Eigen::MatrixXd> svdY( snap_set.rightCols(Ns), 
-                                        Eigen::ComputeThinU | Eigen::ComputeThinV );
-    Eigen::VectorXd lam_PODY = svdY.singularValues();
-    Eigen::MatrixXd eig_vec_PODY = svdY.matrixV();
-    eig_sort(lam_PODY, eig_vec_PODY);
-
-
-    Eigen::MatrixXd UY = svdY.matrixU();                         
-    Eigen::MatrixXd Sig_invY = Eigen::MatrixXd::Zero(UY.cols(), UY.cols()); 
-
-    for ( int i = 0; i < UX.cols(); i++ )
-        Sig_invY(i, i) = 1.0/lam_PODY(i); 
-
-    if ( r == 0)
-    {
-        Nm = SVHT ( lam_PODX, Ns, snap_set.rows() );
-        std::cout << "DMD-rank from SVHT : " << Nm << std::endl;
-    }
-    else
-    {                    
-        Nm = std::min(r, Ns);
-        std::cout << "DMD user-defined rank : " << Nm << std::endl;
-    }
-    std::cout << "Singular Values : \n" << lam_PODX.head(Nm) << std::endl;
-    Eigen::MatrixXd fAtilde = UX.leftCols(Nm).transpose()*snap_set.rightCols(Ns)*
-                                eig_vec_PODX.leftCols(Nm)*Sig_invX.block(0,0,Nm,Nm);
-
-    Eigen::MatrixXd bAtilde = UY.leftCols(Nm).transpose()*snap_set.leftCols(Ns)*
-                            eig_vec_PODY.leftCols(Nm)*Sig_invY.block(0,0,Nm,Nm);
-
-    Eigen::MatrixXd Atilde_sq = fAtilde*bAtilde.inverse();
-    std::cout << "Determinant bAtilde : " << bAtilde.determinant() << std::endl;
-
-    Eigen::MatrixXd Atilde = Atilde_sq.sqrt();
-    // std::cout << "Atilde :\n " << Atilde << std::endl;
-
-    Eigen::EigenSolver<Eigen::MatrixXd> es(Atilde); 
-    lam = es.eigenvalues();
-    eig_vec = es.eigenvectors();
-
-    Eigen::MatrixXcd appo = snap_set.rightCols(Ns)*
-                            eig_vec_PODX.leftCols(Nm)*Sig_invX.block(0,0,Nm,Nm);                              
-
-    // Divido per lambda
-
-    Eigen::MatrixXcd phi(snap_set.rows(), Nm);
-    for (int i = 0; i < Nm; i++)
-        phi.col(i) = 1.0/lam(i)*appo*eig_vec.col(i);
- 
-    return phi;
-
-    //Standard DMD
-    // return U*eig_vec;
-
-}
+//Eigen::MatrixXcd fbDMD_basis ( const Eigen::MatrixXd &snap_set,
+//                            Eigen::VectorXcd &lam,
+//                            Eigen::MatrixXcd &eig_vec,
+//                            const int r )
+//{
+//
+//    int Ns = snap_set.cols() - 1;
+//    int Nm;
+//
+//    Eigen::BDCSVD<Eigen::MatrixXd> svdX( snap_set.leftCols(Ns),
+//                                        Eigen::ComputeThinU | Eigen::ComputeThinV );
+//    Eigen::VectorXd lam_PODX = svdX.singularValues();
+//    Eigen::MatrixXd eig_vec_PODX = svdX.matrixV();
+//    eig_sort(lam_PODX, eig_vec_PODX);
+//    Eigen::MatrixXd Nullspace = nullspace( lam_PODX, eig_vec_PODX );
+//    bool test = check_linear_consistency( snap_set.leftCols(Ns), snap_set.rightCols(Ns), Nullspace );
+//
+//
+//    Eigen::MatrixXd UX = svdX.matrixU();
+//    Eigen::MatrixXd Sig_invX = Eigen::MatrixXd::Zero(UX.cols(), UX.cols());
+//
+//    for ( int i = 0; i < UX.cols(); i++ )
+//        Sig_invX(i, i) = 1.0/lam_PODX(i);
+//
+//
+//    Eigen::BDCSVD<Eigen::MatrixXd> svdY( snap_set.rightCols(Ns),
+//                                        Eigen::ComputeThinU | Eigen::ComputeThinV );
+//    Eigen::VectorXd lam_PODY = svdY.singularValues();
+//    Eigen::MatrixXd eig_vec_PODY = svdY.matrixV();
+//    eig_sort(lam_PODY, eig_vec_PODY);
+//
+//
+//    Eigen::MatrixXd UY = svdY.matrixU();
+//    Eigen::MatrixXd Sig_invY = Eigen::MatrixXd::Zero(UY.cols(), UY.cols());
+//
+//    for ( int i = 0; i < UX.cols(); i++ )
+//        Sig_invY(i, i) = 1.0/lam_PODY(i);
+//
+//    if ( r == 0)
+//    {
+//        Nm = SVHT ( lam_PODX, Ns, snap_set.rows() );
+//        std::cout << "DMD-rank from SVHT : " << Nm << std::endl;
+//    }
+//    else
+//    {
+//        Nm = std::min(r, Ns);
+//        std::cout << "DMD user-defined rank : " << Nm << std::endl;
+//    }
+//    std::cout << "Singular Values : \n" << lam_PODX.head(Nm) << std::endl;
+//    Eigen::MatrixXd fAtilde = UX.leftCols(Nm).transpose()*snap_set.rightCols(Ns)*
+//                                eig_vec_PODX.leftCols(Nm)*Sig_invX.block(0,0,Nm,Nm);
+//
+//    Eigen::MatrixXd bAtilde = UY.leftCols(Nm).transpose()*snap_set.leftCols(Ns)*
+//                            eig_vec_PODY.leftCols(Nm)*Sig_invY.block(0,0,Nm,Nm);
+//
+//    Eigen::MatrixXd Atilde_sq = fAtilde*bAtilde.inverse();
+//    std::cout << "Determinant bAtilde : " << bAtilde.determinant() << std::endl;
+//
+//    Eigen::MatrixXd Atilde = Atilde_sq.sqrt();
+//    // std::cout << "Atilde :\n " << Atilde << std::endl;
+//
+//    Eigen::EigenSolver<Eigen::MatrixXd> es(Atilde);
+//    lam = es.eigenvalues();
+//    eig_vec = es.eigenvectors();
+//
+//    Eigen::MatrixXcd appo = snap_set.rightCols(Ns)*
+//                            eig_vec_PODX.leftCols(Nm)*Sig_invX.block(0,0,Nm,Nm);
+//
+//    // Divido per lambda
+//
+//    Eigen::MatrixXcd phi(snap_set.rows(), Nm);
+//    for (int i = 0; i < Nm; i++)
+//        phi.col(i) = 1.0/lam(i)*appo*eig_vec.col(i);
+//
+//    return phi;
+//
+//    //Standard DMD
+//    // return U*eig_vec;
+//
+//}
 
 
 Eigen::MatrixXcd HODMD_basis( const Eigen::MatrixXd &snap_set,
@@ -1223,4 +1223,64 @@ Eigen::MatrixXd GPOD_basis( const double Dt,
 
     return phi_c.leftCols(count);   
 
+}
+
+
+
+Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
+                             Eigen::VectorXcd &lam,
+                             Eigen::MatrixXcd &eig_vec,
+                             Eigen::VectorXd &lam_POD,
+                             Eigen::MatrixXd &eig_vec_POD,
+                             Eigen::VectorXi &tpos )
+{
+
+    int Nsamp = tpos.size();
+    int Np = snap_set.rows();
+    int Nm;
+    //                                Eigen::MatrixXd U = SPOD_basis(snap_set.leftCols(Ns), lam_POD, K_pc, eig_vec_POD );
+    Eigen::VectorXi tpos_shift = tpos + Eigen::VectorXi::Ones(Nsamp);
+    Eigen::MatrixXd sub_sn_set = indexing(snap_set, Eigen::ArrayXi::LinSpaced(Np,0,Np-1),tpos);
+    Eigen::MatrixXd sub_sn_set_shift = indexing(snap_set, Eigen::ArrayXi::LinSpaced(Np,0,Np-1),tpos_shift);
+
+    Eigen::BDCSVD<Eigen::MatrixXd> svd( sub_sn_set,Eigen::ComputeThinU | Eigen::ComputeThinV );
+    lam_POD = svd.singularValues();
+    eig_vec_POD = svd.matrixV();
+    eig_sort(lam_POD, eig_vec_POD);
+
+    Eigen::MatrixXd U = svd.matrixU();
+    Eigen::MatrixXd Sig_inv = Eigen::MatrixXd::Zero(U.cols(), U.cols());
+
+    for ( int i = 0; i < U.cols(); i++ )
+        Sig_inv(i, i) = 1.0/lam_POD(i);
+
+    Nm = tpos.size();
+
+    Eigen::MatrixXcd phi = Eigen::MatrixXd::Zero(Np, Nm);
+
+    Eigen::MatrixXd Atilde = U.transpose()*sub_sn_set_shift*
+                             eig_vec_POD*Sig_inv;
+
+    if ( Atilde.size() == 1 && Atilde(0,0) == 0.0 ) {
+        lam = Eigen::VectorXcd::Zero(1);
+        eig_vec = Eigen::MatrixXcd::Ones(1,1);
+    } else {
+        Eigen::EigenSolver<Eigen::MatrixXd> es(Atilde);
+        // Full_lam = es.eigenvalues();
+        lam = es.eigenvalues();
+        eig_vec = es.eigenvectors();
+    }
+
+    Eigen::MatrixXcd appo = sub_sn_set_shift* eig_vec_POD * Sig_inv;
+
+    //Final computation and normalization of modes
+    for (int i = 0; i < Nm; i++) {
+        phi.col(i) = 1.0/lam(i)*appo*eig_vec.col(i);
+        phi.col(i) = phi.col(i)/phi.col(i).norm();
+    }
+
+    return phi;
+
+    //Standard DMD
+    // return U*eig_vec;
 }

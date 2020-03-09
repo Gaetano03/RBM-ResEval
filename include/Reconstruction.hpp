@@ -89,7 +89,15 @@ Eigen::MatrixXd Reconstruction_RDMD ( const double time,
                                     const Eigen::MatrixXd &alfa,
                                     const Eigen::MatrixXd &Phi,
                                     const std::string flag_prob,
-                                    const std::string flag_interp ); 
+                                    const std::string flag_interp );
+
+
+Eigen::MatrixXd Reconstruction_DMD_Interp ( const double time,
+                                            const std::vector<double> t_vec,
+                                            const Eigen::MatrixXcd &alfa,
+                                            const Eigen::MatrixXcd &Phi,
+                                            const std::string flag_prob = "VELOCITY-2D",
+                                            const std::string flag_interp = "LINEAR" );
 
 
 #endif // RECONSTRUCTION_HPP

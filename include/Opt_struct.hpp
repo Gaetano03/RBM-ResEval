@@ -11,6 +11,9 @@
 #include "pagmo.hpp"
 
 // Define the problem PaGMO-style
+
+
+//POD on absolute positions
 struct SPOD_Adapt_Samp {
 
     // Empty constructor
@@ -24,21 +27,6 @@ struct SPOD_Adapt_Samp {
     // Boundaries of the problem
     std::pair<std::vector<double>, std::vector<double>> get_bounds() const;
     //! Serialization function for Pagmo compatibility
-    // template <typename Archive>
-    // void serialize(Archive &ar)
-    // {
-    //     ar(problemBounds_);
-    // }
-
-    // //Number of objectives: (that's the max(Eps_P) , projection error)
-    // pagmo::vector_double::size_type get_nobj() const {
-    //     return 1u; //example in which you have 3 obj
-    // }
-
-    // //Overall dimension of the decision vector
-    // pagmo::vector_double::size_type get_nx() const {
-    //     return problemBounds_[0].size();
-    // }
 
 private:
 
@@ -49,6 +37,7 @@ private:
 };
 
 
+//POD on relative positions
 struct SPOD_Adapt_Samp_ {
 
     // Empty constructor
@@ -80,6 +69,39 @@ private:
 };
 
 
+//DMD on absolute positions
+struct DMD_Adapt_Samp {
+
+    // Empty constructor
+    DMD_Adapt_Samp( ){ }
+
+    DMD_Adapt_Samp( std::vector< std::vector< double > > &bounds, Eigen::MatrixXd &sn_set, prob_settings &settings) :
+                            problemBounds_(bounds), m_sn_set(sn_set), m_settings(settings) {
+    }
+    // Fitness:
+    std::vector<double> fitness(const std::vector<double> &variables) const;
+    // Boundaries of the problem
+    std::pair<std::vector<double>, std::vector<double>> get_bounds() const;
+    //! Serialization function for Pagmo compatibility
+
+private:
+
+    Eigen::MatrixXd m_sn_set;
+    prob_settings m_settings;
+    const std::vector< std::vector< double > > problemBounds_;
+
+};
+
+
+
+
+
+
+
+
+
+
+// Pagmo problem with integers for POD
 
 struct SPOD_Adapt_Samp_Int {
 
