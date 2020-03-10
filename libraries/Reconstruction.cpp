@@ -15,6 +15,7 @@ smartuq::surrogate::RBF_FUNCTION get_key_rbf ( const std::string &key_string )
     else if(key_string == "MULTIQUADRATICS")
         return smartuq::surrogate::MULTIQUADRATICS;
 
+    return smartuq::surrogate::LINEAR;
 
 }
 
@@ -125,53 +126,35 @@ Eigen::MatrixXcd Reconstruction_DMD ( const double time, const double dt,
     int Nm = lam.size();
     Eigen::VectorXcd omega(Nm);
 
-    for ( int i = 0; i < Nm; i ++)
-    {
-/*Remove after check*/                  //    std::cout << " Lambda_" << i << " = " << lam(i) << "\t"; 
+    for ( int i = 0; i < Nm; i ++) {
         omega(i) = std::log(lam(i))/dt;
-/*Remove after check*/                  //    std::cout << " omega_" << i << " = " << omega(i) << std::endl;
     }
-
 
     Eigen::MatrixXcd v_rec = Eigen::MatrixXcd::Zero(Phi.rows(),1);
 
-    for ( int i = 0; i < Nm; i++ )
-    {
-        
+    for ( int i = 0; i < Nm; i++ ) {
         v_rec += std::exp(omega(i)*time)*alfa(i)*Phi.col(i);
-
     }
 
-    if ( flag_prob == "SCALAR" )
-    {
-
+    if ( flag_prob == "SCALAR" ) {
         return v_rec;
-
-    } else if ( flag_prob == "VECTOR-2D" || flag_prob == "VELOCITY-2D" )
-    {
-
+    } else if ( flag_prob == "VECTOR-2D" || flag_prob == "VELOCITY-2D" ) {
         Eigen::MatrixXcd Rec(Phi.rows()/2,2);
         Rec.col(0) = v_rec.topRows(Phi.rows()/2);
         Rec.col(1) = v_rec.bottomRows(Phi.rows()/2);
         return Rec;
-
-    } else if ( flag_prob == "VECTOR-3D" || flag_prob == "VELOCITY-3D" )
-    {
-
+    } else if ( flag_prob == "VECTOR-3D" || flag_prob == "VELOCITY-3D" ) {
         Eigen::MatrixXcd Rec(Phi.rows()/3,3);
         Rec.col(0) = v_rec.topRows(Phi.rows()/3);
         Rec.col(1) = v_rec.middleRows(Phi.rows()/3,Phi.rows()/3);
         Rec.col(2) = v_rec.bottomRows(Phi.rows()/3);
         return Rec;
-
-    } else 
-    {
-
+    } else {
         std::cout << "Set well problem flag! Exiting ... " << std::endl;
         exit (EXIT_FAILURE);
-
     }
 
+    return v_rec;
 } 
 
 

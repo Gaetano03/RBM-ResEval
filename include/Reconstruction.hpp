@@ -2,7 +2,7 @@
 #define RECONSTRUCTION_HPP
 
 #include "Extract_Basis.hpp"
-#include "smart-uq/Surrogates/rbf.h"
+#include "Surrogates/rbf.h"
 
 using namespace smartuq::surrogate;
 
