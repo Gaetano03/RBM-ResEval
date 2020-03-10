@@ -871,7 +871,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
         std::stringstream buffer;
         buffer << std::setfill('0') << std::setw(5) << std::to_string(it);
         file_temp = root_outputfile + "_" + buffer.str() + ".dat";
-        std::cout << "Writing reconstruction file at time instant " << it << std::endl;
+//        std::cout << "Writing reconstruction file at time instant " << it << std::endl;
 
         if ( flag == "NO" ) //Write ASCII file
         {        

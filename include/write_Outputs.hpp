@@ -1,13 +1,6 @@
 #ifndef WRITE_OUTPUTS_HPP
 #define WRITE_OUTPUTS_HPP
 
-#include <iostream>
-#include <stdio.h> 
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include "LinearAlgebra/Eigen/Dense"
 #include "Reconstruction.hpp"
 #include "read_Inputs.hpp"
 
