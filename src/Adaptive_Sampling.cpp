@@ -202,7 +202,7 @@ int main( int argc, char *argv[] )
             uda.set_verbosity(1u);
             uda.set_seed(7);
             //I parallalize the population evaluations:
-            uda.set_bfe( pagmo::bfe{} );
+            // uda.set_bfe( pagmo::bfe{} );
 
         //            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
             pagmo::population pop{prob, Npop, 7};
