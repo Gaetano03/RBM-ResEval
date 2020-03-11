@@ -511,8 +511,8 @@ Eigen::MatrixXd Reconstruction_DMD_Interp ( const double time,
     std::vector<double> t(1,time);
     for ( int i = 0; i < Nm; i++ ) {
         double tmp_i, tmp_r ;
-        surr_coefs_real[i].evaluate(t, tmp_i);
-        surr_coefs_imag[i].evaluate(t, tmp_r);
+        surr_coefs_real[i].evaluate(t, tmp_r);
+        surr_coefs_imag[i].evaluate(t, tmp_i);
         std::complex<double> c(tmp_r,tmp_i);
         coef_t(i) = c;
     }
@@ -537,9 +537,10 @@ Eigen::MatrixXd Reconstruction_DMD_Interp ( const double time,
     } else {
 
         std::cout << "Set well problem flag! Exiting ... " << std::endl;
-        return Eigen::MatrixXd::Zero(1,1);
         exit (EXIT_FAILURE);
     }
+
+    return Eigen::MatrixXd::Zero(1,1);
 
 }
 
