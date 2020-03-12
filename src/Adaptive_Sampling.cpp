@@ -197,7 +197,7 @@ int main( int argc, char *argv[] )
 //            pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,true,7)};
 //            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
 
-            pagmo::gaco uda{1u, 60u, 1.0, 0.0, 0.01, 800u, 7u, 10000000u, 10000000u, 0.0, true, 7};
+            pagmo::gaco uda{1u, 150u, 1.0, 0.0, 0.01, 800u, 48u, 10000000u, 10000000u, 0.0, true, 7};
             uda.set_verbosity(1u);
             uda.set_seed(7);
 

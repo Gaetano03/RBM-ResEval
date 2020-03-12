@@ -39,13 +39,26 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
 
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
-    if ( nC == 4 ) //Laminar 2D Navier-Stokes
+
+    if ( nC == 2 )
+    {
+        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
+
+    } else if ( nC == 3 )
+    {
+        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(2*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1);
+
+    } else if ( nC == 4 ) //Laminar 2D Navier-Stokes
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
-    } else if (nC== 5) // Turbolent 2D Spalart Allmaras
+
+    } else if ( nC== 5 ) // Turbolent 2D Spalart Allmaras
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
@@ -53,7 +66,7 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
         Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(4*Nr, Nr) = nuTilde*Eigen::MatrixXd::Ones(Nr,1);
 
-    } else if ( nC == 6 ) //Turbulent 2D Navier-Stokes
+    } else if ( nC == 6 && settings.ndim == 2 ) //Turbulent 2D Navier-Stokes
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
@@ -61,6 +74,7 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
         Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(4*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(5*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
+
     } else if ( nC == 7 ) //Turbulent 3D Navier-Stokes
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
@@ -70,6 +84,7 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
         Ic.segment(4*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(5*Nr, Nr) = rhotke*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(6*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
+
     } else {
         std::cout << "Set well number of conservative Variables" << std::endl;
         exit(EXIT_FAILURE);

@@ -21,7 +21,10 @@ int main( int argc, char *argv[] )
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
-    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf + " > SU2.log"; // + " > resEval_su2.log";
+    std::string root_conf;
+    root_conf.assign ( su2_conf, 0, su2_conf.size() - 4);
+    std::string su2_conf_new = root_conf + "-reseval.cfg";
+    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";
     int len_s = su2dtr_string.length();
     char su2_sys_call[len_s + 1];
     strcpy(su2_sys_call, su2dtr_string.c_str());
@@ -39,13 +42,13 @@ int main( int argc, char *argv[] )
     char rmf_sys_call[len_s + 20];
     strcpy(rmf_sys_call, rmf_string.c_str());
 
-    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
+    int s_Nf = 5;   //Number of values for the SPOD filter (POD included)
     std::vector<int> Nf(s_Nf);
     Nf[0] = 0;
-    //Nf[1] = std::ceil(settings.Ns/10.0);
-    //Nf[2] = std::ceil(settings.Ns/2.0);
-    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-//     Nf[1] = settings.Ns;
+    Nf[1] = std::ceil(settings.Ns/10.0);
+    Nf[2] = std::ceil(settings.Ns/2.0);
+    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+    Nf[4] = settings.Ns;
 
     int nC = settings.Cols.size();
     double alpha = settings.alpha;
@@ -116,6 +119,7 @@ int main( int argc, char *argv[] )
             sn_set.col(it) -= Ic;
     }
 
+    Modify_su2_cfg(su2_conf,su2_conf_new, settings.Dt_res[0]);
 //Defining common scope for POD-SPOD
     {
 
@@ -139,7 +143,6 @@ int main( int argc, char *argv[] )
         for ( int nfj = 0; nfj < Nf.size(); nfj++ )
         {
             std::cout << "Computing SPOD " << Nf[nfj] << " reconstruction for each conservative variable ... " << "\n";
-            
             for ( int itr = 0; itr < settings.t_res.size(); itr++ )
             {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
@@ -160,7 +163,10 @@ int main( int argc, char *argv[] )
                         if ( settings.r == 0 ) Nm[ncons] = Nmod(settings.En, K_pc);
                         else Nm[ncons] = std::min(settings.r, N_notZero);
                         std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
-                        surr_coefs[ncons] =  getSurrCoefs (t_vec, eig_vec, settings.flag_interp);                
+                        Eigen::MatrixXd dumCoefs = Phi[ncons].transpose()*sn_set.middleRows(ncons*Nr,Nr);
+                        Eigen::MatrixXd PhiTPhi = Phi[ncons].transpose()*Phi[ncons];
+                        Eigen::MatrixXd Coeffs = PhiTPhi.colPivHouseholderQr().solve(dumCoefs);
+                        surr_coefs[ncons] =  getSurrCoefs (t_vec, Coeffs.transpose(), settings.flag_interp);
                     }
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
@@ -185,9 +191,9 @@ int main( int argc, char *argv[] )
 
                    // }
                     Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm[ncons], Nm[ncons]);
-                    for ( int i = 0; i < Nm[ncons]; i++ )
-                        Sig(i,i) = std::sqrt(lambda[ncons](i));
-                    Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm[ncons])*Sig*coef_t.transpose();
+//                    for ( int i = 0; i < Nm[ncons]; i++ )
+//                        Sig(i,i) = std::sqrt(lambda[ncons](i));
+                    Sn_Cons_time.middleRows(ncons*Nr,Nr) = Phi[ncons].leftCols(Nm[ncons])*coef_t.transpose();
                 }
 
                 if ( settings.flag_mean == "IC" )

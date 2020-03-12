@@ -27,14 +27,14 @@ int main( int argc, char *argv[] )
     double beta = settings.beta;
     if (settings.ndim == 2) beta = 0.0;
 
-    int s_Nf = 5;
+    int s_Nf = 1;
     int Nmethods = s_Nf + 2;
     std::vector<int> Nf(s_Nf);
     Nf[0] = 0;
-    Nf[1] = std::ceil(settings.Ns/10.0);
-    Nf[2] = std::ceil(settings.Ns/2.0);
-    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-    Nf[4] = settings.Ns;
+//    Nf[1] = std::ceil(settings.Ns/10.0);
+//    Nf[2] = std::ceil(settings.Ns/2.0);
+//    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+//    Nf[4] = settings.Ns;
     int Nf_SPOD = 0;
 
     std::string root_inputfile;
@@ -60,53 +60,11 @@ int main( int argc, char *argv[] )
                                         settings.flag_prob);
     // Eigen::MatrixXd sn_set = Eigen::MatrixXd::Zero(settings.ndim*Nr, settings.Ns);
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
-    //Defining Initial condition
-    double M = settings.Mach;
-    double Re = settings.Re;
-    double T = settings.T;
-    double length = 1.0;
-    double R = 287.058;
-    double gamma = 1.4;
-    double mu_ref = 1.716E-5;
-    double T_ref = 273.15;
-    double S = 110.4;
-
-    double mu = mu_ref*std::pow(T/T_ref,1.5)*(T_ref + S)/(T + S);
-    double V_magn = M*std::sqrt(gamma*R*T);
-    double rho = Re*mu/(V_magn*length);
-    double rhoU = rho*V_magn*std::cos(alpha)*std::cos(beta);
-    double rhoV = rho*V_magn*std::sin(alpha);
-    double rhoW = rho*V_magn*std::cos(alpha)*std::sin(beta);
-    double rhoE = rho*(R/(gamma-1)*T + 0.5*V_magn*V_magn);
-
-    //That only matters for turbulent calculation
-    //since these values are used as default values in SU2, they are not present in config file but hard coded
-    double n_turb = 0.05;
-    double mu_turb2lam_ratio = 10.0;
-
-    double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
-    double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
-    // double rhotke = rho*tke;
-    // double rhoomega = rho*omega;
-    double rhotke = tke;
-    double rhoomega = omega;
-
+    //Defining Mean/Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(settings.ndim*Nr);
+    Eigen::VectorXd Ic = IC( settings, nC, Nr );
 
-    if ( settings.ndim == 2 )
-    {
-        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-    } else 
-    {
-        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1);    
-    }
-
-    if ( settings.flag_mean == "YES" )
-    {
+    if ( settings.flag_mean == "YES" ) {
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
     }
@@ -119,14 +77,16 @@ int main( int argc, char *argv[] )
 
     std::cout << "Reading Residuals ... " << std::endl;
 
-    std::vector<std::string> resfilename = {"history_spod_0.csv", "history_spod_1.csv", "history_spod_2.csv",
-        "history_spod_3.csv", "history_spod_4.csv", "history_dmd.csv", "history_rdmd.csv"};
+    std::vector<std::string> resfilename = {"history_pod.csv", "history_dmd.csv", "history_rdmd.csv"};
+//    std::vector<std::string> resfilename = {"history_spod_0.csv", "history_spod_1.csv", "history_spod_2.csv",
+//        "history_spod_3.csv", "history_spod_4.csv", "history_dmd.csv", "history_rdmd.csv"};
 
-    Eigen::MatrixXd Err_RBM = Eigen::MatrixXd::Zero(settings.Ns*settings.Ds - 1, Nmethods);
-    Eigen::MatrixXd Err_RBM_rhoU = Eigen::MatrixXd::Zero(settings.Ns*settings.Ds - 1, Nmethods);
-    Eigen::MatrixXd Err_RBM_rhoV = Eigen::MatrixXd::Zero(settings.Ns*settings.Ds - 1, Nmethods);
-    Eigen::MatrixXd Err_RBM_rhoW = Eigen::MatrixXd::Zero(settings.Ns*settings.Ds - 1, Nmethods);
-        
+
+    Eigen::MatrixXd Err_RBM = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXd Err_RBM_rhoV = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXd Err_RBM_rhoU = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXd Err_RBM_rhoW = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+
     for ( int i = 0; i < resfilename.size(); i++ )
     {
         std::ifstream file_data;
@@ -170,18 +130,19 @@ int main( int argc, char *argv[] )
 //Adaptive reconstruction on each selected time step
     int best_method_idx;
 
-    std::cout << "Initializing Vector of time ... " << std::endl; 
-    Eigen::VectorXd t_vec( settings.Ns*settings.Ds - 1);
-    t_vec(0) = (double)settings.nstart*settings.Dt_cfd;
-    for ( int i = 1; i < settings.Ns*settings.Ds-1; i++ )
-        t_vec(i) = t_vec(i-1) + settings.Dt_cfd;
+    std::cout << "Initializing Vector of time ... " << std::endl;
+    Eigen::VectorXd t_vec( settings.t_res.size());
+    for ( int it = 0; it < settings.t_res.size(); it++ ) t_vec(it) = settings.t_res[it];
+//    Eigen::VectorXd t_vec( settings.Ns*settings.Ds - 1);
+//    t_vec(0) = (double)settings.nstart*settings.Dt_cfd;
+//    for ( int i = 1; i < settings.Ns*settings.Ds-1; i++ )
+//        t_vec(i) = t_vec(i-1) + settings.Dt_cfd;
     
     double tol = settings.tol;
     int index1, index2;
     Eigen::VectorXd Err_interp(Nmethods);
 
-    for ( int i = 0; i < settings.t_rec.size(); i++ )
-    {
+    for ( int i = 0; i < settings.t_rec.size(); i++ ) {
 
         Eigen::VectorXd Rec_rhoU(Nr);
         Eigen::VectorXd Rec_rhoV(Nr);
@@ -192,48 +153,41 @@ int main( int argc, char *argv[] )
 
         index1 = 0;
         index2 = 0;
-        for ( int nt = 0; nt < t_vec.size()-1; nt ++ )
-        {
-            if ( (settings.t_rec[i] >= t_vec(nt)) && (settings.t_rec[i] <= t_vec(nt+1)) )
-            {
+        for ( int nt = 0; nt < t_vec.size()-1; nt ++ ) {
+            if ( (settings.t_rec[i] >= t_vec(nt)) && (settings.t_rec[i] <= t_vec(nt+1)) ) {
                 index1 = nt;
                 index2 = nt+1;
                 break;
             }
         }
 
-        if ( index1 == index2 )
-        {
+        if ( index1 == index2 ) {
             std::cout << "Time for reconstruction out of interval!" << std::endl;
             continue;
         }
 
-        for ( int iDim = 0; iDim < settings.ndim; iDim ++ )
-        {
+        for ( int iDim = 0; iDim < settings.ndim; iDim ++ ) {
 
             if ( iDim == 0 ) Err_RBM = Err_RBM_rhoU;
             if ( iDim == 1 ) Err_RBM = Err_RBM_rhoV;
             if ( iDim == 2 ) Err_RBM = Err_RBM_rhoW;
 
             int count = 0;
-            for ( int k = 0; k < Nmethods; k ++ )
-            {
+            double Dt = t_vec[index2] - t_vec[index1];
+            for ( int k = 0; k < Nmethods; k ++ ) {
                 Err_interp(k) = Err_RBM(index1,k) + (Err_RBM(index2,k) - Err_RBM(index1,k))/
-                                    settings.Dt_cfd*(settings.t_rec[i] - t_vec[index1]);
-                // std::cout << "DeltaT interp = " << settings.t_rec[i] - t_vec[index1] << std::endl;
-                // std::cout << "errRBM1 = " << Err_RBM(index1,k) << std::endl;
-                // std::cout << "errInterp = " << Err_interp(k) << std::endl;
+                                    Dt*(settings.t_rec[i] - t_vec[index1]);
             }
             std::cout << std::endl;
             double eps = Err_interp.minCoeff( &best_method_idx );
             // std::cout << "Min coeff = " << eps << " in position " << best_method_idx << std::endl;
 
+            //FIX THIS FUNCTION
             std::string method = method_selected ( best_method_idx, Nf_SPOD, Nf );
-            std::cout << "Best method is " << method << " and Nf ( value meaningful only for SPOD ) : " << Nf_SPOD << std::endl;
-            
+//            std::cout << "Best method is " << method << " and Nf ( value meaningful only for SPOD ) : " << Nf_SPOD << std::endl;
+            std::cout << "Best method is " << method << std::endl;
             std::cout << " Error : " << Err_interp(best_method_idx) << std::endl;
-                            
-                
+
             std::cout << "Computing Reconstruction using selected method " << std::endl;
 
             if ( method == "SPOD" )
@@ -275,9 +229,9 @@ int main( int argc, char *argv[] )
                                     "SCALAR",
                                     settings.flag_interp ) ;
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + rhoU*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + rhoV*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + rhoW*Eigen::MatrixXd::Ones(Nr,1);
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
                 
             }
 
@@ -367,9 +321,9 @@ int main( int argc, char *argv[] )
                                                         lambda_DMD.head(Nm),
                                                         "SCALAR" );
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.real().col(0) + rhoU*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.real().col(0) + rhoV*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.real().col(0) + rhoW*Eigen::MatrixXd::Ones(Nr,1);   
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + Ic.middleRows(2*Nr,Nr);
             
             }
 
@@ -423,9 +377,9 @@ int main( int argc, char *argv[] )
                                                             "SCALAR",
                                                             settings.flag_interp );
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + rhoU*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + rhoV*Eigen::MatrixXd::Ones(Nr,1);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + rhoW*Eigen::MatrixXd::Ones(Nr,1);  
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
 
             } 
 
@@ -451,7 +405,7 @@ int main( int argc, char *argv[] )
 
     }
 
-    std::cout << "Adaptive Reconstruction RBM-Clyde ends " << std::endl;
+    std::cout << "Adaptive Reconstruction MODES ends " << std::endl;
 
     return 0;
 }

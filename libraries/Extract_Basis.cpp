@@ -199,26 +199,35 @@ bool check_linear_consistency( Eigen::MatrixXd X, Eigen::MatrixXd Y, Eigen::Matr
 
 std::string method_selected ( int n, int &Nf_SPOD, std::vector<int> Nf )
 {
-
-    if ( (n > -1) && (n < (Nf.size())) )
-    {
-        for ( int i = 0; i < Nf.size(); i++ )
-        {
-            if ( n == i )
-                Nf_SPOD = Nf[i];
-        }                
-        return "SPOD";
+    if ( Nf.size() == 1 ) { //Only POD
+        if ( n == 0 )
+            return "SPOD";
+        else if ( n == 1)
+            return "DMD";
+        else if ( n == 2 )
+            return "RDMD";
+        else {
+            std::cout << "Bad value for index " << std::endl;
+            return "NONE";
+        }
+    } else {
+        if ((n > -1) && (n < (Nf.size()))) {
+            for (int i = 0; i < Nf.size(); i++) {
+                if (n == i)
+                    Nf_SPOD = Nf[i];
+            }
+            return "SPOD";
+        } else if (n == Nf.size())
+            return "DMD";
+        else if (n == (Nf.size() + 1))
+            return "RDMD";
+        else {
+            std::cout << "Bad value for index " << std::endl;
+            return "NONE";
+        }
     }
-    else if ( n == Nf.size() )
-        return "DMD";
-    else if ( n == (Nf.size() + 1) )
-        return "RDMD";
-    else 
-    {
-        std::cout << "Bad value for index " << std::endl;
-        return "NONE";
-    }
 
+    return "NONE";
 }
 
 
