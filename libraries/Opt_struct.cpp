@@ -152,7 +152,8 @@ std::vector<double> SPOD_Adapt_Samp_::fitness(const std::vector<double> &variabl
 
     Eigen::MatrixXd PhiTPhi = Phi.transpose()*Phi;
     Eigen::MatrixXd dumCoefs = Phi.transpose()*m_sn_set;
-    ErrP_SPOD_map = m_sn_set - Phi*(PhiTPhi.inverse()*dumCoefs);
+//    ErrP_SPOD_map = m_sn_set - Phi*(PhiTPhi.inverse()*dumCoefs); //for SPOD with any filter value
+    ErrP_SPOD_map = m_sn_set - Phi * dumCoefs; //Only for POD
 
     for ( int it = 0; it < Ns; it++ ) {
         int count = 0;
@@ -238,7 +239,11 @@ std::vector<double> DMD_Adapt_Samp::fitness(const std::vector<double> &variables
 
     Eigen::MatrixXcd PhiTPhi = Phi.transpose()*Phi;
     Eigen::MatrixXcd dumCoefs = Phi.transpose()*m_sn_set;
-    Eigen::MatrixXcd P_u = Phi*(PhiTPhi.inverse()*dumCoefs);
+//    Eigen::MatrixXcd P_u = Phi*(PhiTPhi.inverse()*dumCoefs); //Using pseudo(Moore-Penrose)-inverse
+
+    //Using linear system solving
+    Eigen::MatrixXcd Coeffs = PhiTPhi.colPivHouseholderQr().solve(dumCoefs);
+    Eigen::MatrixXcd P_u = Phi * Coeffs;
 
     ErrP_DMD_map = m_sn_set - P_u.real();
 

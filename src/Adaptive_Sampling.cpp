@@ -193,21 +193,21 @@ int main( int argc, char *argv[] )
 
             pagmo::problem prob{DMD_Adapt_Samp(bounds, sn_set, settings)};
 //            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf)};
-//            pagmo::algorithm algo{pagmo::pso(1u,0.7298,2.05,2.05,0.5,
-//                    5u,2u,4u,true,1)};
-//            pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,
-         //                                    true,7)};
-     //                                     true,7)};
-            pagmo::gaco uda{1000u, 60u, 1.0, 0.0, 0.01, 800u, 7u, 10000000u, 10000000u, 0.0, true, 7};
+//            pagmo::algorithm algo{pagmo::pso(1u,0.7298,2.05,2.05,0.5,5u,2u,4u,true,1)};
+//            pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,true,7)};
+//            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
+
+            pagmo::gaco uda{1u, 60u, 1.0, 0.0, 0.01, 800u, 7u, 10000000u, 10000000u, 0.0, true, 7};
             uda.set_verbosity(1u);
             uda.set_seed(7);
+
             //I parallalize the population evaluations:
             // uda.set_bfe( pagmo::bfe{} );
 
-        //            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
             pagmo::population pop{prob, Npop, 7};
 
   //          algo.set_verbosity(1);
+
             //Adding uniform sample
             pop.set_x(0, p1);
 
