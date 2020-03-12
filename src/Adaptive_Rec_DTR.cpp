@@ -11,7 +11,7 @@ based on residual evaluation
 #include "Generate_snset.hpp"
 #include "Reconstruction.hpp"
 #include "write_Outputs.hpp"
-
+#include "Pre-Process.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -62,6 +62,7 @@ int main( int argc, char *argv[] )
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Mean/Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
+    int nC = settings.ndim;
     Eigen::VectorXd Ic = IC( settings, nC, Nr );
 
     if ( settings.flag_mean == "YES" ) {
