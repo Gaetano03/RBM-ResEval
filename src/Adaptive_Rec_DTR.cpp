@@ -103,7 +103,7 @@ int main( int argc, char *argv[] )
         // Reading row of headers
         getline( file_data, line_flow_data );
 
-        while ( getline( file_data, line_flow_data ) && n_row <  settings.Ns*settings.Ds - 1)
+        while ( getline( file_data, line_flow_data ) && n_row <  settings.t_res.size())
         {
             
             std::istringstream iss(line_flow_data);

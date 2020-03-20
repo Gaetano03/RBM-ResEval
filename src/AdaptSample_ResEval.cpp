@@ -154,7 +154,7 @@ int main( int argc, char *argv[] )
         int N_notZero;
         //Check only for POD for now
 
-        if ( settings.flag_method == "SPOD" ){
+        if ( settings.flag_method[0] == "SPOD" ){
 
             std::cout << "Computing uniform SPOD modes with Nf : " << settings.Nf << "\n";
             Phi_POD = SPOD_basis(sn_set,
@@ -175,7 +175,7 @@ int main( int argc, char *argv[] )
             std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
             surr_coefs_POD = getSurrCoefs(t_vec, eig_vec, settings.flag_interp);
 
-        } else if ( settings.flag_method == "DMD" ) {
+        } else if ( settings.flag_method[0] == "DMD" ) {
 
             Eigen::MatrixXcd eig_vec_DMD;
             std::cout << "Computing uniform DMD modes" << std::endl;
@@ -198,7 +198,7 @@ int main( int argc, char *argv[] )
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
                 Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[0] );
-                if ( settings.flag_method == "SPOD" ) {
+                if ( settings.flag_method[0] == "SPOD" ) {
 
                     Eigen::MatrixXd coef_t(3, Nm);
                     if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
@@ -224,7 +224,7 @@ int main( int argc, char *argv[] )
                         Sig(i, i) = std::sqrt(lambda_POD(i));
                     Sn_Cons_time = Phi_POD.leftCols(Nm) * Sig * coef_t.transpose();
 
-                } else if ( settings.flag_method == "DMD" ) {
+                } else if ( settings.flag_method[0] == "DMD" ) {
 
                     Eigen::MatrixXcd coef_t(3, Nm);
                     if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
@@ -289,7 +289,7 @@ int main( int argc, char *argv[] )
                 std::cout << "Reconstructing Momentum at time : " << settings.t_rec[nt] << "\t";
                 Eigen::MatrixXd Rec = Eigen::MatrixXd::Zero(2*Nr, 2);
 
-                if ( settings.flag_method == "SPOD" ) {
+                if ( settings.flag_method[0] == "SPOD" ) {
                      Rec = Reconstruction_S_POD(t_vec,
                                            K_pc, lambda_POD, eig_vec.transpose(),
                                            Phi_POD.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
@@ -297,7 +297,7 @@ int main( int argc, char *argv[] )
                                           "VECTOR-2D",
                                            settings.flag_interp);
 
-                } else if ( settings.flag_method == "DMD" ) {
+                } else if ( settings.flag_method[0] == "DMD" ) {
                     Eigen::MatrixXcd PhiTPhi = Phi_DMD.leftCols(Nm).transpose()*Phi_DMD.leftCols(Nm);
                     Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.leftCols(Nm).transpose()*sn_set);
                     Rec =  Reconstruction_DMD_Interp ( settings.t_rec[nt],
@@ -365,7 +365,7 @@ int main( int argc, char *argv[] )
 
         Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
 
-        if ( settings.flag_method == "SPOD") {
+        if ( settings.flag_method[0] == "SPOD") {
             std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
             Phi_POD = SPOD_basis(sub_sn_set,
                                  lambda_POD, K_pc, eig_vec,
@@ -376,7 +376,7 @@ int main( int argc, char *argv[] )
 
             Eigen::MatrixXd Coeffs = Phi_POD.transpose() * sn_set;
             surr_coefs_POD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
-        } else if ( settings.flag_method == "DMD") {
+        } else if ( settings.flag_method[0] == "DMD") {
             Eigen::MatrixXcd eig_vec_DMD;
             std::cout << "Computing adaptive DMD modes" << std::endl;
             if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
@@ -399,7 +399,7 @@ int main( int argc, char *argv[] )
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
 
-                if ( settings.flag_method == "SPOD" ) {
+                if ( settings.flag_method[0] == "SPOD" ) {
                     Eigen::MatrixXd coef_t(3, Nm);
                     if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
                         settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
@@ -421,7 +421,7 @@ int main( int argc, char *argv[] )
                     }
 
                     Sn_Cons_time = Phi_POD * coef_t.transpose();
-                } else if ( settings.flag_method == "DMD" ) {
+                } else if ( settings.flag_method[0] == "DMD" ) {
 
                     Eigen::MatrixXcd coef_t(3, Nm);
                     if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
@@ -486,7 +486,7 @@ int main( int argc, char *argv[] )
                 std::cout << "Reconstructing Momentum at time : " << settings.t_rec[nt] << "\t";
                 Eigen::MatrixXd Rec = Eigen::MatrixXd::Zero(2*Nr, 2);
 
-                if ( settings.flag_method == "SPOD" ) {
+                if ( settings.flag_method[0] == "SPOD" ) {
                     Eigen::MatrixXd Coeffs = Phi_POD.transpose() * sn_set;
                     for (int i = 0; i < Coeffs.rows(); i++) Coeffs.row(i) = Coeffs.row(i) / std::sqrt(lambda_POD(i));
 
@@ -496,7 +496,7 @@ int main( int argc, char *argv[] )
                                                                Nm,
                                                                "VECTOR-2D",
                                                                settings.flag_interp);
-                } else if ( settings.flag_method == "DMD" ) {
+                } else if ( settings.flag_method[0] == "DMD" ) {
                     Eigen::MatrixXcd PhiTPhi = Phi_DMD.leftCols(Nm).transpose()*Phi_DMD.leftCols(Nm);
                     Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.leftCols(Nm).transpose()*sn_set);
                     Rec =  Reconstruction_DMD_Interp ( settings.t_rec[nt],

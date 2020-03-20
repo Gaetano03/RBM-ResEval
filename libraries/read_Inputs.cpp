@@ -109,7 +109,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.flag_prob = "NONE";          
     settings.Cols = {};          
     settings.Cols_coords = {};    
-    settings.flag_method = "NONE";        
+//    settings.flag_method[0] = "NONE";
     settings.flag_wdb_be = "NONE"; 
     settings.P = 101325;
     settings.Rho = 1.228;       
@@ -332,8 +332,16 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                 case FLAG_METHOD:
                 {
-                    settings.flag_method = value;
-                    //std::cout << "Method for feature extraction : " << value << std::endl;
+
+                    std::string my_str = value;
+
+                    std::stringstream s_stream(my_str); //create string stream from the string
+                    while(s_stream.good()) {
+                        std::string substr;
+                        getline(s_stream, substr, ','); //get first string delimited by comma
+                        settings.flag_method.push_back(substr);
+                    }
+
                     break;
                 }
 

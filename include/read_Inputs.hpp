@@ -69,7 +69,7 @@ struct prob_settings
     std::string flag_prob;          //Type of problem (Vector, scalar)
     std::vector<int> Cols;          //Fields columns to porcess
     std::vector<int> Cols_coords;   //Columns with coordinates 
-    std::string flag_method;        //Method to use
+    std::vector<std::string> flag_method;        //Method to use
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
     double Dt_cfd;                  //delta t used in CFD simulation
     std::vector<double> Dt_res;     //delta t used for residual evaluation

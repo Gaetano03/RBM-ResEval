@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     Eigen::VectorXd mean = sn_set.rowwise().mean();
 
-    if ( settings.flag_method == "SPOD")
+    if ( settings.flag_method[0] == "SPOD")
     {
 
         std::vector<double> t_vec( settings.Ns );
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-    if ( settings.flag_method == "DMD" || settings.flag_method == "fbDMD" || settings.flag_method == "HODMD" )
+    if ( settings.flag_method[0] == "DMD" || settings.flag_method[0] == "fbDMD" || settings.flag_method[0] == "HODMD" )
     {
         double tol = 1e-8;
         double t_0 = 0.0;
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
         Eigen::VectorXcd alfa;
         Eigen::MatrixXcd Alfas;
 
-        if ( settings.flag_method == "DMD")
+        if ( settings.flag_method[0] == "DMD")
         {    
             Phi = DMD_basis( sn_set,
                             lambda_DMD,
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
                             settings.r );
         }
 
-        if ( settings.flag_method == "fbDMD")
+        if ( settings.flag_method[0] == "fbDMD")
         {
             Phi = fbDMD_basis( sn_set,
                             lambda_DMD,
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
                             settings.r );
         }
 
-        if ( settings.flag_method == "HODMD")
+        if ( settings.flag_method[0] == "HODMD")
         {
             Phi = HODMD_basis( sn_set,
                             lambda_DMD,
@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
         // std::cout << " DMD omegas :\n " << omega << std::endl;
         // std::cout << " DMD eigen-values :\n " << lambda_DMD << std::endl;
 
-        if ( settings.flag_method == "DMD" || settings.flag_method == "fbDMD" ) 
+        if ( settings.flag_method[0] == "DMD" || settings.flag_method[0] == "fbDMD" ) 
         {
             std::cout << "Calculating coefficients DMD ... " << "\t";
 
@@ -402,7 +402,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    if ( settings.flag_method == "mrDMD" )
+    if ( settings.flag_method[0] == "mrDMD" )
     {
 
 
@@ -517,7 +517,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    if ( settings.flag_method == "RDMD")
+    if ( settings.flag_method[0] == "RDMD")
     {
 
         double t_0 = 0.0;
@@ -637,7 +637,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-    if ( settings.flag_method == "GPOD")
+    if ( settings.flag_method[0] == "GPOD")
     {
 
         std::vector<double> t_vec( settings.Ns );

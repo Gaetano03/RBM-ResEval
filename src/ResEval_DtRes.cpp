@@ -116,8 +116,11 @@ int main( int argc, char *argv[] )
         std::cout << "Using data without subtracting any reference state" << std::endl << std::endl;
     }
 
-//Defining common scope for POD-SPOD
-    {
+    auto methods = settings.flag_method;
+    //Defining common scope for POD-SPOD
+    std::vector<std::string>::iterator itPOD;
+    itPOD = std::find (methods.begin(), methods.end(), "POD");
+    if (itPOD != methods.end()) {
         std::cout << "--------------------------------------" << std::endl ;
         std::cout << "-------Performin POD ResEval----------" << std::endl ;
         std::cout << "--------------------------------------" << std::endl ;
@@ -220,7 +223,9 @@ int main( int argc, char *argv[] )
 
 
 //Defining scope for DMD ( Rank=-1 preferable, Coeffs = OPT )
-    {
+    std::vector<std::string>::iterator itDMD;
+    itDMD = std::find (methods.begin(), methods.end(), "DMD");
+    if (itDMD != methods.end()) {
         std::cout << "--------------------------------------" << std::endl ;
         std::cout << "-------Performin DMD ResEval----------" << std::endl ;
         std::cout << "--------------------------------------" << std::endl ;
@@ -377,7 +382,9 @@ int main( int argc, char *argv[] )
 // // //if using the function RDMD_modes_coefs for energybased select
 // // //energy level and rank rdmd to zero, for mode based just select
 // //rank rdmd to the number of desired modes
-    {
+    std::vector<std::string>::iterator itRDMD;
+    itRDMD = std::find (methods.begin(), methods.end(), "RDMD");
+    if (itRDMD != methods.end()) {
 
         std::cout << "--------------------------------------" << std::endl ;
         std::cout << "-------Performin RDMD ResEval---------" << std::endl ;
@@ -402,7 +409,14 @@ int main( int argc, char *argv[] )
         for ( int ncons = 0; ncons < nC; ncons ++ ) {
 
                 std::cout << "Processing conservative variable " << ncons << std::endl;
-                Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
+//                Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
+//                                              Coefs,
+//                                              lambda[ncons],
+//                                              K_pc,
+//                                              -1, //Performing singular value hard threshold for DMD reduction at each step
+//                                              settings.r_RDMD,
+//                                              settings.En);
+            Phi[ncons] = RDMD_lsq_basis(sn_set.middleRows(ncons * Nr, Nr),
                                               Coefs,
                                               lambda[ncons],
                                               K_pc,

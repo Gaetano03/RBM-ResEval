@@ -114,7 +114,17 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                                     Eigen::VectorXd &K_pc,
                                     const int r,                //rank of pure DMD at each step
                                     int &rdmd,
-                                    double En );              
+                                    double En );
+
+
+//Recursive DMD with least square method to compute coefficients
+Eigen::MatrixXd RDMD_lsq_basis ( const Eigen::MatrixXd &sn_set,
+                                 Eigen::MatrixXd &Coefs,
+                                 Eigen::VectorXd &lambda,
+                                 Eigen::VectorXd &K_pc,
+                                 const int r,
+                                 int &rdmd,
+                                 double En );
 
 
 //Forward-Backward DMD

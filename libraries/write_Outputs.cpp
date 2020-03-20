@@ -9,35 +9,35 @@ void Config_stream ( prob_settings settings )
     std::cout << " Starting snapshot index : " << settings.nstart << std::endl;
     std::cout << " Data-type to be processed : " << settings.flag_prob << std::endl << std::endl;
 
-    std::cout << "----------- Performing " << settings.flag_method << " --------------" << std::endl;
+    std::cout << "----------- Performing " << settings.flag_method[0][0] << " --------------" << std::endl;
     std::cout << " Subtracting mean from snapshot = " << settings.flag_mean << std::endl << std::endl;
 
-    if ( settings.flag_method == "SPOD" )
+    if ( settings.flag_method[0] == "SPOD" )
     {
         std::cout << " Filter size : " << settings.Nf << std::endl;
         std::cout << " Filter type : " << settings.flag_filter << std::endl;
         std::cout << " Energy level desired : " << settings.En*100 << "%" << std::endl;
     }   
 
-    if ( settings.flag_method == "DMD" || settings.flag_method == "fbDMD" || settings.flag_method == "HODMD" || settings.flag_method == "mrDMD" || settings.flag_method == "RDMD")
+    if ( settings.flag_method[0] == "DMD" || settings.flag_method[0] == "fbDMD" || settings.flag_method[0] == "HODMD" || settings.flag_method[0] == "mrDMD" || settings.flag_method[0] == "RDMD")
     {
         std::cout << " Rank for the reduced dynamic (if -1 pick all modes, if 0 do SVHT) : " << settings.r << std::endl;
         std::cout << " Method to compute coefficients : " << settings.dmd_coef_flag << std::endl;
     }
 
-    if ( settings.flag_method == "RDMD" )
+    if ( settings.flag_method[0] == "RDMD" )
     {
         std::cout << " Rank for the RDMD (if 0 do the recursion until the desired energetic content ( max = 3*Ns)) : " << settings.r_RDMD << std::endl;
         std::cout << " Energy level desired (to be considered only if rank = 0): " << settings.En*100 << "%" << std::endl;
     }
 
-    if ( settings.flag_method == "mrDMD" )
+    if ( settings.flag_method[0] == "mrDMD" )
     {
         std::cout << " Max levels of the multi resolution : " << settings.max_levels << std::endl;
         std::cout << " Number of samples per time bin : " << settings.max_cycles << std::endl;
     }
 
-    if ( settings.flag_method == "HODMD" )
+    if ( settings.flag_method[0] == "HODMD" )
     {
         std::cout << " Number of levels for high order : " << settings.d << std::endl;
     }

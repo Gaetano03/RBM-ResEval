@@ -61,22 +61,22 @@ int main( int argc, char *argv[] )
         t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
         
     std::cout << "Computing mean of CFD solution ... " << std::endl;
+
+
+    std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
+    //Defining Initial condition
+    int nC = 4;
     Eigen::VectorXd mean = sn_set.rowwise().mean();
+    Eigen::VectorXd Ic = IC(settings, nC, Np);
+    double alpha = settings.alpha;
+    double beta = settings.beta;
+
     if ( settings.flag_mean == "YES" ) {
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= mean;
     }
 
-    std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
-    //Defining Initial condition
-    int nC = 4;
-    Eigen::VectorXd Ic = IC(settings, nC, Np);
-    double alpha = settings.alpha;
-    double beta = settings.beta;
-
-
-    if ( settings.flag_mean == "IC" )
-    {
+    if ( settings.flag_mean == "IC" ) {
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
     }
@@ -126,14 +126,103 @@ int main( int argc, char *argv[] )
                                       settings.flag_bc,
                                       settings.flag_filter,
                                       settings.sigma);
-//std::cout << "Vector of energies : " << K_pc << std::endl;
+
+    Eigen::VectorXcd lambda_DMD;
+    Eigen::VectorXd lambda_POD;
+    Eigen::MatrixXcd eig_vec_DMD;
+    Eigen::MatrixXd eig_vec_POD;
+    Eigen::MatrixXcd PhiDMD = DMD_basis(sn_set,
+                                     lambda_DMD,
+                                     eig_vec_DMD,
+                                     lambda_POD,
+                                     eig_vec_POD,
+                                     -1);
+
+    Eigen::MatrixXcd PhiTPhi = PhiDMD.transpose()*PhiDMD;
+    Eigen::MatrixXcd dumCoefs = PhiDMD.transpose()*sn_set;
+
+    clock_t chrono_begin, chrono_end;
+    double comp_time;
+
+//    Solving linear system
+//    chrono_begin = clock();
+//    Eigen::MatrixXcd coefsDMD = PhiTPhi.colPivHouseholderQr().solve(dumCoefs);
+//    Eigen::MatrixXcd P_DMD = PhiDMD*coefsDMD;
+//    chrono_end = clock();
+//    comp_time = ((double)(chrono_end-chrono_begin))/CLOCKS_PER_SEC;
+//    std::cout << "Computational time for Linear system : " << comp_time << std::endl;
+
+//    Using Pseudo-inverse
+//    chrono_begin = clock();
+    Eigen::MatrixXcd P_DMD = PhiDMD*(PhiTPhi.inverse()*dumCoefs);
+//    chrono_end = clock();
+//    comp_time = ((double)(chrono_end-chrono_begin))/CLOCKS_PER_SEC;
+//    std::cout << "Computational time for Pseudo inverse : " << comp_time << std::endl;
+
+    Eigen::MatrixXd ErrP_DMD_map = sn_set - P_DMD.real();
+    Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(settings.Ns);
+
+    for ( int it = 0; it < settings.Ns; it++ ) {
+        int count = 0;
+        for ( int iP = 0; iP < Np; iP++ )
+            ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+
+        ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+    }
+
+    int max_idx;
+    double fobj = ErrP_DMD_time.maxCoeff(&max_idx);
+    //std::cout << "Vector of energies : " << K_pc << std::endl;
     double thr = 1e-2; //threshold for the projection error
     int Nm = Nmod(1.0 - thr * thr, K_pc);
-    std::cout << "Number of samples needed from uniform sampling to have EpsP= " << thr << " : " <<  Nm << std::endl << std::endl;
-
+    std::cout << "Number of samples needed from uniform sampling to have EpsP= " << thr << " : " <<  Nm << std::endl;
+    std::cout << "Fobj value for DMD using all samples (uniform sampling) fVal= " << fobj << " in snapshot " << max_idx << std::endl << std::endl;
     //--------------------------------------------------------------------------------------------//
     //-------------------------------Setting Optimization Problem---------------------------------//
     //--------------------------------------------------------------------------------------------//
+
+    // Analysis of fobj varying the number of modes for DMD (check if it's monotone)
+    int rStart = settings.Ns/10;
+
+    std::ofstream flow_data;
+    std::string filename = "FobjDMD_vs_Modes.dat";
+    flow_data.open(filename.c_str());
+    // Write row of Headers
+    flow_data << "Fobj" << " " << "Pos";
+    flow_data << std::endl;
+
+    for ( int ir = rStart; ir < settings.Ns; ir++ ){
+        Eigen::MatrixXcd PhiDMD = DMD_basis(sn_set,
+                                            lambda_DMD,
+                                            eig_vec_DMD,
+                                            lambda_POD,
+                                            eig_vec_POD,
+                                            ir);
+
+        Eigen::MatrixXcd PhiTPhi = PhiDMD.transpose()*PhiDMD;
+        Eigen::MatrixXcd dumCoefs = PhiDMD.transpose()*sn_set;
+        Eigen::MatrixXcd P_DMD = PhiDMD*(PhiTPhi.inverse()*dumCoefs);
+        Eigen::MatrixXd ErrP_DMD_map = sn_set - P_DMD.real();
+        Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(settings.Ns);
+
+        for ( int it = 0; it < settings.Ns; it++ ) {
+            int count = 0;
+            for ( int iP = 0; iP < Np; iP++ )
+                ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+
+            ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+        }
+
+        fobj = ErrP_DMD_time.maxCoeff(&max_idx);
+
+        // Write row of Headers
+        flow_data << std::setprecision(8) << fobj << ", " << max_idx;
+        flow_data << std::endl;
+
+    }
+
+    flow_data.close();
+
 
     if ( decision == "-y") {
 
@@ -265,7 +354,8 @@ int main( int argc, char *argv[] )
             }
 
             std::cout << std::endl;
-            for (std::string appo : Samp_rep) std::cout << appo << std::endl << std::endl;
+            for (std::string appo : Samp_rep) std::cout << appo << " ";
+            std::cout << std::endl << std::endl;
 
 //        Choosing new nVar_Opt with bisection method
             if (fVal > thr) {
@@ -498,7 +588,7 @@ int main( int argc, char *argv[] )
 
         }
     } else {
-        std::cout << "Nothing to do!" << std::endl;
+        std::cout << "Nothing else to do!" << std::endl;
     }
 
     std::cout << std::endl;

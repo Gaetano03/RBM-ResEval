@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    if ( settings.flag_method == "SPOD")
+    if ( settings.flag_method[0] == "SPOD")
     {
 
         Eigen::VectorXd lambda(settings.Ns);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
         }
 
-    } else if ( settings.flag_method == "RDMD")
+    } else if ( settings.flag_method[0] == "RDMD")
     {
 
         Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
             std::cout << std::endl;
         }
 
-    } else if ( settings.flag_method == "DMD")
+    } else if ( settings.flag_method[0] == "DMD")
     {
         double tol = 1e-8;
         double t_0 = time[0];

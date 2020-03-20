@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <vector>
 #include "Eigen/Dense"
 #include "Eigen/Eigenvalues"
 
@@ -47,6 +48,17 @@ int main () {
 //
 //    std::cout << "Matrix complex per vector real multiplication: " << std::endl;
 //    std::cout << r << std::endl;
+
+    std::vector<std::string> myvector = {"POD","DMD","RDMD"};
+    std::vector<std::string>::iterator it;
+
+    it = find (myvector.begin(), myvector.end(), "RDMD");
+    if (it != myvector.end())
+        std::cout << "Element found in myvector: " << *it << '\n';
+    else
+        std::cout << "Element not found in myvector\n";
+
+
 
     return 0;
 }
