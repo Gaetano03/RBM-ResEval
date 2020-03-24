@@ -86,7 +86,7 @@ Eigen::VectorXd IC( prob_settings settings, int nC, int Nr) {
         Ic.segment(6*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
 
     } else {
-        std::cout << "Set well number of conservative Variables" << std::endl;
+        std::cout << "Set well number of Variables for subtracting initial condition" << std::endl;
         exit(EXIT_FAILURE);
     }
 

@@ -1,4 +1,4 @@
-
+#CMake file for Adding executables
 
 function( ADD_RBM_TESTCASE arg1)
 
@@ -15,6 +15,7 @@ ADD_RBM_TESTCASE(Adaptive_Rec_DTR)
 ADD_RBM_TESTCASE(Adaptive_ResEval)
 #ADD_RBM_TESTCASE(FLUID_MODES_DNS)
 #ADD_RBM_TESTCASE(pagmo_test)
+ADD_RBM_TESTCASE(POD_Rec)
 ADD_RBM_TESTCASE(ResEval_DtRes)
 ADD_RBM_TESTCASE(Stesttest)
 #ADD_RBM_TESTCASE(test)

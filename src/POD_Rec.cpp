@@ -6,16 +6,15 @@ Output reconstructed field at the desired time instants with the adaptive techni
 based on residual evaluation
 */
 
-#include "Extract_Basis.hpp"
-#include "read_Inputs.hpp"
 #include "Generate_snset.hpp"
 #include "Reconstruction.hpp"
 #include "write_Outputs.hpp"
+#include "Pre-Process.hpp"
 
 
 int main( int argc, char *argv[] )
 {
-    std::cout << "Adaptive Reconstruction with ResEval starts " << std::endl;
+    std::cout << "POD Reconstruction starts" << std::endl;
 
     prob_settings settings;
     std::string filecfg = argv[1];
@@ -26,14 +25,6 @@ int main( int argc, char *argv[] )
     double alpha = settings.alpha;
     double beta  = settings.beta;
 
-    int s_Nf = 5;
-    int Nmethods = s_Nf + 2;
-    std::vector<int> Nf(s_Nf);
-    Nf[0] = 0;
-    Nf[1] = std::ceil(settings.Ns/10.0);
-    Nf[2] = std::ceil(settings.Ns/2.0);
-    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-    Nf[4] = settings.Ns;
     int Nf_SPOD = 0;
 
     std::string root_inputfile;
@@ -45,6 +36,7 @@ int main( int argc, char *argv[] )
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
     std::string file_1 = root_inputfile + "_" + buffer.str() + "." + input_format;
 
+    int nC = settings.Cols.size();
     int Nr = N_gridpoints ( file_1 );
     std::cout << "Number of grid points : " << Nr << std::endl;
 
@@ -60,61 +52,19 @@ int main( int argc, char *argv[] )
     // Eigen::MatrixXd sn_set = Eigen::MatrixXd::Zero(settings.ndim*Nr, settings.Ns);
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
-    double M = settings.Mach;
-    double Re = settings.Re;
-    double T = settings.T;
-    double length = 1.0;
-    double R = 287.058;
-    double gamma = 1.4;
-    double mu_ref = 1.716E-5;
-    double T_ref = 273.15;
-    double S = 110.4;
 
-    double mu = mu_ref*std::pow(T/T_ref,1.5)*(T_ref + S)/(T + S);
-    double V_magn = M*std::sqrt(gamma*R*T);
-    double rho = Re*mu/(V_magn*length);
-    double rhoU = rho*V_magn*std::cos(alpha)*std::cos(beta);
-    double rhoV = rho*V_magn*std::sin(alpha);
-    double rhoW = rho*V_magn*std::cos(alpha)*std::sin(beta);
-    double rhoE = rho*(R/(gamma-1)*T + 0.5*V_magn*V_magn);
-
-    //That only matters for turbulent calculation
-    //since these values are used as default values in SU2, they are not present in config file but hard coded
-    double n_turb = 0.05;
-    double mu_turb2lam_ratio = 10.0;
-
-    double tke = 1.5*n_turb*n_turb*V_magn*V_magn;
-    double omega = rho*tke/(std::max(mu*mu_turb2lam_ratio,1.e-25));
-    // double rhotke = rho*tke;
-    // double rhoomega = rho*omega;
-    double rhotke = tke;
-    double rhoomega = omega;
-
+    Eigen::VectorXd Ic = IC( settings, nC, Nr);
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(settings.ndim*Nr);
 
-    if ( settings.ndim == 2 )
-    {
-        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-    } else 
-    {
-        Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
-        Ic.segment(2*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1);
+    if ( settings.flag_mean == "YES" ) {
+        for ( int it = 0; it < settings.Ns; it++ )
+            sn_set.col(it) -= mean;
     }
 
-    if ( settings.flag_mean == "YES" )
-    {
+    if ( settings.flag_mean == "IC" ) {
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
     }
-
-    // if ( settings.flag_mean == "YES" )
-    // {
-    //     for ( int it = 0; it < settings.Ns; it++ )
-    //         sn_set.col(it) -= mean;
-    // }
 
 //POD reconstruction on each selected time step
 
@@ -169,9 +119,9 @@ int main( int argc, char *argv[] )
                                 "SCALAR",
                                 settings.flag_interp ) ;
 
-            if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + rhoU*Eigen::MatrixXd::Ones(Nr,1);
-            if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + rhoV*Eigen::MatrixXd::Ones(Nr,1);
-            if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + rhoW*Eigen::MatrixXd::Ones(Nr,1);
+            if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
+            if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
+            if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
 
         }
         

@@ -6,8 +6,6 @@ Output reconstructed field at the desired time instants with the adaptive techni
 based on residual evaluation
 */
 
-#include "Extract_Basis.hpp"
-#include "read_Inputs.hpp"
 #include "Generate_snset.hpp"
 #include "Reconstruction.hpp"
 #include "write_Outputs.hpp"
@@ -67,14 +65,13 @@ int main( int argc, char *argv[] )
 
     if ( settings.flag_mean == "YES" ) {
         for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+            sn_set.col(it) -= mean;
     }
 
-    // if ( settings.flag_mean == "YES" )
-    // {
-    //     for ( int it = 0; it < settings.Ns; it++ )
-    //         sn_set.col(it) -= mean;
-    // }
+    if ( settings.flag_mean == "IC" ) {
+        for ( int it = 0; it < settings.Ns; it++ )
+            sn_set.col(it) -= Ic;
+    }
 
     std::cout << "Reading Residuals ... " << std::endl;
 
@@ -82,11 +79,17 @@ int main( int argc, char *argv[] )
 //    std::vector<std::string> resfilename = {"history_spod_0.csv", "history_spod_1.csv", "history_spod_2.csv",
 //        "history_spod_3.csv", "history_spod_4.csv", "history_dmd.csv", "history_rdmd.csv"};
 
-
     Eigen::MatrixXd Err_RBM = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoV = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoU = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoW = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+
+    Eigen::MatrixXi Idx_RBM = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXi Idx_RBM_rhoV = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXi Idx_RBM_rhoU = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXi Idx_RBM_rhoW = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+
+
 
     for ( int i = 0; i < resfilename.size(); i++ )
     {
@@ -109,15 +112,31 @@ int main( int argc, char *argv[] )
             std::istringstream iss(line_flow_data);
             std::string token;
             double err;
+            int idx;
             count = 0; 
             while( getline( iss, token, ',') )
             {
                 err = std::stod(token);
+                idx = std::stoi(token);
 
-                if ( count == 17 ) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
-                if ( count == 18 ) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
-                if ( settings.ndim == 3 && count == 19 ) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
-                
+                if (settings.ndim == 3) {
+                    if (count == 1) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 2) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 3) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
+                    if (count == 4) Idx_RBM_rhoU(n_row, i) = idx;
+                    if (count == 5) Idx_RBM_rhoV(n_row, i) = idx;
+                    if (count == 6) Idx_RBM_rhoW(n_row, i) = idx;
+
+                }
+
+                if (settings.ndim == 2) {
+                    if (count == 1) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 2) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 3) Idx_RBM_rhoU(n_row, i) = idx;
+                    if (count == 4) Idx_RBM_rhoV(n_row, i) = idx;
+
+                }
+
                 count ++;
             } 
 
@@ -169,9 +188,18 @@ int main( int argc, char *argv[] )
 
         for ( int iDim = 0; iDim < settings.ndim; iDim ++ ) {
 
-            if ( iDim == 0 ) Err_RBM = Err_RBM_rhoU;
-            if ( iDim == 1 ) Err_RBM = Err_RBM_rhoV;
-            if ( iDim == 2 ) Err_RBM = Err_RBM_rhoW;
+            if ( iDim == 0 ){
+                Err_RBM = Err_RBM_rhoU;
+                Idx_RBM = Idx_RBM_rhoU;
+            }
+            if ( iDim == 1 ) {
+                Err_RBM = Err_RBM_rhoV;
+                Idx_RBM = Idx_RBM_rhoV;
+            }
+            if ( iDim == 2 ) {
+                Err_RBM = Err_RBM_rhoW;
+                Idx_RBM = Idx_RBM_rhoW;
+            }
 
             int count = 0;
             double Dt = t_vec[index2] - t_vec[index1];
@@ -186,7 +214,7 @@ int main( int argc, char *argv[] )
             //FIX THIS FUNCTION
             std::string method = method_selected ( best_method_idx, Nf_SPOD, Nf );
 //            std::cout << "Best method is " << method << " and Nf ( value meaningful only for SPOD ) : " << Nf_SPOD << std::endl;
-            std::cout << "Best method is " << method << std::endl;
+            std::cout << "Best method is " << method << " using a number of modes equal to : " << Idx_RBM(index1,best_method_idx) << std::endl;
             std::cout << " Error : " << Err_interp(best_method_idx) << std::endl;
 
             std::cout << "Computing Reconstruction using selected method " << std::endl;
@@ -204,18 +232,18 @@ int main( int argc, char *argv[] )
                                         settings.flag_filter,  
                                         settings.sigma);
 
-                int Nm;
+                int Nm = Idx_RBM(index1,best_method_idx);
 
-                if ( settings.r == 0 )
-                {
-                    Nm = Nmod(settings.En, K_pc);
-                    std::cout << "Number of modes for desired energetic content: " << Nm << std::endl;
-                }
-                else
-                {
-                    Nm = std::min(settings.r,settings.Ns);
-                    std::cout << "Number of modes (fixed): " << Nm << std::endl;
-                }
+//                if ( settings.r == 0 )
+//                {
+//                    Nm = Nmod(settings.En, K_pc);
+//                    std::cout << "Number of modes for desired energetic content: " << Nm << std::endl;
+//                }
+//                else
+//                {
+//                    Nm = std::min(settings.r,settings.Ns);
+//                    std::cout << "Number of modes (fixed): " << Nm << std::endl;
+//                }
 
                 std::vector<double> t_v( settings.Ns );
                 t_v[0] = (double)settings.nstart*settings.Dt_cfd;
@@ -245,82 +273,95 @@ int main( int argc, char *argv[] )
                 Eigen::VectorXcd lambda_DMD;
                 Eigen::MatrixXcd eig_vec_DMD;      
                 Eigen::MatrixXcd Phi;
-                Eigen::VectorXcd alfa;    
+                Eigen::VectorXcd alfa;
 
-                if ( settings.r == 0 )
-                {
-                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
-                                    lambda_DMD,
-                                    eig_vec_DMD,
-                                    lambda_POD,
-                                    eig_vec_POD,
-                                    -1 );
-                }
-                else
-                {
-                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
-                                    lambda_DMD,
-                                    eig_vec_DMD,
-                                    lambda_POD,
-                                    eig_vec_POD,
-                                    settings.r );
-                }
+                Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+                                 lambda_DMD,
+                                 eig_vec_DMD,
+                                 lambda_POD,
+                                 eig_vec_POD,
+                                 Idx_RBM(index1,best_method_idx));
+//                if ( settings.r == 0 )
+//                {
+//                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+//                                    lambda_DMD,
+//                                    eig_vec_DMD,
+//                                    lambda_POD,
+//                                    eig_vec_POD,
+//                                    -1 );
+//                }
+//                else
+//                {
+//                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+//                                    lambda_DMD,
+//                                    eig_vec_DMD,
+//                                    lambda_POD,
+//                                    eig_vec_POD,
+//                                    settings.r );
+//                }
 
                 alfa = Calculate_Coefs_DMD_exact ( sn_set.middleRows(iDim*Nr,Nr).leftCols(settings.Ns-1),  
                                                                     lambda_DMD,  
                                                                     Phi );                    
 
                 // std::cout << "Reordering modes DMD ... " << "\t";
-                Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi.cols());
-                double T = t_vec[t_vec.size()];
+//                Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi.cols());
+//                double T = t_vec[t_vec.size()];
 
-                Eigen::VectorXcd omega(Phi.cols());
-                for ( int idmd = 0; idmd < Phi.cols(); idmd++ )
-                    omega(idmd) = std::log(lambda_DMD(idmd))/(settings.Dt_cfd*(double)settings.Ds);
-
-
-                for ( int idmd = 0 ; idmd < Phi.cols(); idmd ++ )
-                {
-
-                    double alfa_i = alfa(idmd).imag();
-                    double alfa_r = alfa(idmd).real();
-                    double sigma = omega(idmd).real();
-                    En(idmd) = (alfa_r*alfa_r + alfa_i*alfa_i)*(std::exp(2.0*sigma*T) - 1.0)/(2.0*sigma);
-
-                }
-
-                dmd_sort( En, Phi, lambda_DMD, alfa);
-                // std::cout << "Done" << std::endl;
-
-                double sum = 0;
-                Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
-                for (int idmd = 0; idmd < Phi.cols(); idmd++)
-                {
-                    sum += En(idmd)/En.sum();
-                    K_pc(idmd) = sum;
-                }
-
-                int Nm;
-
-                if ( settings.r == 0)
-                {
-                    Nm = Nmod(settings.En, K_pc);
-                    std::cout << "Number of modes for the desired energetic content : " << Nm << std::endl;
-                    
-                }
-                else
-                {
-                    Nm = std::min(settings.r, settings.Ns-1);
-                    std::cout << "Number of modes (fixed) : " << Nm << std::endl;
-                }
+//                Eigen::VectorXcd omega(Phi.cols());
+//                for ( int idmd = 0; idmd < Phi.cols(); idmd++ )
+//                    omega(idmd) = std::log(lambda_DMD(idmd))/(settings.Dt_cfd*(double)settings.Ds);
+//
+//
+//                for ( int idmd = 0 ; idmd < Phi.cols(); idmd ++ )
+//                {
+//
+//                    double alfa_i = alfa(idmd).imag();
+//                    double alfa_r = alfa(idmd).real();
+//                    double sigma = omega(idmd).real();
+//                    En(idmd) = (alfa_r*alfa_r + alfa_i*alfa_i)*(std::exp(2.0*sigma*T) - 1.0)/(2.0*sigma);
+//
+//                }
+//
+//                dmd_sort( En, Phi, lambda_DMD, alfa);
+//                // std::cout << "Done" << std::endl;
+//
+//                double sum = 0;
+//                Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
+//                for (int idmd = 0; idmd < Phi.cols(); idmd++)
+//                {
+//                    sum += En(idmd)/En.sum();
+//                    K_pc(idmd) = sum;
+//                }
+//
+//                int Nm;
+//
+//                if ( settings.r == 0)
+//                {
+//                    Nm = Nmod(settings.En, K_pc);
+//                    std::cout << "Number of modes for the desired energetic content : " << Nm << std::endl;
+//
+//                }
+//                else
+//                {
+//                    Nm = std::min(settings.r, settings.Ns-1);
+//                    std::cout << "Number of modes (fixed) : " << Nm << std::endl;
+//                }
             
 
+//                Eigen::MatrixXcd Rec = Reconstruction_DMD ( settings.t_rec[i],
+//                                                        settings.Dt_cfd*settings.Ds,
+//                                                        alfa.topRows(Nm),
+//                                                        Phi.leftCols(Nm),
+//                                                        lambda_DMD.head(Nm),
+//                                                        "SCALAR" );
+
                 Eigen::MatrixXcd Rec = Reconstruction_DMD ( settings.t_rec[i],
-                                                        settings.Dt_cfd*settings.Ds,
-                                                        alfa.topRows(Nm),
-                                                        Phi.leftCols(Nm),
-                                                        lambda_DMD.head(Nm),
-                                                        "SCALAR" );
+                                                            settings.Dt_cfd*settings.Ds,
+                                                            alfa,
+                                                            Phi,
+                                                            lambda_DMD,
+                                                            "SCALAR" );
 
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
@@ -351,17 +392,17 @@ int main( int argc, char *argv[] )
                 
 
 
-                int Nm;
-                if ( settings.r == 0 )
-                {
-                    Nm = Nmod(settings.En, K_pc);
-                    std::cout << "number of modes for the desired energetic content " << Nm << std::endl;
-                }
-                else
-                {
-                    Nm = std::min(settings.r, settings.r_RDMD);
-                    std::cout << "number of modes (fixed) " << Nm << std::endl;
-                }
+                int Nm = Idx_RBM(index1,best_method_idx);
+//                if ( settings.r == 0 )
+//                {
+//                    Nm = Nmod(settings.En, K_pc);
+//                    std::cout << "number of modes for the desired energetic content " << Nm << std::endl;
+//                }
+//                else
+//                {
+//                    Nm = std::min(settings.r, settings.r_RDMD);
+//                    std::cout << "number of modes (fixed) " << Nm << std::endl;
+//                }
 
 
                 std::vector<double> t_st_vec(settings.Ns);
