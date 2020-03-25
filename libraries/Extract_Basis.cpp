@@ -391,7 +391,7 @@ Eigen::MatrixXcd DMD_basis ( const Eigen::MatrixXd &snap_set,
     }
     else if ( r > 0 )
     {                    
-        Nm = std::min(r, Ns);
+        Nm = std::min(r, Not_zero ( lam_POD ));
         std::cout << "DMD user-defined rank : " << Nm << std::endl;
     }
     else

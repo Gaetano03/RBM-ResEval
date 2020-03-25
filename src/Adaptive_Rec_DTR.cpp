@@ -232,7 +232,9 @@ int main( int argc, char *argv[] )
                                         settings.flag_filter,  
                                         settings.sigma);
 
-                int Nm = Idx_RBM(index1,best_method_idx);
+                int temp2 = Idx_RBM(index1,best_method_idx);
+                int temp1 = Phi.cols();
+                int Nm = std::min(temp1, temp2);
 
 //                if ( settings.r == 0 )
 //                {
