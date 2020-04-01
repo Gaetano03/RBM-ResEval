@@ -182,46 +182,46 @@ int main( int argc, char *argv[] )
     //--------------------------------------------------------------------------------------------//
 
     // Analysis of fobj varying the number of modes for DMD (check if it's monotone)
-    int rStart = settings.Ns/10;
-
-    std::ofstream flow_data;
-    std::string filename = "FobjDMD_vs_Modes.dat";
-    flow_data.open(filename.c_str());
-    // Write row of Headers
-    flow_data << "Fobj" << " " << "Pos";
-    flow_data << std::endl;
-
-    for ( int ir = rStart; ir < settings.Ns; ir++ ){
-        Eigen::MatrixXcd PhiDMD = DMD_basis(sn_set,
-                                            lambda_DMD,
-                                            eig_vec_DMD,
-                                            lambda_POD,
-                                            eig_vec_POD,
-                                            ir);
-
-        Eigen::MatrixXcd PhiTPhi = PhiDMD.transpose()*PhiDMD;
-        Eigen::MatrixXcd dumCoefs = PhiDMD.transpose()*sn_set;
-        Eigen::MatrixXcd P_DMD = PhiDMD*(PhiTPhi.inverse()*dumCoefs);
-        Eigen::MatrixXd ErrP_DMD_map = sn_set - P_DMD.real();
-        Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(settings.Ns);
-
-        for ( int it = 0; it < settings.Ns; it++ ) {
-            int count = 0;
-            for ( int iP = 0; iP < Np; iP++ )
-                ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
-
-            ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
-        }
-
-        fobj = ErrP_DMD_time.maxCoeff(&max_idx);
-
-        // Write row of Headers
-        flow_data << std::setprecision(8) << fobj << ", " << max_idx;
-        flow_data << std::endl;
-
-    }
-
-    flow_data.close();
+//    int rStart = settings.Ns/10;
+//
+//    std::ofstream flow_data;
+//    std::string filename = "FobjDMD_vs_Modes.dat";
+//    flow_data.open(filename.c_str());
+//    // Write row of Headers
+//    flow_data << "Fobj" << " " << "Pos";
+//    flow_data << std::endl;
+//
+//    for ( int ir = rStart; ir < settings.Ns; ir++ ){
+//        Eigen::MatrixXcd PhiDMD = DMD_basis(sn_set,
+//                                            lambda_DMD,
+//                                            eig_vec_DMD,
+//                                            lambda_POD,
+//                                            eig_vec_POD,
+//                                            ir);
+//
+//        Eigen::MatrixXcd PhiTPhi = PhiDMD.transpose()*PhiDMD;
+//        Eigen::MatrixXcd dumCoefs = PhiDMD.transpose()*sn_set;
+//        Eigen::MatrixXcd P_DMD = PhiDMD*(PhiTPhi.inverse()*dumCoefs);
+//        Eigen::MatrixXd ErrP_DMD_map = sn_set - P_DMD.real();
+//        Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(settings.Ns);
+//
+//        for ( int it = 0; it < settings.Ns; it++ ) {
+//            int count = 0;
+//            for ( int iP = 0; iP < Np; iP++ )
+//                ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+//
+//            ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+//        }
+//
+//        fobj = ErrP_DMD_time.maxCoeff(&max_idx);
+//
+//        // Write row of Headers
+//        flow_data << std::setprecision(8) << fobj << ", " << max_idx;
+//        flow_data << std::endl;
+//
+//    }
+//
+//    flow_data.close();
 
 
     if ( decision == "-y") {
@@ -229,7 +229,7 @@ int main( int argc, char *argv[] )
         std::cout << "Performing adaptive sampling with optimization " << std::endl;
         int nVar_lb = 2;
         int nVar_ub = settings.Ns;
-        int nVar_Opt = Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
+        int nVar_Opt = 16;//Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
         double fVal = 1.0;
         size_t Npop = 150;
         int Ngen = 1000;
@@ -251,124 +251,133 @@ int main( int argc, char *argv[] )
         double abstol = 1e-5;
         double tol = rtol * thr;
 
-        while (std::abs(fVal - thr) > tol && nVar_lb != nVar_ub - 1) {
+//        while (std::abs(fVal - thr) > tol && nVar_lb != nVar_ub - 1) {
 
-            std::string f_name = "Championf_Samples_nVar_" + std::to_string(nVar_Opt) + ".dat";
-            std::ofstream opt_data;
-            opt_data.open(f_name.c_str());
+        std::string f_name = "Championf_Samples_nVar_" + std::to_string(nVar_Opt) + ".dat";
+        std::ofstream opt_data;
+        opt_data.open(f_name.c_str());
 
-            //Initializing some meaningful individuals for population
-            std::vector<double> p1(nVar_Opt);
-            p1[0] = settings.Dt_cfd * settings.Ds;
-            for (int it = 1; it < nVar_Opt; it++) p1[it] = p1[it - 1] + settings.Dt_cfd * settings.Ds *
-                                                                        ((double) settings.Ns - 3.0) /
-                                                                        ((double) nVar_Opt - 1.0);
+        //Initializing some meaningful individuals for population
+        std::vector<double> p1(nVar_Opt);
+        p1[0] = settings.Dt_cfd * settings.Ds;
+        for (int it = 1; it < nVar_Opt; it++) p1[it] = p1[it - 1] + settings.Dt_cfd * settings.Ds *
+                                                                    ((double) settings.Ns - 3.0) /
+                                                                    ((double) nVar_Opt - 1.0);
 
-            //Clearing and resetting adaptive sampling vectors for representation
-            iSamp_pos.clear();
-            for (int it = 1; it < (settings.Ns - 1); it++) Samp_rep[it] = out;
 
-            std::cout << "For nVar = " << nVar_Opt << std::endl;
-            // Define search bounds:
-            std::vector<std::vector<double> > bounds(2, std::vector<double>(nVar_Opt, 0.0));
-            for (int iVar_Opt = 0; iVar_Opt < nVar_Opt; iVar_Opt++) {
-                bounds[0][iVar_Opt] = settings.Dt_cfd * settings.Ds;
+        std::vector<double> p2 = {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.009,0.012,0.014,0.017,0.020,
+                                  0.024,0.029,0.035,0.043};
+//                                  ,0.052,0.067,0.078,0.086,0.092,0.097,0.103,0.108,
+//                                  0.116,0.120,0.122,0.123,0.125,0.126,0.128,0.130,0.134,0.169,0.190,0.196,
+//                                  0.200,0.205,0.219,0.222,0.226,0.244,0.249,0.254,0.269,0.272,0.275,0.280,
+//                                  0.283,0.288,0.290,0.293};
+
+        //Clearing and resetting adaptive sampling vectors for representation
+        iSamp_pos.clear();
+        for (int it = 1; it < (settings.Ns - 1); it++) Samp_rep[it] = out;
+
+        std::cout << "For nVar = " << nVar_Opt << std::endl;
+        // Define search bounds:
+        std::vector<std::vector<double> > bounds(2, std::vector<double>(nVar_Opt, 0.0));
+        for (int iVar_Opt = 0; iVar_Opt < nVar_Opt; iVar_Opt++) {
+            bounds[0][iVar_Opt] = settings.Dt_cfd * settings.Ds;
 //                bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double) settings.Ns - 2.0); //for POD
-                bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double)settings.Ns - 3.0); //for DMD
+            bounds[1][iVar_Opt] = settings.Dt_cfd * settings.Ds * ((double)settings.Ns - 3.0); //for DMD
 //            bounds[0][iVar_Opt] = 1.0;
 //            bounds[1][iVar_Opt] = (double)settings.Ns-2.0;
 
-            }
+        }
 
-            pagmo::problem prob{DMD_Adapt_Samp(bounds, sn_set, settings)};
+        pagmo::problem prob{DMD_Adapt_Samp(bounds, sn_set, settings)};
 //            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf)};
 //            pagmo::algorithm algo{pagmo::pso(1u,0.7298,2.05,2.05,0.5,5u,2u,4u,true,1)};
 //            pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,true,7)};
 //            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
 
-            pagmo::gaco uda{1u, 150u, 1.0, 0.0, 0.01, 800u, 48u, 10000000u, 10000000u, 0.0, true, 7};
-            uda.set_verbosity(1u);
-            uda.set_seed(7);
+        pagmo::gaco uda{1u, 75u, 1.0, 0.0, 0.01, 800u, 48u, 10000000u, 10000000u, 0.0, true, 7};
+        uda.set_verbosity(1u);
+        uda.set_seed(7);
 
-            //I parallalize the population evaluations:
-            // uda.set_bfe( pagmo::bfe{} );
+        //I parallalize the population evaluations:
+        uda.set_bfe( pagmo::bfe{} );
 
-            pagmo::population pop{prob, Npop, 7};
+        pagmo::population pop{prob, Npop, 7};
 
-  //          algo.set_verbosity(1);
+//          algo.set_verbosity(1);
 
-            //Adding uniform sample
-            pop.set_x(0, p1);
+        //Adding uniform sample
+        pop.set_x(0, p1);
+        pop.set_x(0, p2);
 
-            //Evolving for Ngen iterations
-            for (int i = 0; i < Ngen; i++) {
+        //Evolving for Ngen iterations
+        for (int i = 0; i < Ngen; i++) {
 
-  //              pop = algo.evolve(pop);
-                pop=uda.evolve(pop);
-                pagmo::vector_double f = pop.champion_f();
-                pagmo::vector_double T = pop.champion_x();
-                std::cout << "Minimum: " << i << " " << std::setprecision(8) << "f= "
-                          << f[0] << std::endl;
+//              pop = algo.evolve(pop);
+            pop=uda.evolve(pop);
+            pagmo::vector_double f = pop.champion_f();
+            pagmo::vector_double T = pop.champion_x();
+            std::cout << "Minimum: " << i << " " << std::setprecision(8) << "f= "
+                      << f[0] << std::endl;
 
-                opt_data << std::setprecision(8) << f[0];
-                for (int it = 0; it < T.size(); it++) {
-                    opt_data << "," << std::setprecision(8) << T[it];
-                }
-
-                opt_data << std::endl;
-                fVal = f[0];
-
-                if ( f[0] < thr ||
-                    std::abs(f[0] - thr) < tol)
-                    break;
+            opt_data << std::setprecision(8) << f[0];
+            for (int it = 0; it < T.size(); it++) {
+                opt_data << "," << std::setprecision(8) << T[it];
             }
 
-            opt_data.close();
-            pagmo::vector_double T_c = pop.champion_x();
+            opt_data << std::endl;
+            fVal = f[0];
+
+            if ( f[0] < thr ||
+                std::abs(f[0] - thr) < tol)
+                break;
+        }
+
+        opt_data.close();
+        pagmo::vector_double T_c = pop.champion_x();
 //            fVal = isl.get_population().champion_f()[0];
 
-            //Converting decision vector from double to int to get snapshots column selection
+        //Converting decision vector from double to int to get snapshots column selection
 //            iSamp_pos.resize(isl.get_population().champion_x().size() +
 //                             2); //+2 takes into account first and last snapshots (always included in the sampling)
-            iSamp_pos.resize(T_c.size() +
-                             2); //+2 takes into account first and last snapshots (always included in the sampling)
-            iSamp_pos[0] = 0;
-            iSamp_pos[nVar_Opt + 1] = settings.Ns - 1;
+        iSamp_pos.resize(T_c.size() +
+                         2); //+2 takes into account first and last snapshots (always included in the sampling)
+        iSamp_pos[0] = 0;
+        iSamp_pos[nVar_Opt + 1] = settings.Ns - 1;
 
-            for (int iVar = 1; iVar < (nVar_Opt + 1); iVar++)
-                iSamp_pos[iVar] = static_cast<int>(round(
-                        T_c[iVar - 1] / (settings.Dt_cfd * settings.Ds)));
+        for (int iVar = 1; iVar < (nVar_Opt + 1); iVar++)
+            iSamp_pos[iVar] = static_cast<int>(round(
+                    T_c[iVar - 1] / (settings.Dt_cfd * settings.Ds)));
 
-            //Representing Adaptive Sampling on screen
-            std::cout << "Adaptive Sampling for nVar = " << nVar_Opt << std::endl;
-            std::sort(iSamp_pos.begin(), iSamp_pos.end());
-            for (int it = 0; it < iSamp_pos.size(); it++) std::cout << iSamp_pos[it] << '\t';
-            iSamp_pos.erase(std::unique(iSamp_pos.begin(), iSamp_pos.end()), iSamp_pos.end());
+        //Representing Adaptive Sampling on screen
+        std::cout << "Adaptive Sampling for nVar = " << nVar_Opt << std::endl;
+        std::sort(iSamp_pos.begin(), iSamp_pos.end());
+        for (int it = 0; it < iSamp_pos.size(); it++) std::cout << iSamp_pos[it] << '\t';
+        iSamp_pos.erase(std::unique(iSamp_pos.begin(), iSamp_pos.end()), iSamp_pos.end());
 
-            int count = 1;
-            for (int it = 1; it < settings.Ns - 1; it++) {
-                if (it == iSamp_pos[count]) {
-                    Samp_rep[it] = in;
-                    count++;
-                }
+        int count = 1;
+        for (int it = 1; it < settings.Ns - 1; it++) {
+            if (it == iSamp_pos[count]) {
+                Samp_rep[it] = in;
+                count++;
             }
+        }
 
-            std::cout << std::endl;
-            for (std::string appo : Samp_rep) std::cout << appo << " ";
-            std::cout << std::endl << std::endl;
+        std::cout << std::endl;
+        for (std::string appo : Samp_rep) std::cout << appo << " ";
+        std::cout << std::endl << std::endl;
 
 //        Choosing new nVar_Opt with bisection method
-            if (fVal > thr) {
-                nVar_lb = nVar_Opt;
-                nVar_Opt = nVar_lb + std::round((nVar_ub - nVar_lb) / 2);
-            } else {
-                nVar_ub = nVar_Opt;
-                nVar_Opt = nVar_lb + std::round((nVar_ub - nVar_lb) / 2);
-            }
+//            if (fVal > thr) {
+//                nVar_lb = nVar_Opt;
+//                nVar_Opt = nVar_lb + std::round((nVar_ub - nVar_lb) / 2);
+//            } else {
+//                nVar_ub = nVar_Opt;
+//                nVar_Opt = nVar_lb + std::round((nVar_ub - nVar_lb) / 2);
+//            }
+//
+//            f_opt_vs_nVar.push_back(fVal);
 
-            f_opt_vs_nVar.push_back(fVal);
-
-        }
+//        }
     }
 
     //--------------------------------------------------------------------------------------------//
