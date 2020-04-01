@@ -164,8 +164,8 @@ int main( int argc, char *argv[] )
                                  settings.flag_filter,
                                  settings.sigma);
             N_notZero = Phi_POD.cols();
-            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
-            else Nm = std::min(settings.r, N_notZero);
+//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
+//            else Nm = std::min(settings.r, N_notZero);
 
             if ( Nm != nVar) {
                 std::cout << "-----------------------------WARNING:------------------------"
