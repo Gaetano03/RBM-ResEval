@@ -103,6 +103,7 @@ int main( int argc, char *argv[] )
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
+    Eigen::VectorXd mean = sn_set.rowwise().mean();
     Eigen::VectorXd Ic = IC(settings, nC, Nr);
 
     std::string binary = "YES";
@@ -409,20 +410,20 @@ int main( int argc, char *argv[] )
         for ( int ncons = 0; ncons < nC; ncons ++ ) {
 
                 std::cout << "Processing conservative variable " << ncons << std::endl;
-//                Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
-//                                              Coefs,
-//                                              lambda[ncons],
-//                                              K_pc,
-//                                              -1, //Performing singular value hard threshold for DMD reduction at each step
-//                                              settings.r_RDMD,
-//                                              settings.En);
-            Phi[ncons] = RDMD_lsq_basis(sn_set.middleRows(ncons * Nr, Nr),
+                Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
                                               Coefs,
                                               lambda[ncons],
                                               K_pc,
                                               -1, //Performing singular value hard threshold for DMD reduction at each step
                                               settings.r_RDMD,
                                               settings.En);
+//            Phi[ncons] = RDMD_lsq_basis(sn_set.middleRows(ncons * Nr, Nr),
+//                                              Coefs,
+//                                              lambda[ncons],
+//                                              K_pc,
+//                                              -1, //Performing singular value hard threshold for DMD reduction at each step
+//                                              settings.r_RDMD,
+//                                              settings.En);
 
                 surr_coefs[ncons] = getSurrCoefs(t_vec,
                                                  Coefs.transpose(),
@@ -497,6 +498,122 @@ int main( int argc, char *argv[] )
 
         }
     }
+
+
+    //Defining scope for DMD adaptive sampling
+    std::vector<std::string>::iterator itDMD_adaptsample;
+    itDMD_adaptsample = std::find (methods.begin(), methods.end(), "DMD-AS");
+    if (itDMD_adaptsample != methods.end()) {
+
+        int nVar = settings.t_pos.size();
+
+        if ( nVar != settings.r ) std::cout << "-----------------WARNING-----------------\n "
+                                       "number of samples different from rank, resetting to number of samples!" << std::endl << std::endl;
+
+        int Nm = nVar;
+        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
+        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
+
+
+        //Vector of MatrixXd where to store the evolution in time of conservative variables
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
+        Eigen::MatrixXd Phi_POD = Eigen::MatrixXd::Zero(Nr,nVar);
+        Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(nVar);
+        Eigen::MatrixXcd Phi_DMD = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+        Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(settings.Ns);
+        Eigen::VectorXd K_pc(nVar);
+        Eigen::MatrixXd eig_vec(nVar, nVar);
+
+        std::vector<smartuq::surrogate::rbf> surr_coefs_POD ;
+        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
+        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
+
+        int N_notZero;
+
+        Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
+
+        Eigen::MatrixXcd eig_vec_DMD;
+        std::cout << "Computing adaptive DMD modes" << std::endl;
+//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
+//            else Nm = std::min(settings.r, settings.Ns);
+        Phi_DMD = DMD_Adaptive_basis(sn_set,
+                                     lambda_DMD,
+                                     eig_vec_DMD,
+                                     lambda_POD,
+                                     eig_vec,
+                                     Ipos);
+
+        Eigen::MatrixXcd PhiTPhi = Phi_DMD.transpose()*Phi_DMD;
+        Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);
+        surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
+        surr_coefs_DMD_i = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
+
+        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
+            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
+            Modify_su2_cfg(su2_conf, su2_conf_new, settings.Dt_res[idtr]);
+
+            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+                std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
+
+                    Eigen::MatrixXcd coef_t(3, Nm);
+
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
+
+                    double tmp_r, tmp_i;
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++) {
+                            surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
+                            surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
+                            std::complex<double> c(tmp_r, tmp_i);
+                            coef_t(j, i) = c;
+                        }
+                    }
+
+                    Eigen::MatrixXcd Appo = Phi_DMD * coef_t.transpose();
+                    Sn_Cons_time = Appo.real();
+
+
+                //Introduce an if on the number of conservative variables
+//                Sn_Cons_time.middleRows(0, Nr) =
+//                        Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3) * rho_min;
+//                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) +
+//                                                  Eigen::MatrixXd::Ones(Nr, 3) * rhoU_min;
+//                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) +
+//                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoV_min;
+//                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) +
+//                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoE_min;
+
+                if (settings.flag_mean == "IC") {
+                    for (int it = 0; it < 3; it++)
+                        Sn_Cons_time.col(it) += Ic;
+                } else if (settings.flag_mean == "YES") {
+                    for (int it = 0; it < 3; it++)
+                        Sn_Cons_time.col(it) += mean;
+                }
+
+                std::string mv_string = "mv history_rbm_00002.csv history_dmd_adapt_" +
+                            std::to_string(Nm) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
+                            ".csv";
+
+                len_s = mv_string.length();
+                char mv_sys_call[len_s + 1];
+                strcpy(mv_sys_call, mv_string.c_str());
+                std::cout << "Writing time reconstruction " << std::endl;
+                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
+                //Executing SU2, removing all useless files, renaming files with residuals
+                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
+                auto otp = std::system(su2_sys_call);
+                otp = std::system(rmf_sys_call);
+                otp = std::system(mv_sys_call);
+            }
+        }
+    }
+
 
     std::cout << "MODES Adaptive Residual Evaluation ends" << std::endl << std::endl;
     return 0;

@@ -239,21 +239,40 @@ int main( int argc, char *argv[] )
                                                           settings.t_res[itr]};
 
                         double tmp_r, tmp_i;
+
+                        //DMD using same rec formula as POD
+//                        --------------------------------------------------------------------------------------------
+//                        for (int j = 0; j < 3; j++) {
+//                            tr[0] = t_evaluate[j];
+//                            for (int i = 0; i < Nm; i++) {
+//                                surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
+//                                surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
+//                                std::complex<double> c(tmp_r,tmp_i);
+//                                coef_t(j,i) = c;
+//                            }
+//                        }
+//                        Eigen::MatrixXcd Appo = Phi_DMD.leftCols(Nm) * coef_t.transpose();
+//                        Sn_Cons_time = Appo.real();
+//                      ----------------------------------------------------------------------------------------------
+
+
+                        //DMD using classical reconstruction formula
+                        Eigen::VectorXcd alfa = Calculate_Coefs_DMD_exact(sn_set.leftCols(settings.Ns - 1),
+                                                                lambda_DMD,
+                                                                Phi_DMD);
                         for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm; i++) {
-                                surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
-                                surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
-                                std::complex<double> c(tmp_r,tmp_i);
-                                coef_t(j,i) = c;
-                            }
+
+                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
+                                                                      settings.Dt_cfd * settings.Ds,
+                                                                      alfa,
+                                                                      Phi_DMD,
+                                                                      lambda_DMD,
+                                                                      "SCALAR");
+
+                            Sn_Cons_time.col(j) = Rec.real();
+
                         }
-
                     }
-
-                    Eigen::MatrixXcd Appo = Phi_DMD.leftCols(Nm) * coef_t.transpose();
-                    Sn_Cons_time = Appo.real();
-
                 }
 
                 //Introduce an if on the number of conservative variables
@@ -379,8 +398,8 @@ int main( int argc, char *argv[] )
         } else if ( settings.flag_method[0] == "DMD") {
             Eigen::MatrixXcd eig_vec_DMD;
             std::cout << "Computing adaptive DMD modes" << std::endl;
-            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
-            else Nm = std::min(settings.r, settings.Ns);
+//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
+//            else Nm = std::min(settings.r, settings.Ns);
             Phi_DMD = DMD_Adaptive_basis(sn_set,
                                 lambda_DMD,
                                 eig_vec_DMD,
