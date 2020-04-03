@@ -256,8 +256,19 @@ std::vector<double> DMD_Adapt_Samp::fitness(const std::vector<double> &variables
     }
 
     //Computing final value of the objective function
+//    double sum = 0;
+//    ErrP_DMD_time(0) = ErrP_DMD_time(0)/2.0;
+//    ErrP_DMD_time(ErrP_DMD_time.size()-1) = ErrP_DMD_time(ErrP_DMD_time.size()-1)/2.0;
+//    for ( int it = 0; it < ErrP_DMD_time.size() ; it++ )
+//        sum += ErrP_DMD_time(it);
+//    sum *= Dt_cfd*D_Samp;
+
     std::vector<double> fitness_vector;
-    fitness_vector.push_back(ErrP_DMD_time.maxCoeff());
+    //Integral
+    fitness_vector.push_back(ErrP_DMD_time.norm());
+    //Maximum
+//    fitness_vector.push_back(ErrP_DMD_time.maxCoeff());
+
 
     return fitness_vector;
 

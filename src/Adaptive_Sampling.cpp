@@ -229,7 +229,7 @@ int main( int argc, char *argv[] )
         std::cout << "Performing adaptive sampling with optimization " << std::endl;
         int nVar_lb = 2;
         int nVar_ub = settings.Ns;
-        int nVar_Opt = 16;//Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
+        int nVar_Opt = 41;//Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
         double fVal = 1.0;
         size_t Npop = 150;
         int Ngen = 1000;
@@ -265,12 +265,9 @@ int main( int argc, char *argv[] )
                                                                     ((double) nVar_Opt - 1.0);
 
 
-        std::vector<double> p2 = {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.009,0.012,0.014,0.017,0.020,
-                                  0.024,0.029,0.035,0.043};
-//                                  ,0.052,0.067,0.078,0.086,0.092,0.097,0.103,0.108,
-//                                  0.116,0.120,0.122,0.123,0.125,0.126,0.128,0.130,0.134,0.169,0.190,0.196,
-//                                  0.200,0.205,0.219,0.222,0.226,0.244,0.249,0.254,0.269,0.272,0.275,0.280,
-//                                  0.283,0.288,0.290,0.293};
+        std::vector<double> p2 = {0.001,0.002,0.005,0.006,0.007,0.01,0.013,0.017,0.021,0.026,0.032,0.043,0.055,0.079,
+                                  0.089,0.096,0.102,0.106,0.11,0.115,0.123,0.131,0.138,0.146,0.152,0.158,0.169,0.184,
+                                  0.195,0.204,0.225,0.236,0.244,0.251,0.256,0.262,0.269,0.274,0.279,0.291,0.294};
 
         //Clearing and resetting adaptive sampling vectors for representation
         iSamp_pos.clear();
