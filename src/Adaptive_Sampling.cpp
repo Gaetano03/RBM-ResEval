@@ -231,8 +231,8 @@ int main( int argc, char *argv[] )
         int nVar_ub = settings.Ns;
         int nVar_Opt = 41;//Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
         double fVal = 1.0;
-        size_t Npop = 150;
-        int Ngen = 1000;
+        size_t Npop = 300;
+        int Ngen = 2000;
         int Nf = 0; //Filter for POD
 
         pagmo::random_device::set_seed(7); //Set seed for reproducible results
@@ -291,7 +291,7 @@ int main( int argc, char *argv[] )
 //            pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,true,7)};
 //            pagmo::algorithm algo{pagmo::cmaes( 1u, -1.0, -1.0, -1.0, -1.0, 0.5, 1e-6, 1e-6, true, true, 1)};
 
-        pagmo::gaco uda{1u, 75u, 1.0, 0.0, 0.01, 800u, 48u, 10000000u, 10000000u, 0.0, true, 7};
+        pagmo::gaco uda{1u, 150u, 1.0, 0.0, 0.01, 800u, 48u, 10000000u, 10000000u, 0.0, true, 7};
         uda.set_verbosity(1u);
         uda.set_seed(7);
 
