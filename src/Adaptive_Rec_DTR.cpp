@@ -61,7 +61,7 @@ int main( int argc, char *argv[] )
     //Defining Mean/Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
     int nC = settings.ndim;
-    Eigen::VectorXd Ic = IC( settings, nC, Nr );
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
 
     if ( settings.flag_mean == "YES" ) {
         for ( int it = 0; it < settings.Ns; it++ )
@@ -69,8 +69,7 @@ int main( int argc, char *argv[] )
     }
 
     if ( settings.flag_mean == "IC" ) {
-        for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+        Ic = IC(sn_set,settings,nC,Nr);
     }
 
     std::cout << "Reading Residuals ... " << std::endl;

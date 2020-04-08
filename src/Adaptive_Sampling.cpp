@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
     //Defining Initial condition
     int nC = 4;
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = IC(settings, nC, Np);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
     double alpha = settings.alpha;
     double beta = settings.beta;
 
@@ -77,8 +77,7 @@ int main( int argc, char *argv[] )
     }
 
     if ( settings.flag_mean == "IC" ) {
-        for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+        Ic = IC(sn_set,settings,nC,Np,"YES");
     }
 
     Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(settings.Ns);
@@ -88,31 +87,17 @@ int main( int argc, char *argv[] )
     //Define normalization for conservative variables
     double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min; //add turbulence
 
-    if ( settings.flag_prob == "CONSERVATIVE" ) {
         //Introduce an if on the number of conservative variables
 //        Eigen::ArrayXd temp;
 
-        rho_max = sn_set.middleRows(0, Np).maxCoeff();
-        rho_min = sn_set.middleRows(0, Np).minCoeff();
-//        temp = ( sn_set.middleRows(0, Np).array() - rho_min);
-        sn_set.middleRows(0, Np) = (sn_set.middleRows(0, Np) - Eigen::MatrixXd::Ones(Np, settings.Ns)*rho_min )/(rho_max - rho_min);
-
-        rhoU_max = sn_set.middleRows(Np, Np).maxCoeff();
-        rhoU_min = sn_set.middleRows(Np, Np).minCoeff();
-//        temp = ( sn_set.middleRows(0, Np).array() - rhoU_min);
-        sn_set.middleRows(Np, Np) = (sn_set.middleRows(Np, Np) - Eigen::MatrixXd::Ones(Np, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
-        rhoV_max = sn_set.middleRows(2*Np, Np).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Np, Np).minCoeff();
-//        temp = ( sn_set.middleRows(2*Np, Np).array() - rhoV_min);
-        sn_set.middleRows(2*Np, Np) = (sn_set.middleRows(2*Np, Np) - Eigen::MatrixXd::Ones(Np, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
-        rhoE_max = sn_set.middleRows(3*Np, Np).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Np, Np).minCoeff();
-//        temp = ( sn_set.middleRows(3*Np, Np).array() - rhoE_min);
-        sn_set.middleRows(3*Np, Np) = (sn_set.middleRows(3*Np, Np) - Eigen::MatrixXd::Ones(Np, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
-
-    }
+    rho_max = sn_set.middleRows(0, Np).maxCoeff();
+    rho_min = sn_set.middleRows(0, Np).minCoeff();
+    rhoU_max = sn_set.middleRows(Np, Np).maxCoeff();
+    rhoU_min = sn_set.middleRows(Np, Np).minCoeff();
+    rhoV_max = sn_set.middleRows(2*Np, Np).maxCoeff();
+    rhoV_min = sn_set.middleRows(2*Np, Np).minCoeff();
+    rhoE_max = sn_set.middleRows(3*Np, Np).maxCoeff();
+    rhoE_min = sn_set.middleRows(3*Np, Np).minCoeff();
 
 
     //Computing svd of all the snapshots for a first guess of nVar

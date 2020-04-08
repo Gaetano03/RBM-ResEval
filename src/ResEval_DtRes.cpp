@@ -104,15 +104,14 @@ int main( int argc, char *argv[] )
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = IC(settings, nC, Nr);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
 
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
     if ( settings.flag_mean == "IC" ) {
         std::cout << "Subtracting Initial condition" << std::endl << std::endl;
-        for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+        Ic = IC(sn_set,settings,nC,Nr);
     } else {
         std::cout << "Using data without subtracting any reference state" << std::endl << std::endl;
     }

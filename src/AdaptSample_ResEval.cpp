@@ -43,13 +43,13 @@ int main( int argc, char *argv[] )
     char rmf_sys_call[len_s + 1];
     strcpy(rmf_sys_call, rmf_string.c_str());
 
-    int s_Nf = 5;   //Number of values for the SPOD filter (POD included)
+    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
     std::vector<int> Nf(s_Nf);
     Nf[0] = 0;
-    Nf[1] = std::ceil(settings.Ns/10.0);
-    Nf[2] = std::ceil(settings.Ns/2.0);
-    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-    Nf[4] = settings.Ns;
+//    Nf[1] = std::ceil(settings.Ns/10.0);
+//    Nf[2] = std::ceil(settings.Ns/2.0);
+//    Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+//    Nf[4] = settings.Ns;
 
     int nC = settings.Cols.size();
     double alpha = settings.alpha;
@@ -96,45 +96,82 @@ int main( int argc, char *argv[] )
     }
 
     //Defining Initial condition
-    Eigen::VectorXd Ic = IC(settings, nC, Nr);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
 
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
-    if ( settings.flag_mean == "IC" )
-    {
-        for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
-    }
+    //sn_set is modified according to flag
+    if ( settings.flag_mean == "IC" ) Ic = IC(sn_set, settings, nC, Nr, "YES");
 
 
-    //Define normalization for conservative variables
-    double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min; //add turbulence
+    //Parameters for normalization of conservative variables
+    double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
+            tke_min, tke_max, omega_min, omega_max; //add turbulence
 
-    if ( settings.flag_prob == "CONSERVATIVE" ) {
-        //Introduce an if on the number of conservative variables
+    if (settings.ndim == 2 && nC == 4) {
 
         rho_max = sn_set.middleRows(0, Nr).maxCoeff();
         rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
-
         rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
         rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
         rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
         rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
         rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
         rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
 
     }
+    else if (settings.ndim == 2 && nC == 6) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 3 && nC == 7) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
+
+    }
+    else {
+        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    //We start trying like this
+    int Nsamples = settings.Ns;
+    Eigen::VectorXi Ipos = Inverse_POS(sn_set, Nsamples);
+
+    int Nm = Ipos.size(); //settings.t_pos.size();
+    int nVar = Ipos.size();//settings.t_pos.size(); //that has to contain also first and last snapshot
 
 
-    int Nm = settings.t_pos.size();
-    int nVar = settings.t_pos.size(); //that has to contain also first and last snapshot
+    std::cout << "Positions sampled in time \n" << Ipos.transpose() << std::endl;
+    std::cout << "From N = " << Nsamples << " uniform samples we get Nm = " << Nm << "non-uniform samples" << std::endl;
+
+
  //Defining common scope for uniform sampling
     {
 
@@ -276,10 +313,31 @@ int main( int argc, char *argv[] )
                 }
 
                 //Introduce an if on the number of conservative variables
-                 Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
-                 Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
-                 Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
-                 Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                if (settings.ndim == 2 && nC == 4) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                }
+                else if (settings.ndim == 2 && nC == 6) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, 3)*tke_min;
+                    Sn_Cons_time.middleRows(5 * Nr, Nr) = Sn_Cons_time.middleRows(5 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, 3)*omega_min;
+                }
+                else if (settings.ndim == 3 && nC == 7) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoW_max - rhoW_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoW_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(5 * Nr, Nr) = Sn_Cons_time.middleRows(5 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, 3)*tke_min;
+                    Sn_Cons_time.middleRows(6 * Nr, Nr) = Sn_Cons_time.middleRows(6 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, 3)*omega_min;
+
+                }
+
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
@@ -362,8 +420,8 @@ int main( int argc, char *argv[] )
         if ( nVar != Nm ) std::cout << "-----------------WARNING-----------------\n "
                                        "comparison with different number of modes" << std::endl << std::endl;
 
-        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
-        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
+//        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
+//        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
 
 //        t_pos << 0, 1, 6, 10, 19, 28, 39, 44, 52, 67, 83,  99;
 
@@ -472,10 +530,30 @@ int main( int argc, char *argv[] )
                 }
 
                 //Introduce an if on the number of conservative variables
-                Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
-                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
-                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
-                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                if (settings.ndim == 2 && nC == 4) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                }
+                else if (settings.ndim == 2 && nC == 6) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, 3)*tke_min;
+                    Sn_Cons_time.middleRows(5 * Nr, Nr) = Sn_Cons_time.middleRows(5 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, 3)*omega_min;
+                }
+                else if (settings.ndim == 3 && nC == 7) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoW_max - rhoW_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoW_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(5 * Nr, Nr) = Sn_Cons_time.middleRows(5 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, 3)*tke_min;
+                    Sn_Cons_time.middleRows(6 * Nr, Nr) = Sn_Cons_time.middleRows(6 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, 3)*omega_min;
+
+                }
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
