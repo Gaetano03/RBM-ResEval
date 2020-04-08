@@ -107,7 +107,7 @@ int main( int argc, char *argv[] )
 
     //Parameters for normalization of conservative variables
     double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
-            tke_min, tke_max, omega_min, omega_max; //add turbulence
+            tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
 
     if (settings.ndim == 2 && nC == 4) {
 
@@ -119,6 +119,20 @@ int main( int argc, char *argv[] )
         rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
         rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
         rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 2 && nC == 5) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
 
     }
     else if (settings.ndim == 2 && nC == 6) {
@@ -318,6 +332,13 @@ int main( int argc, char *argv[] )
                     Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
                     Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
                     Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                }
+                else if (settings.ndim == 2 && nC == 5) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (nuTilde_max - nuTilde_min) + Eigen::MatrixXd::Ones(Nr, 3)*nuTilde_min;
                 }
                 else if (settings.ndim == 2 && nC == 6) {
                     Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
@@ -535,6 +556,13 @@ int main( int argc, char *argv[] )
                     Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
                     Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
                     Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                }
+                else if (settings.ndim == 2 && nC == 5) {
+                    Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
+                    Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+                    Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoV_min;
+                    Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoE_min;
+                    Sn_Cons_time.middleRows(4 * Nr, Nr) = Sn_Cons_time.middleRows(4 * Nr, Nr) * (nuTilde_max - nuTilde_min) + Eigen::MatrixXd::Ones(Nr, 3)*nuTilde_min;
                 }
                 else if (settings.ndim == 2 && nC == 6) {
                     Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;

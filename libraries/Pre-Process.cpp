@@ -40,7 +40,7 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min,
-        rhoE_max, rhoE_min, tke_min, tke_max, omega_min, omega_max, nu_min, nu_max; //add turbulence
+        rhoE_max, rhoE_min, tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
 
     if ( nC == 2 )
     {
@@ -88,7 +88,7 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         }
 
 
-    } else if ( nC== 5 ) // Turbolent 2D Spalart Allmaras
+    } else if ( nC== 5 && settings.ndim == 2 ) // Turbolent 2D Spalart Allmaras
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
@@ -98,7 +98,32 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 
-    } else if ( nC == 6 && settings.ndim == 2 ) //Turbulent 2D Navier-Stokes
+        if ( flag == "YES" ) {
+            //Introduce an if on the number of conservative variables
+
+            rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+            rho_min = sn_set.middleRows(0, Nr).minCoeff();
+            sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
+
+            rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+            rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+            sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
+
+            rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+            rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+            sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
+
+            rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+            rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+            sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
+
+            nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+            nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+            sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*nuTilde_min)/(nuTilde_max - nuTilde_min);
+
+        }
+
+    } else if ( nC == 6 && settings.ndim == 2 ) //Turbulent 2D SST
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
