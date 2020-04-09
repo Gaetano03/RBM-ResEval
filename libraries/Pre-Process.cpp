@@ -1,6 +1,6 @@
 #include "Pre-Process.hpp"
 
-Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, int Nr, std::string flag ) {
+Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, int Nr ) {
 
     double M = settings.Mach;
     double Re = settings.Re;
@@ -39,9 +39,6 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
 
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
-    double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min,
-        rhoE_max, rhoE_min, tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
-
     if ( nC == 2 )
     {
         Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
@@ -66,28 +63,6 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 
-        if ( flag == "YES" ) {
-            //Introduce an if on the number of conservative variables
-
-            rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-            rho_min = sn_set.middleRows(0, Nr).minCoeff();
-            sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
-
-            rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-            rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-            sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
-            rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-            rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-            sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
-            rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-            rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-            sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
-
-        }
-
-
     } else if ( nC== 5 && settings.ndim == 2 ) // Turbolent 2D Spalart Allmaras
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
@@ -97,31 +72,6 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         Ic.segment(4*Nr, Nr) = nuTilde*Eigen::MatrixXd::Ones(Nr,1);
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
-
-        if ( flag == "YES" ) {
-            //Introduce an if on the number of conservative variables
-
-            rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-            rho_min = sn_set.middleRows(0, Nr).minCoeff();
-            sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
-
-            rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-            rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-            sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
-            rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-            rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-            sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
-            rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-            rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-            sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
-
-            nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-            nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-            sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*nuTilde_min)/(nuTilde_max - nuTilde_min);
-
-        }
 
     } else if ( nC == 6 && settings.ndim == 2 ) //Turbulent 2D SST
     {
@@ -133,35 +83,6 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         Ic.segment(5*Nr, Nr) = rhoomega*Eigen::MatrixXd::Ones(Nr,1);
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
-
-        if ( flag == "YES" ) {
-            //Introduce an if on the number of conservative variables
-
-            rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-            rho_min = sn_set.middleRows(0, Nr).minCoeff();
-            sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
-
-            rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-            rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-            sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
-            rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-            rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-            sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
-            rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-            rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-            sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
-
-            tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-            tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-            sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*tke_min)/(tke_max - tke_min);
-
-            omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-            omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-            sn_set.middleRows(5*Nr, Nr) = (sn_set.middleRows(5*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*omega_min)/(omega_max - omega_min);
-
-        }
 
     } else if ( nC == 7 ) //Turbulent 3D Navier-Stokes
     {
@@ -175,45 +96,141 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 
-        if ( flag == "YES" ) {
-            //Introduce an if on the number of conservative variables
-
-            rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-            rho_min = sn_set.middleRows(0, Nr).minCoeff();
-            sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
-
-            rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-            rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-            sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
-
-            rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-            rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-            sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
-
-            rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-            rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-            sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoW_min)/(rhoW_max - rhoW_min);
-
-            rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-            rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-            sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
-
-            tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-            tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-            sn_set.middleRows(5*Nr, Nr) = (sn_set.middleRows(5*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*tke_min)/(tke_max - tke_min);
-
-            omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
-            omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
-            sn_set.middleRows(6*Nr, Nr) = (sn_set.middleRows(6*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*omega_min)/(omega_max - omega_min);
-
-        }
-
     } else {
         std::cout << "Set well number of Variables for subtracting initial condition" << std::endl;
         exit(EXIT_FAILURE);
     }
 
     return Ic;
+}
+
+
+void get_MinMax_ConsVar (const Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC, double &rho_max,
+                        double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,
+                        double &rhoW_max, double &rhoW_min, double &rhoE_max, double &rhoE_min, double &tke_min,
+                        double &tke_max, double &omega_min, double &omega_max, double &nuTilde_min, double &nuTilde_max) {
+
+    int Nr = sn_set.rows()/nC;
+    if (settings.ndim == 2 && nC == 4) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 2 && nC == 5) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 2 && nC == 6) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 3 && nC == 7) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
+
+    }
+    else {
+        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void Direct_Normalization(Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC) {
+
+
+    double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
+            tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
+
+    get_MinMax_ConsVar(sn_set,settings,nC,rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min,
+                       rhoW_max, rhoW_min, rhoE_max, rhoE_min,tke_min, tke_max, omega_min,
+                       omega_max, nuTilde_min, nuTilde_max);
+
+    int Nr = sn_set.rows()/nC;
+    if ( settings.ndim == 2 && nC == 4 ) {
+
+        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
+        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
+        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
+        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
+
+    }
+    else if ( settings.ndim == 2 && nC == 5 ) {
+
+        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
+        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
+        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
+        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
+        sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*nuTilde_min)/(nuTilde_max - nuTilde_min);
+
+    }
+    else if ( settings.ndim == 2 && nC == 6 ) {
+
+        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
+        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
+        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
+        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
+        sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*tke_min)/(tke_max - tke_min);
+        sn_set.middleRows(5*Nr, Nr) = (sn_set.middleRows(5*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*omega_min)/(omega_max - omega_min);
+
+    }
+    else if ( settings.ndim == 3 && nC == 7 ) {
+
+        sn_set.middleRows(0, Nr) = (sn_set.middleRows(0, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rho_min )/(rho_max - rho_min);
+        sn_set.middleRows(Nr, Nr) = (sn_set.middleRows(Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoU_min)/(rhoU_max - rhoU_min);
+        sn_set.middleRows(2*Nr, Nr) = (sn_set.middleRows(2*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoV_min)/(rhoV_max - rhoV_min);
+        sn_set.middleRows(3*Nr, Nr) = (sn_set.middleRows(3*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoW_min)/(rhoW_max - rhoW_min);
+        sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
+        sn_set.middleRows(5*Nr, Nr) = (sn_set.middleRows(5*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*tke_min)/(tke_max - tke_min);
+        sn_set.middleRows(6*Nr, Nr) = (sn_set.middleRows(6*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*omega_min)/(omega_max - omega_min);
+
+    }
+    else {
+        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -228,11 +245,8 @@ Eigen::VectorXi Inverse_POS (const Eigen::MatrixXd &sn_set, int Nsamples) {
     Eigen::VectorXd ysamples = Eigen::VectorXd::LinSpaced(Nsamples, norm_sn_set.minCoeff(), norm_sn_set.maxCoeff());
     std::vector<int> I_POS = {};
 
-//    std::cout << "Samples on y : "<< ysamples.transpose() << std::endl;
-
     for (int i = 0; i < Nsamples; i++) {
         Eigen::VectorXd ftime = norm_sn_set - Eigen::VectorXd::Ones(Ns)*ysamples(i);
-//        std::cout << "ftime : "<< ftime.transpose() << std::endl;
         for ( int j = 0; j < Ns-1; j++) {
             if ( (ftime(j)*ftime(j+1)) < 0.0 )
                 I_POS.push_back(j);
@@ -247,5 +261,3 @@ Eigen::VectorXi Inverse_POS (const Eigen::MatrixXd &sn_set, int Nsamples) {
     return Ipos;
 
 }
-
-

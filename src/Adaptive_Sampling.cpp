@@ -77,7 +77,7 @@ int main( int argc, char *argv[] )
     }
 
     if ( settings.flag_mean == "IC" ) {
-        Ic = IC(sn_set,settings,nC,Np,"YES");
+        Ic = IC(sn_set,settings,nC,Np);
     }
 
     Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(settings.Ns);

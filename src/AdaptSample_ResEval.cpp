@@ -102,77 +102,19 @@ int main( int argc, char *argv[] )
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
     //sn_set is modified according to flag
-    if ( settings.flag_mean == "IC" ) Ic = IC(sn_set, settings, nC, Nr, "YES");
+    std::string flag = "YES";
+    if ( settings.flag_mean == "IC" ) Ic = IC(sn_set, settings, nC, Nr);
 
-
-    //Parameters for normalization of conservative variables
     double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
             tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
 
-    if (settings.ndim == 2 && nC == 4) {
+    get_MinMax_ConsVar(sn_set,settings,nC,rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min,
+                       rhoW_max, rhoW_min, rhoE_max, rhoE_min,tke_min, tke_max, omega_min,
+                       omega_max, nuTilde_min, nuTilde_max);
 
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
 
-    }
-    else if (settings.ndim == 2 && nC == 5) {
+    if ( flag == "YES") Direct_Normalization(sn_set,settings,nC);
 
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-
-    }
-    else if (settings.ndim == 2 && nC == 6) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-        omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-        omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-
-    }
-    else if (settings.ndim == 3 && nC == 7) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-        tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-        tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-        omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
-        omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
-
-    }
-    else {
-        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
-        exit(EXIT_FAILURE);
-    }
 
     //We start trying like this
     int Nsamples = settings.Ns;
@@ -327,6 +269,7 @@ int main( int argc, char *argv[] )
                 }
 
                 //Introduce an if on the number of conservative variables
+                if ( flag == "YES" ) {
                 if (settings.ndim == 2 && nC == 4) {
                     Sn_Cons_time.middleRows(0, Nr) = Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3)*rho_min;
                     Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
@@ -358,7 +301,7 @@ int main( int argc, char *argv[] )
                     Sn_Cons_time.middleRows(6 * Nr, Nr) = Sn_Cons_time.middleRows(6 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, 3)*omega_min;
 
                 }
-
+                }
 
                 if (settings.flag_mean == "IC") {
                     for (int it = 0; it < 3; it++)
