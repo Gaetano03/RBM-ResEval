@@ -1,5 +1,79 @@
 #include "Pre-Process.hpp"
 
+
+void get_MinMax_ConsVar (const Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC, double &rho_max,
+                         double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,
+                         double &rhoW_max, double &rhoW_min, double &rhoE_max, double &rhoE_min, double &tke_min,
+                         double &tke_max, double &omega_min, double &omega_max, double &nuTilde_min, double &nuTilde_max) {
+
+    int Nr = sn_set.rows()/nC;
+    if (settings.ndim == 2 && nC == 4) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 2 && nC == 5) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 2 && nC == 6) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+
+    }
+    else if (settings.ndim == 3 && nC == 7) {
+
+        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
+        rho_min = sn_set.middleRows(0, Nr).minCoeff();
+        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
+        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
+        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
+        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
+        rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
+        rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
+        rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
+        rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
+        tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
+        tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
+        omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
+        omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
+
+    }
+    else {
+        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, int Nr ) {
 
     double M = settings.Mach;
@@ -105,88 +179,11 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
 }
 
 
-void get_MinMax_ConsVar (const Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC, double &rho_max,
-                        double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,
-                        double &rhoW_max, double &rhoW_min, double &rhoE_max, double &rhoE_min, double &tke_min,
-                        double &tke_max, double &omega_min, double &omega_max, double &nuTilde_min, double &nuTilde_max) {
+void Direct_Normalization(Eigen::MatrixXd &sn_set, const prob_settings &settings, const int nC, double &rho_max,
+                          double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,
+                          double &rhoW_max, double &rhoW_min, double &rhoE_max, double &rhoE_min, double &tke_min,
+                          double &tke_max, double &omega_min, double &omega_max, double &nuTilde_min, double &nuTilde_max) {
 
-    int Nr = sn_set.rows()/nC;
-    if (settings.ndim == 2 && nC == 4) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-
-    }
-    else if (settings.ndim == 2 && nC == 5) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        nuTilde_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        nuTilde_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-
-    }
-    else if (settings.ndim == 2 && nC == 6) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        tke_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        tke_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-        omega_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-        omega_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-
-    }
-    else if (settings.ndim == 3 && nC == 7) {
-
-        rho_max = sn_set.middleRows(0, Nr).maxCoeff();
-        rho_min = sn_set.middleRows(0, Nr).minCoeff();
-        rhoU_max = sn_set.middleRows(Nr, Nr).maxCoeff();
-        rhoU_min = sn_set.middleRows(Nr, Nr).minCoeff();
-        rhoV_max = sn_set.middleRows(2*Nr, Nr).maxCoeff();
-        rhoV_min = sn_set.middleRows(2*Nr, Nr).minCoeff();
-        rhoW_max = sn_set.middleRows(3*Nr, Nr).maxCoeff();
-        rhoW_min = sn_set.middleRows(3*Nr, Nr).minCoeff();
-        rhoE_max = sn_set.middleRows(4*Nr, Nr).maxCoeff();
-        rhoE_min = sn_set.middleRows(4*Nr, Nr).minCoeff();
-        tke_max = sn_set.middleRows(5*Nr, Nr).maxCoeff();
-        tke_min = sn_set.middleRows(5*Nr, Nr).minCoeff();
-        omega_max = sn_set.middleRows(6*Nr, Nr).maxCoeff();
-        omega_min = sn_set.middleRows(6*Nr, Nr).minCoeff();
-
-    }
-    else {
-        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
-        exit(EXIT_FAILURE);
-    }
-}
-
-
-void Direct_Normalization(Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC) {
-
-
-    double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
-            tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence
-
-    get_MinMax_ConsVar(sn_set,settings,nC,rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min,
-                       rhoW_max, rhoW_min, rhoE_max, rhoE_min,tke_min, tke_max, omega_min,
-                       omega_max, nuTilde_min, nuTilde_max);
 
     int Nr = sn_set.rows()/nC;
     if ( settings.ndim == 2 && nC == 4 ) {
@@ -225,6 +222,53 @@ void Direct_Normalization(Eigen::MatrixXd sn_set, const prob_settings &settings,
         sn_set.middleRows(4*Nr, Nr) = (sn_set.middleRows(4*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*rhoE_min)/(rhoE_max - rhoE_min);
         sn_set.middleRows(5*Nr, Nr) = (sn_set.middleRows(5*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*tke_min)/(tke_max - tke_min);
         sn_set.middleRows(6*Nr, Nr) = (sn_set.middleRows(6*Nr, Nr) - Eigen::MatrixXd::Ones(Nr, settings.Ns)*omega_min)/(omega_max - omega_min);
+
+    }
+    else {
+        std::cout << "Combination of N_DIM and Conservative Variable not available " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void Inverse_Normalization(Eigen::MatrixXd &sn_set, const prob_settings &settings, const int nC, double &rho_max,
+                           double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,
+                           double &rhoW_max, double &rhoW_min, double &rhoE_max, double &rhoE_min, double &tke_min,
+                           double &tke_max, double &omega_min, double &omega_max, double &nuTilde_min, double &nuTilde_max) {
+
+
+    int Nr = sn_set.rows()/nC;
+    int ntimes = sn_set.cols();
+
+    if (settings.ndim == 2 && nC == 4) {
+        sn_set.middleRows(0, Nr) = sn_set.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rho_min;
+        sn_set.middleRows(Nr, Nr) = sn_set.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoU_min;
+        sn_set.middleRows(2 * Nr, Nr) = sn_set.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoV_min;
+        sn_set.middleRows(3 * Nr, Nr) = sn_set.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoE_min;
+    }
+    else if (settings.ndim == 2 && nC == 5) {
+        sn_set.middleRows(0, Nr) = sn_set.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rho_min;
+        sn_set.middleRows(Nr, Nr) = sn_set.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoU_min;
+        sn_set.middleRows(2 * Nr, Nr) = sn_set.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoV_min;
+        sn_set.middleRows(3 * Nr, Nr) = sn_set.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoE_min;
+        sn_set.middleRows(4 * Nr, Nr) = sn_set.middleRows(4 * Nr, Nr) * (nuTilde_max - nuTilde_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*nuTilde_min;
+    }
+    else if (settings.ndim == 2 && nC == 6) {
+        sn_set.middleRows(0, Nr) = sn_set.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rho_min;
+        sn_set.middleRows(Nr, Nr) = sn_set.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+        sn_set.middleRows(2 * Nr, Nr) = sn_set.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoV_min;
+        sn_set.middleRows(3 * Nr, Nr) = sn_set.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoE_min;
+        sn_set.middleRows(4 * Nr, Nr) = sn_set.middleRows(4 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*tke_min;
+        sn_set.middleRows(5 * Nr, Nr) = sn_set.middleRows(5 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*omega_min;
+    }
+    else if (settings.ndim == 3 && nC == 7) {
+        sn_set.middleRows(0, Nr) = sn_set.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rho_min;
+        sn_set.middleRows(Nr, Nr) = sn_set.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) + Eigen::MatrixXd::Ones(Nr, 3)*rhoU_min;
+        sn_set.middleRows(2 * Nr, Nr) = sn_set.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoV_min;
+        sn_set.middleRows(3 * Nr, Nr) = sn_set.middleRows(3 * Nr, Nr) * (rhoW_max - rhoW_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoW_min;
+        sn_set.middleRows(4 * Nr, Nr) = sn_set.middleRows(4 * Nr, Nr) * (rhoE_max - rhoE_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*rhoE_min;
+        sn_set.middleRows(5 * Nr, Nr) = sn_set.middleRows(5 * Nr, Nr) * (tke_max - tke_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*tke_min;
+        sn_set.middleRows(6 * Nr, Nr) = sn_set.middleRows(6 * Nr, Nr) * (omega_max - omega_min) + Eigen::MatrixXd::Ones(Nr, ntimes)*omega_min;
 
     }
     else {
