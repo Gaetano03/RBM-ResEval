@@ -157,9 +157,12 @@ int main( int argc, char *argv[] )
         Eigen::VectorXd K_pc(settings.Ns);
         Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
 
+        //To define for interp reconstruction formula
         std::vector<smartuq::surrogate::rbf> surr_coefs_POD;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
+        //To define for exponential rec
+        Eigen::VectorXcd alfa(Nm);
 
         int N_notZero;
         //Check only for POD for now
@@ -200,6 +203,9 @@ int main( int argc, char *argv[] )
             Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.leftCols(Nm).transpose()*sn_set);
             surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
             surr_coefs_DMD_i = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
+            alfa = Calculate_Coefs_DMD_exact(sn_set.leftCols(settings.Ns - 1),
+                                                                  lambda_DMD,
+                                                                  Phi_DMD);
 
         }
 
@@ -267,9 +273,7 @@ int main( int argc, char *argv[] )
 
 
                         //DMD using classical reconstruction formula
-                        Eigen::VectorXcd alfa = Calculate_Coefs_DMD_exact(sn_set.leftCols(settings.Ns - 1),
-                                                                lambda_DMD,
-                                                                Phi_DMD);
+
                         for (int j = 0; j < 3; j++) {
 
                             Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
