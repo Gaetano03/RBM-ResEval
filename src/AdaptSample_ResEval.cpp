@@ -60,6 +60,28 @@ int main( int argc, char *argv[] )
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
     std::string file_1 = root_inputfile + "_" + buffer.str() + "." + input_format;
 
+    std::cout << "Initializing Vector of times ... " << std::endl;
+    std::vector<double> t_vec( settings.Ns );
+    t_vec[0] = settings.nstart*settings.Dt_cfd;
+    for ( int i = 1; i < settings.Ns; i++ )
+        t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
+
+    std::cout << t_vec[0] << "-------time of first snapshot" << std::endl;
+    std::cout << t_vec[t_vec.size()-1] <<"-------time of last snapshot" << std::endl;
+    std::cout << settings.t_res[0] <<"----time of first residual evaluation"<< std::endl;
+    std::cout << settings.t_res[settings.t_res.size()-1]<< "----time of last residual evaluation"<< std::endl;
+
+    for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ){
+        std::cout<< "for this DT_res=" << settings.Dt_res[idtr]<<"......."<< std::endl;
+        if ( ((settings.t_res[0] - (2.0 * settings.Dt_res[idtr])) < t_vec[0]) ||  (settings.t_res[settings.t_res.size()-1] > t_vec[t_vec.size() - 1]))
+        {
+            std::cout
+                    << "Define proper Delta_t_res and T_RES vector " << std::endl;
+            exit(EXIT_FAILURE);
+        }else
+        { std::cout << "Perfect usage of time... chapeau "<< std::endl;}
+    }
+
     // Calculate number of grid points
     int Nr = N_gridpoints ( file_1 );
     std::cout << "Number of grid points : " << Nr << std::endl;
@@ -75,12 +97,6 @@ int main( int argc, char *argv[] )
                                                    settings.Cols,
                                                    settings.in_file,
                                                    settings.flag_prob);
-
-    std::cout << "Initializing Vector of times ... " << std::endl;
-    std::vector<double> t_vec( settings.Ns );
-    t_vec[0] = settings.nstart*settings.Dt_cfd;
-    for ( int i = 1; i < settings.Ns; i++ )
-        t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
 
     // std::vector<double> t_evaluate(2*settings.Ns-1);
     // t_evaluate[0] = settings.nstart*settings.Dt_cfd;
