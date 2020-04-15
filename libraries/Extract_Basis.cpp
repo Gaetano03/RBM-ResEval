@@ -1452,3 +1452,95 @@ Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
     //Standard DMD
     // return U*eig_vec;
 }
+
+
+Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
+                                      Eigen::MatrixXd &Coefs,     //Define N_mod RDMD through the dimension of matrix Coefs
+                                      Eigen::VectorXd &K_pc,
+                                      Eigen::VectorXi &tpos)
+{
+    int Np = sn_set.rows();
+    int Ns = sn_set.cols();
+    int rdmd = tpos.size();
+
+    Eigen::MatrixXd Phi_RDMD = Eigen::MatrixXd::Zero(Np, Ns);
+    Eigen::MatrixXd res_set = sn_set;
+    Eigen::VectorXd lam_POD;
+    Eigen::VectorXcd lam_DMD;
+    Eigen::MatrixXd eig_vec_POD;
+    Eigen::MatrixXcd eig_vec_DMD;
+
+    Eigen::VectorXd residual_time(Np);
+    Eigen::VectorXd residual_time_norm(Ns);
+
+    double eps = 0.0;
+    Eigen::VectorXd svd_new = Eigen::VectorXd::Zero(Ns);
+    Eigen::VectorXd svd_old = Eigen::VectorXd::Zero(Ns);
+    double count = 0;
+
+    if ( rdmd > Ns ) {
+        std::cout << "Number of adaptive samples greater than available samples\n Exiting ..." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for ( int i = 0; i <= rdmd; i++ ){ //Considering also i = rdmd only for computing energy at the last iteration
+        //Perform pure DMD
+        Eigen::MatrixXcd Phi = DMD_Adaptive_basis ( res_set,
+                                                    lam_DMD,
+                                                    eig_vec_DMD,
+                                                    lam_POD,
+                                                    eig_vec_POD,
+                                                    tpos );
+
+        if ( Phi.cols() == 0 )  break;
+        if ( count == 0)    svd_old = lam_POD.cwiseProduct(lam_POD);
+
+        svd_new = lam_POD.cwiseProduct(lam_POD);
+        eps = (svd_old.sum() - svd_new.sum())/svd_old.sum();
+
+        if ( i > 0 )    K_pc(i-1) = eps;
+
+        count ++;
+        std::cout << "Energy at Iteration " << i << " : " << std::setprecision(12) << eps*100 << "%" << std::endl;
+
+        if ( i == rdmd )    break;
+
+        Eigen::MatrixXd Phi_r = Phi.real();
+        Eigen::MatrixXd coef_mod(Phi.cols(),Ns);
+        // Real part Modes normalization
+        for ( int j = 0; j < Phi.cols(); j++ ) {
+            double sum = 0.0;
+            for ( int k = 0; k < Np; k++ )
+                sum += Phi_r(k,j)*Phi_r(k,j);
+
+            Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+        }
+        Eigen::VectorXd residual_average(Phi.cols());
+        int min_idx;
+
+        for ( int r_dmd = 0; r_dmd < Phi.cols(); r_dmd++ ) {
+            for ( int nt = 0; nt < Ns; nt++ ) {
+                coef_mod(r_dmd, nt) = res_set.col(nt).transpose()*Phi_r.col(r_dmd);
+                residual_time = res_set.col(nt) - coef_mod(r_dmd, nt)*Phi_r.col(r_dmd);
+                residual_time_norm(nt) = residual_time.norm();
+            }
+
+            double mean = 0.0;
+            for ( int m = 0; m < Ns; m++ )
+                mean += residual_time_norm(m);
+
+            residual_average(r_dmd) = mean/Ns;
+
+        }
+
+        double min_Val = residual_average.minCoeff( &min_idx );
+
+        Phi_RDMD.col(i) = Phi_r.col(min_idx);
+        Coefs.row(i) = coef_mod.row(min_idx);
+//        lambda(i) = lam_DMD(min_idx).real();
+        res_set = res_set - Phi_RDMD.col(i)*Coefs.row(i);
+
+    }
+
+    return Phi_RDMD;
+}

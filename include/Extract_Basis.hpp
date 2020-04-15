@@ -161,4 +161,9 @@ Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
                                       Eigen::VectorXi &tpos );
 
 
+Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
+                                   Eigen::MatrixXd &Coefs,     //Define N_mod RDMD through the dimension of matrix Coefs
+                                   Eigen::VectorXd &K_pc,
+                                   Eigen::VectorXi &tpos);
+
 #endif //EXTRACT_BASIS_HPP

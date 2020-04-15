@@ -150,7 +150,7 @@ int main( int argc, char *argv[] )
 
         //Vector of MatrixXd where to store the evolution in time of conservative variables
         Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC * Nr, 3);
-        Eigen::MatrixXd Phi_POD = Eigen::MatrixXd::Zero(Nr, settings.Ns);
+        Eigen::MatrixXd Phi = Eigen::MatrixXd::Zero(Nr, settings.Ns);
         Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(settings.Ns);
         Eigen::MatrixXcd Phi_DMD = Eigen::MatrixXd::Zero(Nr, settings.Ns);
         Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(settings.Ns);
@@ -159,6 +159,7 @@ int main( int argc, char *argv[] )
 
         //To define for interp reconstruction formula
         std::vector<smartuq::surrogate::rbf> surr_coefs_POD;
+        std::vector<smartuq::surrogate::rbf> surr_coefs_RDMD;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
         //To define for exponential rec
@@ -170,13 +171,13 @@ int main( int argc, char *argv[] )
         if ( settings.flag_method[0] == "SPOD" ){
 
             std::cout << "Computing uniform SPOD modes with Nf : " << settings.Nf << "\n";
-            Phi_POD = SPOD_basis(sn_set,
+            Phi = SPOD_basis(sn_set,
                                  lambda_POD, K_pc, eig_vec,
                                  settings.Nf,
                                  settings.flag_bc,
                                  settings.flag_filter,
                                  settings.sigma);
-            N_notZero = Phi_POD.cols();
+            N_notZero = Phi.cols();
 //            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
 //            else Nm = std::min(settings.r, N_notZero);
 
@@ -207,6 +208,23 @@ int main( int argc, char *argv[] )
                                                                   lambda_DMD,
                                                                   Phi_DMD);
 
+        } else if ( settings.flag_method[0] == "RDMD" ){
+
+            std::cout << "Computing uniform RDMD modes \n";
+            Eigen::MatrixXd Coeffs = Eigen::MatrixXd::Zero(settings.Ns,settings.Ns);
+            Phi = RDMD_modes_coefs ( sn_set,Coeffs,lambda_POD,K_pc,-1,nVar,settings.En );
+            N_notZero = Phi.cols();
+//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
+//            else Nm = std::min(settings.r, N_notZero);
+
+            if ( Nm != nVar) {
+                std::cout << "-----------------------------WARNING:------------------------"
+                             "Truncation and adaptation don't have the same number of modes" << std::endl << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
+            surr_coefs_RDMD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
+
         }
 
         if ( decision == "-e") {
@@ -217,46 +235,36 @@ int main( int argc, char *argv[] )
                 if ( settings.flag_method[0] == "SPOD" ) {
 
                     Eigen::MatrixXd coef_t(3, Nm);
-                    if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
-                        settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
-                        std::cout
-                                << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit(EXIT_FAILURE);
-                    } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
-                                                          settings.t_res[itr] - settings.Dt_res[0],
-                                                          settings.t_res[itr]};
 
-                        for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm; i++)
-                                surr_coefs_POD[i].evaluate(tr, coef_t(j, i));
-                        }
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
 
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++)
+                            surr_coefs_POD[i].evaluate(tr, coef_t(j, i));
                     }
+
+
                     Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
                     for (int i = 0; i < Nm; i++)
                         Sig(i, i) = std::sqrt(lambda_POD(i));
-                    Sn_Cons_time = Phi_POD.leftCols(Nm) * Sig * coef_t.transpose();
+                    Sn_Cons_time = Phi.leftCols(Nm) * Sig * coef_t.transpose();
 
                 } else if ( settings.flag_method[0] == "DMD" ) {
 
                     Eigen::MatrixXcd coef_t(3, Nm);
-                    if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
-                        settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
-                        std::cout
-                                << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit(EXIT_FAILURE);
-                    } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
-                                                          settings.t_res[itr] - settings.Dt_res[0],
-                                                          settings.t_res[itr]};
 
-                        double tmp_r, tmp_i;
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
 
-                        //DMD using same rec formula as POD
+                    double tmp_r, tmp_i;
+
+                    //DMD using same rec formula as POD
 //                        --------------------------------------------------------------------------------------------
 //                        for (int j = 0; j < 3; j++) {
 //                            tr[0] = t_evaluate[j];
@@ -272,21 +280,38 @@ int main( int argc, char *argv[] )
 //                      ----------------------------------------------------------------------------------------------
 
 
-                        //DMD using classical reconstruction formula
+                    //DMD using classical reconstruction formula
 
-                        for (int j = 0; j < 3; j++) {
+                    for (int j = 0; j < 3; j++) {
 
-                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
-                                                                      settings.Dt_cfd * settings.Ds,
-                                                                      alfa,
-                                                                      Phi_DMD,
-                                                                      lambda_DMD,
-                                                                      "SCALAR");
+                        Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
+                                                                  settings.Dt_cfd * settings.Ds,
+                                                                  alfa,
+                                                                  Phi_DMD,
+                                                                  lambda_DMD,
+                                                                  "SCALAR");
 
-                            Sn_Cons_time.col(j) = Rec.real();
+                        Sn_Cons_time.col(j) = Rec.real();
 
-                        }
                     }
+
+                } else if ( settings.flag_method[0] == "RDMD" ) {
+
+                    Eigen::MatrixXd coef_t(3, Nm);
+
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
+
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++)
+                            surr_coefs_RDMD[i].evaluate(tr, coef_t(j, i));
+                    }
+
+                    Sn_Cons_time = Phi.leftCols(Nm) * coef_t.transpose();
+
                 }
 
                 //Introduce an if on the number of conservative variables
@@ -325,7 +350,7 @@ int main( int argc, char *argv[] )
                 if ( settings.flag_method[0] == "SPOD" ) {
                      Rec = Reconstruction_S_POD(t_vec,
                                            K_pc, lambda_POD, eig_vec.transpose(),
-                                           Phi_POD.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
+                                           Phi.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
                                            Nm,
                                           "VECTOR-2D",
                                            settings.flag_interp);
@@ -383,14 +408,15 @@ int main( int argc, char *argv[] )
 
         //Vector of MatrixXd where to store the evolution in time of conservative variables
         Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
-        Eigen::MatrixXd Phi_POD = Eigen::MatrixXd::Zero(Nr,nVar);
+        Eigen::MatrixXd Phi = Eigen::MatrixXd::Zero(Nr,nVar);
         Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(nVar);
         Eigen::MatrixXcd Phi_DMD = Eigen::MatrixXd::Zero(Nr,settings.Ns);
         Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(settings.Ns);
         Eigen::VectorXd K_pc(nVar);
         Eigen::MatrixXd eig_vec(nVar, nVar);
 
-        std::vector<smartuq::surrogate::rbf> surr_coefs_POD ;
+        std::vector<smartuq::surrogate::rbf> surr_coefs_POD;
+        std::vector<smartuq::surrogate::rbf> surr_coefs_RDMD;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
         std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
 
@@ -400,14 +426,14 @@ int main( int argc, char *argv[] )
 
         if ( settings.flag_method[0] == "SPOD") {
             std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
-            Phi_POD = SPOD_basis(sub_sn_set,
+            Phi = SPOD_basis(sub_sn_set,
                                  lambda_POD, K_pc, eig_vec,
                                  settings.Nf,
                                  settings.flag_bc,
                                  settings.flag_filter,
                                  settings.sigma);
 
-            Eigen::MatrixXd Coeffs = Phi_POD.transpose() * sn_set;
+            Eigen::MatrixXd Coeffs = Phi.transpose() * sn_set;
             surr_coefs_POD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
         } else if ( settings.flag_method[0] == "DMD") {
             Eigen::MatrixXcd eig_vec_DMD;
@@ -425,8 +451,13 @@ int main( int argc, char *argv[] )
             Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);
             surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
             surr_coefs_DMD_i = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
-        }
+        } else if ( settings.flag_method[0] == "RDMD") {
 
+            std::cout << "Computing adaptive RDMD modes \n";
+            Eigen::MatrixXd Coeffs = Eigen::MatrixXd::Zero(settings.Ns,settings.Ns);
+            Phi = RDMD_Adaptive_basis ( sn_set,Coeffs,K_pc,Ipos);
+            surr_coefs_RDMD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
+        }
 
         if ( decision == "-e" ) {
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
@@ -434,55 +465,58 @@ int main( int argc, char *argv[] )
 
                 if ( settings.flag_method[0] == "SPOD" ) {
                     Eigen::MatrixXd coef_t(3, Nm);
-                    if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
-                        settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
-                        std::cout
-                                << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit(EXIT_FAILURE);
-                    } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
-                                                          settings.t_res[itr] - settings.Dt_res[0],
-                                                          settings.t_res[itr]};
 
-                        for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm; i++)
-                                surr_coefs_POD[i].evaluate(tr, coef_t(j, i));
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
 
-                        }
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++)
+                            surr_coefs_POD[i].evaluate(tr, coef_t(j, i));
+
                     }
 
-                    Sn_Cons_time = Phi_POD * coef_t.transpose();
+                    Sn_Cons_time = Phi * coef_t.transpose();
                 } else if ( settings.flag_method[0] == "DMD" ) {
 
                     Eigen::MatrixXcd coef_t(3, Nm);
-                    if (settings.t_res[itr] - 2.0 * settings.Dt_res[0] < t_vec[0] ||
-                        settings.t_res[itr] > t_vec[t_vec.size() - 1]) {
-                        std::cout
-                                << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        exit(EXIT_FAILURE);
-                    } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
-                                                          settings.t_res[itr] - settings.Dt_res[0],
-                                                          settings.t_res[itr]};
 
-                        double tmp_r, tmp_i;
-                        for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm; i++) {
-                                surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
-                                surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
-                                std::complex<double> c(tmp_r,tmp_i);
-                                coef_t(j,i) = c;
-                            }
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
+
+                    double tmp_r, tmp_i;
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++) {
+                            surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
+                            surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
+                            std::complex<double> c(tmp_r,tmp_i);
+                            coef_t(j,i) = c;
                         }
-
                     }
 
                     Eigen::MatrixXcd Appo = Phi_DMD * coef_t.transpose();
                     Sn_Cons_time = Appo.real();
+                } else if ( settings.flag_method[0] == "RDMD" ) {
+                    Eigen::MatrixXd coef_t(3, Nm);
+
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+                                                      settings.t_res[itr] - settings.Dt_res[0],
+                                                      settings.t_res[itr]};
+
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++)
+                            surr_coefs_RDMD[i].evaluate(tr, coef_t(j, i));
+
+                    }
+
+                    Sn_Cons_time = Phi * coef_t.transpose();
                 }
 
                 if ( flag == "YES" ) {
@@ -520,12 +554,12 @@ int main( int argc, char *argv[] )
                 Eigen::MatrixXd Rec = Eigen::MatrixXd::Zero(2*Nr, 2);
 
                 if ( settings.flag_method[0] == "SPOD" ) {
-                    Eigen::MatrixXd Coeffs = Phi_POD.transpose() * sn_set;
+                    Eigen::MatrixXd Coeffs = Phi.transpose() * sn_set;
                     for (int i = 0; i < Coeffs.rows(); i++) Coeffs.row(i) = Coeffs.row(i) / std::sqrt(lambda_POD(i));
 
                     Eigen::MatrixXd Rec = Reconstruction_S_POD(t_vec,
                                                                K_pc, lambda_POD, Coeffs,
-                                                               Phi_POD.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
+                                                               Phi.middleRows(Nr, 2 * Nr), settings.t_rec[nt],
                                                                Nm,
                                                                "VECTOR-2D",
                                                                settings.flag_interp);
