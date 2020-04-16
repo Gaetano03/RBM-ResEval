@@ -1413,21 +1413,22 @@ Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
 
     Eigen::BDCSVD<Eigen::MatrixXd> svd( sub_sn_set,Eigen::ComputeThinU | Eigen::ComputeThinV );
     lam_POD = svd.singularValues();
+    int N_notZero = Not_zero(lam_POD);
+
+    Nm = std::min(N_notZero,Nsamp);
     eig_vec_POD = svd.matrixV();
     eig_sort(lam_POD, eig_vec_POD);
 
     Eigen::MatrixXd U = svd.matrixU();
-    Eigen::MatrixXd Sig_inv = Eigen::MatrixXd::Zero(U.cols(), U.cols());
+    Eigen::MatrixXd Sig_inv = Eigen::MatrixXd::Zero(Nm, Nm);
 
-    for ( int i = 0; i < U.cols(); i++ )
+    for ( int i = 0; i < Nm; i++ )
         Sig_inv(i, i) = 1.0/lam_POD(i);
-
-    Nm = tpos.size();
 
     Eigen::MatrixXcd phi = Eigen::MatrixXd::Zero(Np, Nm);
 
-    Eigen::MatrixXd Atilde = U.transpose()*sub_sn_set_shift*
-                             eig_vec_POD*Sig_inv;
+    Eigen::MatrixXd Atilde = U.leftCols(Nm).transpose()*sub_sn_set_shift*
+                             eig_vec_POD.leftCols(Nm)*Sig_inv;
 
     if ( Atilde.size() == 1 && Atilde(0,0) == 0.0 ) {
         lam = Eigen::VectorXcd::Zero(1);
@@ -1439,7 +1440,7 @@ Eigen::MatrixXcd DMD_Adaptive_basis ( const Eigen::MatrixXd &snap_set,
         eig_vec = es.eigenvectors();
     }
 
-    Eigen::MatrixXcd appo = sub_sn_set_shift* eig_vec_POD * Sig_inv;
+    Eigen::MatrixXcd appo = sub_sn_set_shift* eig_vec_POD.leftCols(Nm) * Sig_inv;
 
     //Final computation and normalization of modes
     for (int i = 0; i < Nm; i++) {
@@ -1483,7 +1484,7 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
         exit(EXIT_FAILURE);
     }
 
-    for ( int i = 0; i <= rdmd; i++ ){ //Considering also i = rdmd only for computing energy at the last iteration
+    for ( int i = 0; i <= rdmd; i++ ) { //Considering also i = rdmd only for computing energy at the last iteration
         //Perform pure DMD
         Eigen::MatrixXcd Phi = DMD_Adaptive_basis ( res_set,
                                                     lam_DMD,
@@ -1494,7 +1495,6 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
 
         if ( Phi.cols() == 0 )  break;
         if ( count == 0)    svd_old = lam_POD.cwiseProduct(lam_POD);
-
         svd_new = lam_POD.cwiseProduct(lam_POD);
         eps = (svd_old.sum() - svd_new.sum())/svd_old.sum();
 
@@ -1502,6 +1502,7 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
 
         count ++;
         std::cout << "Energy at Iteration " << i << " : " << std::setprecision(12) << eps*100 << "%" << std::endl;
+        std::cout << "DMD-rank at current iteration :" << Phi.cols() << std::endl;
 
         if ( i == rdmd )    break;
 
