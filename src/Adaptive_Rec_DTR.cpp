@@ -20,6 +20,11 @@ int main( int argc, char *argv[] )
     
     //Reading configuration file
     Read_cfg( filecfg, settings );
+    if ( settings.flag_prob != "VECTOR-2D" && settings.flag_prob != "VECTOR-3D"){
+        std::cout << "Reconstruction with residual evaluation only implemented for Momentum \n "
+                     "FLAG_PROB must be VECTOR-2D or VECTOR-3D\n Exiting ..." << std::endl;
+        exit(EXIT_FAILURE);
+    }
     double t_0 = settings.nstart*settings.Dt_cfd;
     double alpha = settings.alpha;
     double beta = settings.beta;
@@ -262,6 +267,10 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(2*Nr,Nr);
                 
             }
 
@@ -367,7 +376,12 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + Ic.middleRows(2*Nr,Nr);
-            
+
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.real().col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.real().col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.real().col(0) + mean.middleRows(2*Nr,Nr);
+
+
             }
 
 
@@ -423,6 +437,11 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(2*Nr,Nr);
+
 
             } 
 

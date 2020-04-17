@@ -120,6 +120,7 @@ int main( int argc, char *argv[] )
     //sn_set is modified according to flag
     std::string flag = "YES";
     if ( settings.flag_mean == "IC" ) Ic = IC(sn_set, settings, nC, Nr);
+    std::cout << "Ic size :" << Ic.size() << std::endl;
 
     double rho_max, rho_min, rhoU_max, rhoU_min, rhoV_max, rhoV_min, rhoW_max, rhoW_min, rhoE_max, rhoE_min,
             tke_min, tke_max, omega_min, omega_max, nuTilde_min, nuTilde_max; //add turbulence

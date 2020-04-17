@@ -102,7 +102,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.Ds = 0;                         
     settings.nstart = 0;                     
     settings.ndim = 0;
-    settings.solver = "NONE" ;
+    settings.solver = "SU2" ;
     settings.in_file = "NONE";            
     settings.out_file = "NONE";           
     settings.flag_dim = "NONE";           
