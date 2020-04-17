@@ -53,7 +53,7 @@ int main( int argc, char *argv[] )
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
 
-    Eigen::VectorXd Ic = IC( settings, nC, Nr);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
     Eigen::VectorXd mean = sn_set.rowwise().mean();
 
     if ( settings.flag_mean == "YES" ) {
@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
 
     if ( settings.flag_mean == "IC" ) {
         for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+            Ic = IC(sn_set, settings, nC, Nr);
     }
 
 //POD reconstruction on each selected time step

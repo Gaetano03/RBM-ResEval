@@ -1352,7 +1352,7 @@ Eigen::MatrixXd GPOD_basis( const double Dt,
     Eigen::MatrixXd Gradients_T(Nr, Ns-2);
 
     for ( int i = 2; i < Ns; i++ )
-        Gradients_T.col(i-2) = 0.5*(3.0*snap_set.col(i) - 4.0*snap_set.col(i-1) + snap_set.col(i))/Dt; 
+        Gradients_T.col(i-2) = 0.5*(3.0*snap_set.col(i) - 4.0*snap_set.col(i-1) + snap_set.col(i-2))/Dt;
 
     int count;
 

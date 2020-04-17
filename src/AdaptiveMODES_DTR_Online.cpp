@@ -66,7 +66,7 @@ int main( int argc, char *argv[] )
     //Defining Mean/Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
     int nC = settings.ndim;
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     if ( settings.flag_mean == "YES" ) {
         for ( int it = 0; it < settings.Ns; it++ )

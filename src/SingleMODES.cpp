@@ -49,6 +49,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Subtracting mean from snapshots ... " << std::endl << std::endl;
         for ( int i = 0; i < settings.Ns; i++ )
             sn_set.col(i) -= mean;
+    } else if ( settings.flag_mean == "IC") {
+        std::cout << "Mean is the only reference solution implemented in SingleMODES\n Exiting ... " << std::endl << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     Eigen::VectorXd K_pc(settings.Ns);
@@ -83,10 +86,11 @@ int main(int argc, char *argv[]) {
         int Nrec; 
         if ( settings.r == 0 ) {
             Nrec = Nmod( settings.En, K_pc);
-            std::cout << "Number of modes for the desired energy content (needs fixes for sPOD) : " << Nrec << std::endl;
+            std::cout << "Number of modes for the desired energy content : " << Nrec << std::endl;
         } else {
-            Nrec = std::min(settings.r,Phi.cols());
-            std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
+            int Nmax = Phi.cols();
+            Nrec = std::min(settings.r,Nmax);
+            std::cout << " Number of modes fixed : " << Nrec << std::endl;
         }
 
 
@@ -153,30 +157,30 @@ int main(int argc, char *argv[]) {
         Eigen::VectorXcd alfa;
         Eigen::MatrixXcd Alfas;
 
-        if ( settings.flag_method[0] == "DMD") {
+//        if ( settings.flag_method[0] == "DMD") {
             Phi = DMD_basis( sn_set,
                             lambda_DMD,
                             eig_vec_DMD,
                             lambda_POD,
                             eig_vec_POD,
                             settings.r );
-        }
+//        }
 
-        if ( settings.flag_method[0] == "fbDMD") {
-            Phi = fbDMD_basis( sn_set,
-                            lambda_DMD,
-                            eig_vec_DMD,
-                            settings.r );
-        }
-
-        if ( settings.flag_method[0] == "HODMD") {
-            Phi = HODMD_basis( sn_set,
-                            lambda_DMD,
-                            eig_vec_DMD,
-                            alfa,
-                            tol,
-                            settings.d);
-        }
+//        if ( settings.flag_method[0] == "fbDMD") {
+//            Phi = fbDMD_basis( sn_set,
+//                            lambda_DMD,
+//                            eig_vec_DMD,
+//                            settings.r );
+//        }
+//
+//        if ( settings.flag_method[0] == "HODMD") {
+//            Phi = HODMD_basis( sn_set,
+//                            lambda_DMD,
+//                            eig_vec_DMD,
+//                            alfa,
+//                            tol,
+//                            settings.d);
+//        }
 
         int Nm = Phi.cols();
         std::cout << "Number of modes extracted : " << Nm << std::endl;

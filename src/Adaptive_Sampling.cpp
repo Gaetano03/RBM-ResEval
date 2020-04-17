@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
     //Defining Initial condition
     int nC = 4;
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Np);
     double alpha = settings.alpha;
     double beta = settings.beta;
 

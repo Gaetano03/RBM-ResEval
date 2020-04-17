@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
     }
 
     //Defining Initial condition
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);

@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC);
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);

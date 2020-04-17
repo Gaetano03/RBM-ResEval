@@ -639,124 +639,124 @@ int main( int argc, char *argv[] )
 
 
 //Defining scope for GPOD (Time-Gradient POD) 
-    {
-
-        Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
-        Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
-        Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
-  
-        std::cout << "Extracting basis and Coeffs GPOD ... " << "\t";        
-        
-        Eigen::MatrixXd Phi = GPOD_basis( settings.Dt_cfd*(double)settings.Ds, sn_set,
-                                lambda, K_pc, Coefs);
-
-        std::cout << " Done! " << std::endl;
-
-        int Nm;
-        if ( settings.r == 0 )
-        {
-            Nm = Nmod(settings.En, K_pc);
-            std::cout << "number of modes for the desired energetic content " << Nm << std::endl;
-        }
-        else
-        {
-            int max_rank = Phi.cols();
-            Nm = std::min(settings.r, max_rank);
-            std::cout << "number of modes (fixed) " << Nm << std::endl;
-        }
-
-        std::vector<rbf> surr_coefs =  getSurrCoefs (t_vec,
-                                                    Coefs,
-                                                    settings.flag_interp);
-        
-        Eigen::MatrixXd coef_t(settings.Ns-1, Nm);
-
-        std::vector<double> tr(1);
-        for ( int j = 0; j < settings.Ns - 1; j++ )
-        {    
-            tr[0] = t[j];
-            for ( int i = 0; i < Nm; i++ )
-                surr_coefs[i].evaluate(tr, coef_t(j,i));
-        }
-
-
-        std::cout << "Computing error GPOD and error from projection ... " << std::endl << std::endl;
-        Eigen::MatrixXd Err_RDMD_map;
-        Eigen::MatrixXd Err_PRDMD_map;
-        Eigen::VectorXd Err_RDMD_Nm_time = Eigen::VectorXd::Zero(settings.Ns-1);
-        Eigen::VectorXd J_RDMD_Nm_time = Eigen::VectorXd::Zero(settings.Ns-1);
-
- 
-        // Err_RDMD_map = sn_set_check - Phi.leftCols(Nm)*coef_t.transpose();
-        Err_RDMD_map = sn_set_check - Phi.leftCols(Nm)*coef_t.transpose();
-        Err_PRDMD_map = sn_set_check - Phi.leftCols(Nm)*(Phi.leftCols(Nm).transpose()*sn_set_check);
-
-        // for ( int i = 0; i < Err_RDMD_map.cols(); i++ )
-        // {
-        //     Err_RDMD_map.col(i) -= mean;
-        //     Err_PRDMD_map.col(i) -= mean;
-        // }
-
-        for ( int i = 0; i < settings.Ns-1; i++ )
-        {
-            int count = 0;
-
-            for ( int j = 0; j < settings.ndim*Nr; j++ )
-            {
-                Err_RDMD_Nm_time(i) += Err_RDMD_map(j,i)*Err_RDMD_map(j,i);
-                J_RDMD_Nm_time(i) += Err_PRDMD_map(j,i)*Err_PRDMD_map(j,i);
-
-            }
-
-            Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i))/norm_sn_set(i);
-            J_RDMD_Nm_time(i) = std::sqrt(J_RDMD_Nm_time(i))/norm_sn_set(i);
-        }
- 
-        Err_RBM_Nm_time.push_back(Err_RDMD_Nm_time);
-        ErrP_RBM_Nm_time.push_back(J_RDMD_Nm_time);
-        EN.push_back(K_pc);
-
-        if ( settings.flag_rec == "YES" )
-        {
-                               
-            for ( int nt = 0; nt < settings.t_rec.size(); nt ++)
-            {
-                Eigen::MatrixXd Rec;
-                std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
-
-
-                Rec = Reconstruction_RDMD ( settings.t_rec[nt],
-                                        t_vec,
-                                        Coefs.topRows(Nm),
-                                        Phi.leftCols(Nm),
-                                        settings.flag_prob,
-                                        settings.flag_interp );
-
-
-                std::cout << "Done" << std::endl;
-
-
-                if (settings.flag_mean == "YES")
-                {
-                    for ( int i = 0; i < Rec.cols(); i++)
-                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
-                }
-
-                std::cout << "Writing reconstructed field ..." << "\t";
-
-                std::string filename = "Rec_flow_RDMD.dat";
-                write_Reconstructed_fields ( Rec, Coords,
-                                        filename,
-                                        settings.flag_prob, nt );
-
-                std::cout << "Done" << std::endl << std::endl;
-
-            }
-
-        }
-
-
-    }
+//    {
+//
+//        Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
+//        Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
+//        Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+//
+//        std::cout << "Extracting basis and Coeffs GPOD ... " << "\t";
+//
+//        Eigen::MatrixXd Phi = GPOD_basis( settings.Dt_cfd*(double)settings.Ds, sn_set,
+//                                lambda, K_pc, Coefs);
+//
+//        std::cout << " Done! " << std::endl;
+//
+//        int Nm;
+//        if ( settings.r == 0 )
+//        {
+//            Nm = Nmod(settings.En, K_pc);
+//            std::cout << "number of modes for the desired energetic content " << Nm << std::endl;
+//        }
+//        else
+//        {
+//            int max_rank = Phi.cols();
+//            Nm = std::min(settings.r, max_rank);
+//            std::cout << "number of modes (fixed) " << Nm << std::endl;
+//        }
+//
+//        std::vector<rbf> surr_coefs =  getSurrCoefs (t_vec,
+//                                                    Coefs,
+//                                                    settings.flag_interp);
+//
+//        Eigen::MatrixXd coef_t(settings.Ns-1, Nm);
+//
+//        std::vector<double> tr(1);
+//        for ( int j = 0; j < settings.Ns - 1; j++ )
+//        {
+//            tr[0] = t[j];
+//            for ( int i = 0; i < Nm; i++ )
+//                surr_coefs[i].evaluate(tr, coef_t(j,i));
+//        }
+//
+//
+//        std::cout << "Computing error GPOD and error from projection ... " << std::endl << std::endl;
+//        Eigen::MatrixXd Err_RDMD_map;
+//        Eigen::MatrixXd Err_PRDMD_map;
+//        Eigen::VectorXd Err_RDMD_Nm_time = Eigen::VectorXd::Zero(settings.Ns-1);
+//        Eigen::VectorXd J_RDMD_Nm_time = Eigen::VectorXd::Zero(settings.Ns-1);
+//
+//
+//        // Err_RDMD_map = sn_set_check - Phi.leftCols(Nm)*coef_t.transpose();
+//        Err_RDMD_map = sn_set_check - Phi.leftCols(Nm)*coef_t.transpose();
+//        Err_PRDMD_map = sn_set_check - Phi.leftCols(Nm)*(Phi.leftCols(Nm).transpose()*sn_set_check);
+//
+//        // for ( int i = 0; i < Err_RDMD_map.cols(); i++ )
+//        // {
+//        //     Err_RDMD_map.col(i) -= mean;
+//        //     Err_PRDMD_map.col(i) -= mean;
+//        // }
+//
+//        for ( int i = 0; i < settings.Ns-1; i++ )
+//        {
+//            int count = 0;
+//
+//            for ( int j = 0; j < settings.ndim*Nr; j++ )
+//            {
+//                Err_RDMD_Nm_time(i) += Err_RDMD_map(j,i)*Err_RDMD_map(j,i);
+//                J_RDMD_Nm_time(i) += Err_PRDMD_map(j,i)*Err_PRDMD_map(j,i);
+//
+//            }
+//
+//            Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i))/norm_sn_set(i);
+//            J_RDMD_Nm_time(i) = std::sqrt(J_RDMD_Nm_time(i))/norm_sn_set(i);
+//        }
+//
+//        Err_RBM_Nm_time.push_back(Err_RDMD_Nm_time);
+//        ErrP_RBM_Nm_time.push_back(J_RDMD_Nm_time);
+//        EN.push_back(K_pc);
+//
+//        if ( settings.flag_rec == "YES" )
+//        {
+//
+//            for ( int nt = 0; nt < settings.t_rec.size(); nt ++)
+//            {
+//                Eigen::MatrixXd Rec;
+//                std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
+//
+//
+//                Rec = Reconstruction_RDMD ( settings.t_rec[nt],
+//                                        t_vec,
+//                                        Coefs.topRows(Nm),
+//                                        Phi.leftCols(Nm),
+//                                        settings.flag_prob,
+//                                        settings.flag_interp );
+//
+//
+//                std::cout << "Done" << std::endl;
+//
+//
+//                if (settings.flag_mean == "YES")
+//                {
+//                    for ( int i = 0; i < Rec.cols(); i++)
+//                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+//                }
+//
+//                std::cout << "Writing reconstructed field ..." << "\t";
+//
+//                std::string filename = "Rec_flow_RDMD.dat";
+//                write_Reconstructed_fields ( Rec, Coords,
+//                                        filename,
+//                                        settings.flag_prob, nt );
+//
+//                std::cout << "Done" << std::endl << std::endl;
+//
+//            }
+//
+//        }
+//
+//
+//    }
 
 
 
@@ -808,7 +808,7 @@ int main( int argc, char *argv[] )
 
     datafile.close();
 
-    std::cout << "RBM-Clyde Comparative study ends" << std::endl << std::endl;
+    std::cout << "Adaptive MODES offline ends" << std::endl << std::endl;
 
     chrono_end = clock();
     comp_time = ((double)(chrono_end-chrono_begin))/CLOCKS_PER_SEC;

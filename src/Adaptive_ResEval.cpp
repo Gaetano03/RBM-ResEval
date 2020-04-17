@@ -108,15 +108,14 @@ int main( int argc, char *argv[] )
     //Defining Initial condition + mean
 
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    Eigen::VectorXd Ic = IC(settings, nC, Nr);
-
+    Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
     std::string binary = "YES";
     Eigen::VectorXd svd_cum_sum(settings.Ns);
 
     if ( settings.flag_mean == "IC" )
     {
         for ( int it = 0; it < settings.Ns; it++ )
-            sn_set.col(it) -= Ic;
+            Ic = IC(sn_set, settings, nC, Nr);
     }
 
     Modify_su2_cfg(su2_conf,su2_conf_new, settings.Dt_res[0]);

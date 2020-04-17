@@ -58,6 +58,20 @@ int main( int argc, char *argv[] )
     Eigen::VectorXd mean = sn_set.rowwise().mean();
     Eigen::MatrixXd sn_set_p = Eigen::MatrixXd::Zero(sn_set.rows(), sn_set.cols());
 
+
+    if ( settings.flag_mean == "IC" ) {
+        std::cout << "Adaptive Direct Error can only subtract the mean as reference solution\n Exiting..." << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+
+    } else if (settings.flag_mean == "YES") {
+        std::cout << "Subtracting mean from snapshots ... " << std::endl;
+
+        for ( int nt = 0; nt < settings.Ns; nt++ )
+            sn_set.col(nt) -= mean;
+
+    }
+
+
     for ( int nt = 0; nt < settings.Ns; nt++ )
         sn_set_p.col(nt) = sn_set.col(nt) - mean;
 
@@ -156,7 +170,7 @@ int main( int argc, char *argv[] )
             Eigen::VectorXd K_pc(settings.Ns);
             Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);        
 
-            Eigen::MatrixXd Phi = SPOD_basis( sn_set_p,
+            Eigen::MatrixXd Phi = SPOD_basis( sn_set,
                                     lambda, K_pc, eig_vec,
                                     Nf_SPOD,
                                     settings.flag_bc, 
@@ -189,9 +203,10 @@ int main( int argc, char *argv[] )
                                 settings.flag_prob,
                                 settings.flag_interp ) ;
 
-            for ( int kt = 0; kt < Rec.cols(); kt++)
-                Rec.col(kt) = Rec.col(kt) + mean.segment(kt*Nr, Nr);
-
+            if (settings.flag_mean == "YES") {
+                for (int kt = 0; kt < Rec.cols(); kt++)
+                    Rec.col(kt) = Rec.col(kt) + mean.segment(kt * Nr, Nr);
+            }
             std::cout << "Writing reconstructed field ..." << "\t";
 
             write_Reconstructed_fields ( Rec, Coords,
@@ -288,7 +303,10 @@ int main( int argc, char *argv[] )
                                                     lambda_DMD.head(Nm),
                                                     settings.flag_prob );
 
-
+            if (settings.flag_mean == "YES") {
+                for (int kt = 0; kt < Rec.cols(); kt++)
+                    Rec.real().col(kt) = Rec.real().col(kt) + mean.segment(kt * Nr, Nr);
+            }
             std::cout << "Writing reconstructed field ..." << "\t";
 
             write_Reconstructed_fields ( Rec.real(), Coords,
@@ -378,10 +396,10 @@ int main( int argc, char *argv[] )
                                                         Phi.leftCols(Nm),
                                                         settings.flag_prob,
                                                         settings.flag_interp );
-
-            for ( int kt = 0; kt < Rec.cols(); kt++)
-                Rec.col(kt) = Rec.col(kt) + mean.segment(kt*Nr, Nr);
-
+            if (settings.flag_mean == "YES") {
+                for (int kt = 0; kt < Rec.cols(); kt++)
+                    Rec.col(kt) = Rec.col(kt) + mean.segment(kt * Nr, Nr);
+            }
             std::cout << "Writing reconstructed field ..." << "\t";
 
             write_Reconstructed_fields ( Rec, Coords,
