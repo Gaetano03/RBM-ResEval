@@ -433,7 +433,7 @@ int main( int argc, char *argv[] )
                                  settings.flag_bc,
                                  settings.flag_filter,
                                  settings.sigma);
-
+            Nm = Phi.cols();
             Eigen::MatrixXd Coeffs = Phi.transpose() * sn_set;
             surr_coefs_POD = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
         } else if ( settings.flag_method[0] == "DMD") {
@@ -447,7 +447,7 @@ int main( int argc, char *argv[] )
                                 lambda_POD,
                                 eig_vec,
                                 Ipos);
-
+            Nm = Phi_DMD.cols();
             Eigen::MatrixXcd PhiTPhi = Phi_DMD.transpose()*Phi_DMD;
             Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);
             surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
