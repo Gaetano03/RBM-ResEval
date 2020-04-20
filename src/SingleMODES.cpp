@@ -505,94 +505,94 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ( settings.flag_method[0] == "GPOD") {
-
-        std::vector<double> t_vec( settings.Ns );
-        t_vec[0] = 0.0;
-        double Dt = settings.Dt_cfd*settings.Ds;
-
-        for ( int i = 1; i < settings.Ns; i++ )
-            t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
-
-        std::cout << std::endl;
-        std::cout << "Initialized vector of times " << std::endl;
-
-        Eigen::VectorXd lambda(settings.Ns);
-        Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
-
-        std::cout << "Extracting basis ... " << "\t";
-        Eigen::MatrixXd Phi = GPOD_basis( Dt, sn_set,
-                                lambda, K_pc, eig_vec);
-
-        std::cout << " Done! " << std::endl << std::endl;
-
-        std::cout << "Number of non-zero modes : " << Phi.cols() << std::endl;
-
-        int Nrec; 
-        if ( settings.r == 0 )
-        {    
-            Nrec = Nmod( settings.En, K_pc);
-            std::cout << "Number of modes for the desired energy content (needs fixes for sPOD) : " << Nrec << std::endl;
-        }
-        else
-        {
-            Nrec = std::min(settings.r, settings.Ns -2); 
-            std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
-        }
-
-
-        if ( settings.flag_wdb_be == "YES" )
-        {
-            
-            std::cout << "Writing modes ..." << "\t";
-            write_modes_sPOD ( Phi.leftCols(Nrec), Coords, settings.flag_prob );
-            std::cout << "Complete!" << std::endl;
-
-            std::cout << "Writing Coefficients ..." << "\t";
-            write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
-            std::cout << "Complete!" << std::endl;
-            std::cout << std::endl;
-
-        }
-
-        if ( settings.flag_rec == "YES" )
-        {
-
-            for ( int nt = 0; nt < settings.t_rec.size(); nt++ )
-            {
-
-                std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
-
-                Eigen::MatrixXd Rec = Reconstruction_RDMD ( settings.t_rec[nt],
-                                                        t_vec,
-                                                        eig_vec.transpose(),
-                                                        Phi,
-                                                        settings.flag_prob,
-                                                        settings.flag_interp );
-
-                std::cout << "Done" << std::endl;
-
-                if ( settings.flag_mean == "YES" )
-                {
-
-                    for ( int i = 0; i < Rec.cols(); i++)
-                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
-
-                }
-
-                std::cout << "Writing reconstructed field ..." << "\t";
-
-                write_Reconstructed_fields ( Rec, Coords,
-                                        settings.out_file,
-                                        settings.flag_prob, nt );
-
-                std::cout << "Done" << std::endl << std::endl;
-            }
-
-        }
-
-
-    }
+//    if ( settings.flag_method[0] == "GPOD") {
+//
+//        std::vector<double> t_vec( settings.Ns );
+//        t_vec[0] = 0.0;
+//        double Dt = settings.Dt_cfd*settings.Ds;
+//
+//        for ( int i = 1; i < settings.Ns; i++ )
+//            t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
+//
+//        std::cout << std::endl;
+//        std::cout << "Initialized vector of times " << std::endl;
+//
+//        Eigen::VectorXd lambda(settings.Ns);
+//        Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
+//
+//        std::cout << "Extracting basis ... " << "\t";
+//        Eigen::MatrixXd Phi = GPOD_basis( Dt, sn_set,
+//                                lambda, K_pc, eig_vec);
+//
+//        std::cout << " Done! " << std::endl << std::endl;
+//
+//        std::cout << "Number of non-zero modes : " << Phi.cols() << std::endl;
+//
+//        int Nrec;
+//        if ( settings.r == 0 )
+//        {
+//            Nrec = Nmod( settings.En, K_pc);
+//            std::cout << "Number of modes for the desired energy content (needs fixes for sPOD) : " << Nrec << std::endl;
+//        }
+//        else
+//        {
+//            Nrec = std::min(settings.r, settings.Ns -2);
+//            std::cout << " Number of modes (fixed, needs fixes for sPOD) : " << Nrec << std::endl;
+//        }
+//
+//
+//        if ( settings.flag_wdb_be == "YES" )
+//        {
+//
+//            std::cout << "Writing modes ..." << "\t";
+//            write_modes_sPOD ( Phi.leftCols(Nrec), Coords, settings.flag_prob );
+//            std::cout << "Complete!" << std::endl;
+//
+//            std::cout << "Writing Coefficients ..." << "\t";
+//            write_coeffs_sPOD ( eig_vec.transpose(), t_vec, lambda );
+//            std::cout << "Complete!" << std::endl;
+//            std::cout << std::endl;
+//
+//        }
+//
+//        if ( settings.flag_rec == "YES" )
+//        {
+//
+//            for ( int nt = 0; nt < settings.t_rec.size(); nt++ )
+//            {
+//
+//                std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
+//
+//                Eigen::MatrixXd Rec = Reconstruction_RDMD ( settings.t_rec[nt],
+//                                                        t_vec,
+//                                                        eig_vec.transpose(),
+//                                                        Phi,
+//                                                        settings.flag_prob,
+//                                                        settings.flag_interp );
+//
+//                std::cout << "Done" << std::endl;
+//
+//                if ( settings.flag_mean == "YES" )
+//                {
+//
+//                    for ( int i = 0; i < Rec.cols(); i++)
+//                        Rec.col(i) = Rec.col(i) + mean.segment(i*Nr, Nr);
+//
+//                }
+//
+//                std::cout << "Writing reconstructed field ..." << "\t";
+//
+//                write_Reconstructed_fields ( Rec, Coords,
+//                                        settings.out_file,
+//                                        settings.flag_prob, nt );
+//
+//                std::cout << "Done" << std::endl << std::endl;
+//            }
+//
+//        }
+//
+//
+//    }
 
 
     std::cout << std::endl;    

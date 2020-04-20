@@ -148,8 +148,8 @@ Eigen::MatrixXcd HODMD_basis( const Eigen::MatrixXd &snap_set,  //Initial set of
 Eigen::MatrixXd GPOD_basis( const double Dt,
                                 const Eigen::MatrixXd &snap_set,
                                 Eigen::VectorXd &lam,
-                                Eigen::VectorXd &K_pc,
-                                Eigen::MatrixXd &eig_vec );
+                                Eigen::MatrixXd &Coeffs,
+                                const int &r);
 
 
 //DMD basis extraction with non-uniform sampling

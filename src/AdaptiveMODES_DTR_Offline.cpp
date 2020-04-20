@@ -499,6 +499,98 @@ int main( int argc, char *argv[] )
     }
 
 
+    //Defining scope for GPOD
+    std::vector<std::string>::iterator itGPOD;
+    itGPOD = std::find (methods.begin(), methods.end(), "GPOD");
+    if (itPOD != methods.end()) {
+        std::cout << "--------------------------------------" << std::endl ;
+        std::cout << "---Performing Gradient POD ResEval----" << std::endl ;
+        std::cout << "--------------------------------------" << std::endl ;
+        //Vector of MatrixXd where to store the evolution in time of conservative variables
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
+        std::vector<Eigen::MatrixXd> Phi(nC);
+        std::vector<Eigen::VectorXd> lambda(nC);
+
+        std::vector< std::vector<rbf> > surr_coefs(nC);
+        Eigen::VectorXd K_pc(settings.Ns);
+        Eigen::MatrixXd Coeffs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+        std::vector<int> Nm(nC);
+        int N_notZero;
+        //Check only for POD for now
+        for (int i = 0; i < nC; i++) {
+            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
+        }
+        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
+        for ( int ncons = 0; ncons < nC; ncons ++ ) {
+            std::cout << "Processing conservative variable " << ncons << std::endl;
+            Phi[ncons] = GPOD_basis( settings.Dt_cfd*settings.Ds,
+                                 sn_set.middleRows(ncons * Nr, Nr),
+                                      lambda[ncons], Coeffs, settings.r );
+            N_notZero = Phi[ncons].cols();
+            if (settings.r == 0) Nm[ncons] = Nmod(settings.En, K_pc);
+            else Nm[ncons] = std::min(settings.r, N_notZero);
+            std::cout << "Size of matrix Coeffs : [" << Coeffs.rows() << "; " << Coeffs.cols() << "]" << std::endl;
+            std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
+            surr_coefs[ncons] = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
+        }
+        std::cout << std::endl;
+
+//        std::cout << "Computing SPOD " << Nf[nfj] << " reconstruction for each conservative variable ... " << "\n";
+
+        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
+            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
+
+            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+                std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+                for (int ncons = 0; ncons < nC; ncons++) {
+
+                    Eigen::MatrixXd coef_t(3, Nm[ncons]);
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                      settings.t_res[itr] - settings.Dt_res[idtr],
+                                                      settings.t_res[itr]};
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm[ncons]; i++)
+                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                    }
+
+                    //    }
+                    Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm[ncons]) * coef_t.transpose();
+                }
+
+                if (settings.flag_mean == "IC") {
+                    for (int it = 0; it < 3; it++)
+                        Sn_Cons_time.col(it) += Ic;
+                }
+
+                std::string mv_string;
+                if (settings.Ns == settings.r)
+                    mv_string = "mv history_rbm_00002.csv history_gpod_AllModes_" +
+                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
+                else
+                    mv_string = "mv history_rbm_00002.csv history_gpod_" +
+                                std::to_string(Nm[0]) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
+                                ".csv";
+
+                len_s = mv_string.length();
+                char mv_sys_call[len_s + 10];
+                strcpy(mv_sys_call, mv_string.c_str());
+                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
+                //Executing SU2, removing all useless files, renaming files with residuals
+                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
+                auto opt = std::system(su2_sys_call);
+                opt = std::system(rmf_sys_call);
+                opt = std::system(mv_sys_call);
+
+                std::cout << std::endl;
+            }
+        }
+    }
+
     //Defining scope for DMD adaptive sampling
     std::vector<std::string>::iterator itDMD_adaptsample;
     itDMD_adaptsample = std::find (methods.begin(), methods.end(), "DMD-AS");
