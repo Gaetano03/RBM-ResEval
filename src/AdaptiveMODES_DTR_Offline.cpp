@@ -116,6 +116,15 @@ int main( int argc, char *argv[] )
         std::cout << "Using data without subtracting any reference state" << std::endl << std::endl;
     }
 
+    //If gust is active we need free stream velocity
+    double M = settings.Mach;
+    double T = settings.T;
+    double alpha = M_PI*settings.alpha/double(180);
+    double R = 287.058;
+    double gamma = 1.4;
+
+    double V_inf = M*std::sqrt(gamma*R*T)*std::cos(alpha);
+
     auto methods = settings.flag_method;
     //Defining common scope for POD-SPOD
     std::vector<std::string>::iterator itPOD;
@@ -160,10 +169,10 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
 
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
                 for (int ncons = 0; ncons < nC; ncons++) {
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
@@ -315,9 +324,9 @@ int main( int argc, char *argv[] )
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
 
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residual at time t = " << settings.t_res[itr] << std::endl;
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
                 std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
                                                   settings.t_res[itr] - settings.Dt_res[idtr],
                                                   settings.t_res[itr]};
@@ -437,9 +446,9 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
 
                 for (int ncons = 0; ncons < nC; ncons++) {
 
@@ -540,10 +549,10 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr] );
 
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
                 for (int ncons = 0; ncons < nC; ncons++) {
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
@@ -641,10 +650,10 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
-            Modify_su2_cfg(su2_conf, su2_conf_new, settings.Dt_res[idtr]);
 
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
 
                     Eigen::MatrixXcd coef_t(3, Nm);
 

@@ -552,7 +552,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 }
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res ) {
+void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res, double t_res, double U_inf ) {
 
     std::ifstream inFile ( file_in );
     std::ofstream outFile ( file_out );
@@ -575,8 +575,11 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res )
 
             if ( name == "UNST_TIMESTEP" )
                 outFile << "UNST_TIMESTEP=" << std::setprecision(16) << dt_res;
-            else
-                outFile << line;
+            else if ( name == "GUST_BEGIN_LOC" ) {
+                double gust_loc = std::stod(line.substr(delimiterPos + 1)) + t_res*U_inf;
+                outFile << "GUST_BEGIN_LOC=" << std::setprecision(16) << gust_loc;
+            }else
+                    outFile << line;
 
             outFile << std::endl;
 
