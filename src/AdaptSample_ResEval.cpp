@@ -145,8 +145,16 @@ int main( int argc, char *argv[] )
     std::cout << "Positions sampled in time \n" << Ipos.transpose() << std::endl;
     std::cout << "From N = " << Nsamples << " uniform samples we get Nm = " << Nm << "non-uniform samples" << std::endl;
 
+    //If gust is active we need free stream velocity
+    double M = settings.Mach;
+    double T = settings.T;
+    double alpha = M_PI*settings.alpha/double(180);
+    double R = 287.058;
+    double gamma = 1.4;
 
- //Defining common scope for uniform sampling
+    double V_inf = M*std::sqrt(gamma*R*T)*std::cos(alpha);
+
+    //Defining common scope for uniform sampling
     {
 
         //Vector of MatrixXd where to store the evolution in time of conservative variables
@@ -232,7 +240,7 @@ int main( int argc, char *argv[] )
 
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[0] );
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[0], settings.t_res[itr], V_inf );
                 if ( settings.flag_method[0] == "SPOD" ) {
 
                     Eigen::MatrixXd coef_t(3, Nm);
@@ -463,7 +471,7 @@ int main( int argc, char *argv[] )
         if ( decision == "-e" ) {
             for ( int itr = 0; itr < settings.t_res.size(); itr++ ) {
                 std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
-
+                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[0], settings.t_res[itr], V_inf );
                 if ( settings.flag_method[0] == "SPOD" ) {
                     Eigen::MatrixXd coef_t(3, Nm);
 
