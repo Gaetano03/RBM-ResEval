@@ -573,13 +573,14 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res, 
             delimiterPos = line.find("=");
             name = line.substr(0, delimiterPos);
 
-            if ( name == "UNST_TIMESTEP" )
+            if ( name == "UNST_TIMESTEP" ) {
                 outFile << "UNST_TIMESTEP=" << std::setprecision(16) << dt_res;
-            else if ( name == "GUST_BEGIN_LOC" ) {
+            } else if ( name == "GUST_BEGIN_LOC" ) {
                 double gust_loc = std::stod(line.substr(delimiterPos + 1)) + t_res*U_inf;
                 outFile << "GUST_BEGIN_LOC=" << std::setprecision(16) << gust_loc;
-            }else
-                    outFile << line;
+            } else {
+                outFile << line;
+            }
 
             outFile << std::endl;
 

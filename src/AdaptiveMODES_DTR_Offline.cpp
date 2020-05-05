@@ -511,7 +511,7 @@ int main( int argc, char *argv[] )
     //Defining scope for GPOD
     std::vector<std::string>::iterator itGPOD;
     itGPOD = std::find (methods.begin(), methods.end(), "GPOD");
-    if (itPOD != methods.end()) {
+    if (itGPOD != methods.end()) {
         std::cout << "--------------------------------------" << std::endl ;
         std::cout << "---Performing Gradient POD ResEval----" << std::endl ;
         std::cout << "--------------------------------------" << std::endl ;

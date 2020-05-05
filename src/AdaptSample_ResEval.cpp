@@ -52,9 +52,6 @@ int main( int argc, char *argv[] )
 //    Nf[4] = settings.Ns;
 
     int nC = settings.Cols.size();
-    double alpha = settings.alpha;
-    double beta = settings.beta;
-    if (settings.ndim == 2) beta = 0.0;
 
     std::stringstream buffer;
     buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
@@ -149,6 +146,8 @@ int main( int argc, char *argv[] )
     double M = settings.Mach;
     double T = settings.T;
     double alpha = M_PI*settings.alpha/double(180);
+    double beta = M_PI*settings.beta/double(180);
+    if (settings.ndim == 2) beta = 0.0;
     double R = 287.058;
     double gamma = 1.4;
 
@@ -343,7 +342,7 @@ int main( int argc, char *argv[] )
                 strcpy(mv_sys_call, mv_string.c_str());
                 std::cout << "Writing time reconstruction " << std::endl;
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary);
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto otp = std::system(su2_sys_call);
@@ -548,7 +547,7 @@ int main( int argc, char *argv[] )
                 strcpy(mv_sys_call, mv_string.c_str());
                 std::cout << "Writing time reconstruction " << std::endl;
                 // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, alpha, beta, binary);
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto otp = std::system(su2_sys_call);
