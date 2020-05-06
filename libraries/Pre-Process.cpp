@@ -113,14 +113,14 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
 
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
-    if ( nC == 2 )
+    if ( nC == 2 && settings.ndim == 2 )
     {
         Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 
-    } else if ( nC == 3 )
+    } else if ( nC == 3 && settings.ndim == 3 )
     {
         Ic.head(Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
@@ -128,12 +128,22 @@ Eigen::VectorXd IC ( Eigen::MatrixXd &sn_set, prob_settings settings, int nC, in
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 
-    } else if ( nC == 4 ) //Laminar 2D Navier-Stokes
+    } else if ( nC == 4 && settings.ndim == 2) //Laminar 2D Navier-Stokes
     {
         Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
         Ic.segment(3*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
+        for ( int it = 0; it < settings.Ns; it++ )
+            sn_set.col(it) -= Ic;
+
+    } else if ( nC == 5 && settings.ndim == 3 ) //Laminar 3D Navier-Stokes
+    {
+        Ic.head(Nr) = rho*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(Nr, Nr) = rhoU*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(2*Nr, Nr) = rhoV*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(3*Nr, Nr) = rhoW*Eigen::MatrixXd::Ones(Nr,1);
+        Ic.segment(4*Nr, Nr) = rhoE*Eigen::MatrixXd::Ones(Nr,1);
         for ( int it = 0; it < settings.Ns; it++ )
             sn_set.col(it) -= Ic;
 

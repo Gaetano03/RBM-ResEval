@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Mean/Initial condition
     Eigen::VectorXd mean = sn_set.rowwise().mean();
-    int nC = settings.ndim;
+    int nC = settings.Cols.size();
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     if ( settings.flag_mean == "YES" ) {
