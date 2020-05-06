@@ -166,6 +166,10 @@ int main( int argc, char *argv[] )
     int index1, index2;
     Eigen::VectorXd Err_interp(Nmethods);
 
+    std::vector<double> t_pod = {};
+    std::vector<double> t_dmd = {};
+    std::vector<double> t_rdmd = {};
+
     for ( int i = 0; i < settings.t_rec.size(); i++ ) {
 
         Eigen::VectorXd Rec_rhoU(Nr);
@@ -192,52 +196,59 @@ int main( int argc, char *argv[] )
 
         for ( int iDim = 0; iDim < settings.ndim; iDim ++ ) {
 
-            if ( iDim == 0 ){
+            if (iDim == 0) {
                 Err_RBM = Err_RBM_rhoU;
                 Idx_RBM = Idx_RBM_rhoU;
             }
-            if ( iDim == 1 ) {
+            if (iDim == 1) {
                 Err_RBM = Err_RBM_rhoV;
                 Idx_RBM = Idx_RBM_rhoV;
             }
-            if ( iDim == 2 ) {
+            if (iDim == 2) {
                 Err_RBM = Err_RBM_rhoW;
                 Idx_RBM = Idx_RBM_rhoW;
             }
 
             int count = 0;
             double Dt = t_vec[index2] - t_vec[index1];
-            for ( int k = 0; k < Nmethods; k ++ ) {
-                Err_interp(k) = Err_RBM(index1,k) + (Err_RBM(index2,k) - Err_RBM(index1,k))/
-                                    Dt*(settings.t_rec[i] - t_vec[index1]);
+            for (int k = 0; k < Nmethods; k++) {
+                Err_interp(k) = Err_RBM(index1, k) + (Err_RBM(index2, k) - Err_RBM(index1, k)) /
+                                                     Dt * (settings.t_rec[i] - t_vec[index1]);
             }
             std::cout << std::endl;
-            double eps = Err_interp.minCoeff( &best_method_idx );
+            double eps = Err_interp.minCoeff(&best_method_idx);
             // std::cout << "Min coeff = " << eps << " in position " << best_method_idx << std::endl;
 
             //FIX THIS FUNCTION
-            std::string method = method_selected ( best_method_idx, Nf_SPOD, Nf );
+            std::string method = method_selected(best_method_idx, Nf_SPOD, Nf);
 //            std::cout << "Best method is " << method << " and Nf ( value meaningful only for SPOD ) : " << Nf_SPOD << std::endl;
-            std::cout << "Best method is " << method << " using a number of modes equal to : " << Idx_RBM(index1,best_method_idx) << std::endl;
+            std::cout << "Best method is " << method << " using a number of modes equal to : "
+                      << Idx_RBM(index1, best_method_idx) << std::endl;
             std::cout << " Error : " << Err_interp(best_method_idx) << std::endl;
 
-            std::cout << "Computing Reconstruction using selected method " << std::endl;
+            std::cout << "Computing Reconstruction using selected methods " << std::endl;
 
             if ( method == "SPOD" )
             {
                 Eigen::VectorXd lambda(settings.Ns);
                 Eigen::VectorXd K_pc(settings.Ns);
-                Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);        
+                Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
 
                 Eigen::MatrixXd Phi = SPOD_basis( sn_set.middleRows(iDim*Nr,Nr),
                                         lambda, K_pc, eig_vec,
                                         Nf_SPOD,
-                                        settings.flag_bc, 
-                                        settings.flag_filter,  
+                                        settings.flag_bc,
+                                        settings.flag_filter,
                                         settings.sigma);
 
                 int temp2 = Idx_RBM(index1,best_method_idx);
                 int temp1 = Phi.cols();
+
+                if ( temp2 > temp1 ) {
+                    std::cout << "Something wrong in residual evaluation\n Exiting ... " << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+
                 int Nm = std::min(temp1, temp2);
 
 //                if ( settings.r == 0 )
@@ -397,17 +408,17 @@ int main( int argc, char *argv[] )
                 
                 std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";        
                 //You can define rank DMD at each time step from the config file ( use -1 for the adaptive study adviced)
+
+                int Nm = Idx_RBM(index1,best_method_idx);
                 Phi = RDMD_modes_coefs ( sn_set.middleRows(iDim*Nr,Nr),
                                         Coefs,
                                         lambda,
                                         K_pc,     
                                         -1, //performing DMD with all non-zero eigenvalues
-                                        settings.r_RDMD,
+                                        Nm,
                                         settings.En );
                 
 
-
-                int Nm = Idx_RBM(index1,best_method_idx);
 //                if ( settings.r == 0 )
 //                {
 //                    Nm = Nmod(settings.En, K_pc);

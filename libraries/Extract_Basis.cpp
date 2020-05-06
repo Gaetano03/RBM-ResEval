@@ -1472,13 +1472,23 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
     }
 
     for ( int i = 0; i <= rdmd; i++ ) { //Considering also i = rdmd only for computing energy at the last iteration
-        //Perform pure DMD
-        Eigen::MatrixXcd Phi = DMD_Adaptive_basis ( res_set,
-                                                    lam_DMD,
-                                                    eig_vec_DMD,
-                                                    lam_POD,
-                                                    eig_vec_POD,
-                                                    tpos );
+        //Perform pure DMD with equal time shifts
+//        Eigen::MatrixXcd Phi = DMD_Adaptive_basis ( res_set,
+//                                                    lam_DMD,
+//                                                    eig_vec_DMD,
+//                                                    lam_POD,
+//                                                    eig_vec_POD,
+//                                                    tpos );
+
+        //Perform pure POD with non equal time shifts
+        Eigen::VectorXi Ipos = Inverse_POS(res_set, Ns);
+        Eigen::MatrixXd sub_res_set = indexing(res_set, Eigen::ArrayXi::LinSpaced(Np,0,Np-1),Ipos);
+        Eigen::MatrixXcd Phi = DMD_basis(sub_res_set,
+                                         lam_DMD,
+                                         eig_vec_DMD,
+                                         lam_POD,
+                                         eig_vec_POD,
+                                         -1);
 
         if ( Phi.cols() == 0 )  break;
         if ( count == 0)    svd_old = lam_POD.cwiseProduct(lam_POD);

@@ -102,7 +102,8 @@ int main( int argc, char *argv[] )
             }
             else
             {
-                Nm = std::min(settings.r,settings.Ns);
+                int Nmax = Phi.cols();
+                Nm = std::min(settings.r,Nmax);
                 std::cout << "Number of modes (fixed): " << Nm << std::endl;
             }
 
