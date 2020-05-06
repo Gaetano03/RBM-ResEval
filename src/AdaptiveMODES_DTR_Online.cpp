@@ -166,7 +166,7 @@ int main( int argc, char *argv[] )
 
     std::cout << "Initializing Vector of time ... " << std::endl;
     Eigen::VectorXd t_vec( settings.t_res.size());
-//    for ( int it = 0; it < settings.t_res.size(); it++ ) t_vec(it) = settings.t_res[it];
+    for ( int it = 0; it < settings.t_res.size(); it++ ) t_vec(it) = settings.t_res[it];
 //    Eigen::VectorXd t_vec( settings.Ns*settings.Ds - 1);
 //    t_vec(0) = (double)settings.nstart*settings.Dt_cfd;
 //    for ( int i = 1; i < settings.Ns*settings.Ds-1; i++ )
