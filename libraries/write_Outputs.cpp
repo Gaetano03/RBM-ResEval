@@ -750,7 +750,7 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
         flow_data << "\"PointID\"" << " ";
         flow_data << "\"x\"" << " ";
         flow_data << "\"y\"" << " ";
-        flow_data << "\"z\"" << " ";
+        if ( nCons == 5 ) flow_data << "\"z\"" << " ";
 
         std::string RecRho;
         std::string Recx;
