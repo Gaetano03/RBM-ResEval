@@ -20,9 +20,9 @@ int main( int argc, char *argv[] )
     
     //Reading configuration file
     Read_cfg( filecfg, settings );
-    if ( settings.flag_prob != "VECTOR-2D" && settings.flag_prob != "VECTOR-3D"){
-        std::cout << "Reconstruction with residual evaluation only implemented for Momentum \n "
-                     "FLAG_PROB must be VECTOR-2D or VECTOR-3D\n Exiting ..." << std::endl;
+    if ( settings.flag_prob != "CONSERVATIVE"){
+        std::cout << "Reconstruction with residual evaluation only implemented for COnservative Variables flag \n "
+                     "FLAG_PROB must be CONSERVATIVE\n Exiting ..." << std::endl;
         exit(EXIT_FAILURE);
     }
     double t_0 = settings.nstart*settings.Dt_cfd;
@@ -84,15 +84,18 @@ int main( int argc, char *argv[] )
 //        "history_spod_3.csv", "history_spod_4.csv", "history_dmd.csv", "history_rdmd.csv"};
 
     Eigen::MatrixXd Err_RBM = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXd Err_RBM_rho = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoV = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoU = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoW = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXd Err_RBM_rhoE = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
 
     Eigen::MatrixXi Idx_RBM = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+    Eigen::MatrixXi Idx_RBM_rho = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXi Idx_RBM_rhoV = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXi Idx_RBM_rhoU = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXi Idx_RBM_rhoW = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-
+    Eigen::MatrixXi Idx_RBM_rhoE = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
 
 
     for ( int i = 0; i < resfilename.size(); i++ )
@@ -124,21 +127,28 @@ int main( int argc, char *argv[] )
                 idx = std::stoi(token);
 
                 if (settings.ndim == 3) {
-                    if (count == 1) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
-                    if (count == 2) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
-                    if (count == 3) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
-                    if (count == 4) Idx_RBM_rhoU(n_row, i) = idx;
-                    if (count == 5) Idx_RBM_rhoV(n_row, i) = idx;
-                    if (count == 6) Idx_RBM_rhoW(n_row, i) = idx;
+                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 4) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
+                    if (count == 5) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+                    if (count == 6) Idx_RBM_rho(n_row, i) = idx;
+                    if (count == 7) Idx_RBM_rhoU(n_row, i) = idx;
+                    if (count == 8) Idx_RBM_rhoV(n_row, i) = idx;
+                    if (count == 9) Idx_RBM_rhoW(n_row, i) = idx;
+                    if (count == 10) Idx_RBM_rhoE(n_row, i) = idx;
 
                 }
 
                 if (settings.ndim == 2) {
-                    if (count == 1) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
-                    if (count == 2) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
-                    if (count == 3) Idx_RBM_rhoU(n_row, i) = idx;
-                    if (count == 4) Idx_RBM_rhoV(n_row, i) = idx;
-
+                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 4) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+                    if (count == 5) Idx_RBM_rho(n_row, i) = idx;
+                    if (count == 6) Idx_RBM_rhoU(n_row, i) = idx;
+                    if (count == 7) Idx_RBM_rhoV(n_row, i) = idx;
+                    if (count == 8) Idx_RBM_rhoE(n_row, i) = idx;
                 }
 
                 count ++;
@@ -156,7 +166,7 @@ int main( int argc, char *argv[] )
 
     std::cout << "Initializing Vector of time ... " << std::endl;
     Eigen::VectorXd t_vec( settings.t_res.size());
-    for ( int it = 0; it < settings.t_res.size(); it++ ) t_vec(it) = settings.t_res[it];
+//    for ( int it = 0; it < settings.t_res.size(); it++ ) t_vec(it) = settings.t_res[it];
 //    Eigen::VectorXd t_vec( settings.Ns*settings.Ds - 1);
 //    t_vec(0) = (double)settings.nstart*settings.Dt_cfd;
 //    for ( int i = 1; i < settings.Ns*settings.Ds-1; i++ )
@@ -172,9 +182,11 @@ int main( int argc, char *argv[] )
 
     for ( int i = 0; i < settings.t_rec.size(); i++ ) {
 
+        Eigen::VectorXd Rec_rho(Nr);
         Eigen::VectorXd Rec_rhoU(Nr);
         Eigen::VectorXd Rec_rhoV(Nr);
         Eigen::VectorXd Rec_rhoW(Nr);
+        Eigen::VectorXd Rec_rhoE(Nr);
 
         std::vector<int> pos = {};
         std::cout << " Adaptive reconstruction at time : " << settings.t_rec[i] << std::endl;
@@ -194,20 +206,33 @@ int main( int argc, char *argv[] )
             continue;
         }
 
-        for ( int iDim = 0; iDim < settings.ndim; iDim ++ ) {
+        for ( int iDim = 0; iDim < settings.ndim + 2; iDim ++ ) {
 
             if (iDim == 0) {
+                Err_RBM = Err_RBM_rho;
+                Idx_RBM = Idx_RBM_rho;
+            }
+            if (iDim == 1) {
                 Err_RBM = Err_RBM_rhoU;
                 Idx_RBM = Idx_RBM_rhoU;
             }
-            if (iDim == 1) {
+            if (iDim == 2) {
                 Err_RBM = Err_RBM_rhoV;
                 Idx_RBM = Idx_RBM_rhoV;
             }
-            if (iDim == 2) {
+            if (iDim == 3 && settings.ndim == 2) {
+                Err_RBM = Err_RBM_rhoE;
+                Idx_RBM = Idx_RBM_rhoE;
+            }
+            if (iDim == 3 && settings.ndim == 3) {
                 Err_RBM = Err_RBM_rhoW;
                 Idx_RBM = Idx_RBM_rhoW;
             }
+            if (iDim == 4 ) {
+                Err_RBM = Err_RBM_rhoE;
+                Idx_RBM = Idx_RBM_rhoE;
+            }
+
 
             int count = 0;
             double Dt = t_vec[index2] - t_vec[index1];
@@ -275,14 +300,19 @@ int main( int argc, char *argv[] )
                                     "SCALAR",
                                     settings.flag_interp ) ;
 
-                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(4*Nr,Nr);
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(2*Nr,Nr);
-                
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(4*Nr,Nr);
             }
 
 
@@ -384,14 +414,19 @@ int main( int argc, char *argv[] )
                                                             lambda_DMD,
                                                             "SCALAR" );
 
-                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.real().col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.real().col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.real().col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.real().col(0) + Ic.middleRows(4*Nr,Nr);
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.real().col(0) + mean.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.real().col(0) + mean.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.real().col(0) + mean.middleRows(2*Nr,Nr);
-
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.real().col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.real().col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.real().col(0) + mean.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.real().col(0) + mean.middleRows(4*Nr,Nr);
 
             }
 
@@ -445,35 +480,43 @@ int main( int argc, char *argv[] )
                                                             "SCALAR",
                                                             settings.flag_interp );
 
-                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.col(0) + Ic.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(4*Nr,Nr);
 
-                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(0,Nr);
-                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(Nr,Nr);
-                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(2*Nr,Nr);
-
+                if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.col(0) + mean.middleRows(0,Nr);
+                if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(Nr,Nr);
+                if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(2*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(4*Nr,Nr);
 
             } 
 
         }
         
-        Eigen::MatrixXd Rec_M(Nr, settings.ndim); 
+        Eigen::MatrixXd Rec_M(Nr, settings.ndim + 2);
         
         if ( settings.ndim == 2)
         {
-            Rec_M.col(0) = Rec_rhoU;
-            Rec_M.col(1) = Rec_rhoV;
+            Rec_M.col(0) = Rec_rho;
+            Rec_M.col(1) = Rec_rhoU;
+            Rec_M.col(2) = Rec_rhoV;
+            Rec_M.col(3) = Rec_rhoE;
         } else
         {
-            Rec_M.col(0) = Rec_rhoU;
-            Rec_M.col(1) = Rec_rhoV;
-            Rec_M.col(2) = Rec_rhoW;
+            Rec_M.col(0) = Rec_rho;
+            Rec_M.col(1) = Rec_rhoU;
+            Rec_M.col(2) = Rec_rhoV;
+            Rec_M.col(3) = Rec_rhoW;
+            Rec_M.col(4) = Rec_rhoE;
         }
         
         std::cout << "Writing reconstructed field ..." << "\t";
-        if (settings.ndim == 2) write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "VECTOR-2D", i );
-        if (settings.ndim == 3) write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "VECTOR-3D", i );
+        write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "CONSERVATIVE", i );
         std::cout << "Done" << std::endl << std::endl << std::endl;
 
     }

@@ -742,7 +742,59 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
     flow_data.close();
 
 
-    } else 
+    } else if ( flag_prob == "CONSERVATIVE" )
+    {
+
+        int nCons = Rec.cols();
+        // Write row of Headers
+        flow_data << "\"PointID\"" << " ";
+        flow_data << "\"x\"" << " ";
+        flow_data << "\"y\"" << " ";
+        flow_data << "\"z\"" << " ";
+
+        std::string RecRho;
+        std::string Recx;
+        std::string Recy;
+        std::string Recz;
+        std::string RecE;
+
+        RecRho = "\"Density\"";
+        flow_data << RecRho << " ";
+        Recx = "\"Momentum_X\"";
+        flow_data << Recx << " ";
+        Recy = "\"Momentum_Y\"";
+        flow_data << Recy << " ";
+        if ( nCons == 5 ) {
+            Recz = "\"Momentum_Z\"";
+            flow_data << Recz << " ";
+        }
+
+        RecE = "\"Energy\"";
+        flow_data << RecE << " ";
+        flow_data << std::endl;
+
+        //Write fields
+        for ( int i = 0; i < Nr; i++ )
+        {
+
+            flow_data << i+1 << " ";
+            flow_data << std::setprecision(12) << std::scientific <<  Coords(i,0)  << " ";
+            flow_data << std::setprecision(12) << std::scientific << Coords(i,1)  << " ";
+            if ( nCons == 5 ) flow_data << std::setprecision(12) << std::scientific << Coords(i,2)  << " ";
+            flow_data << std::setprecision(12) << std::scientific << Rec(i,0) <<  " ";
+            flow_data << std::setprecision(12) << std::scientific << Rec(i,1) <<  " ";
+            flow_data << std::setprecision(12) << std::scientific << Rec(i,2) <<  " ";
+            flow_data << std::setprecision(12) << std::scientific << Rec(i,3) <<  " ";
+            if ( nCons == 5 ) flow_data << std::setprecision(12) << std::scientific << Rec(i,4) <<  " ";
+
+            flow_data << std::endl;
+
+        }
+        // Close file
+        flow_data.close();
+
+
+    } else
     {
 
         std::cout << "Set well problem flag! Exiting ..." << std::endl;
