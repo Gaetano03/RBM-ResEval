@@ -21,6 +21,11 @@ int main( int argc, char *argv[] )
     
     //Reading configuration file
     Read_cfg( filecfg, settings );
+    if ( settings.flag_prob != "CONSERVATIVE"){
+        std::cout << "Reconstruction with residual evaluation only implemented for Conservative Variables flag \n "
+                     "FLAG_PROB must be CONSERVATIVE\n Exiting ..." << std::endl;
+        exit(EXIT_FAILURE);
+    }
     double t_0 = settings.nstart*settings.Dt_cfd;
     double alpha = settings.alpha;
     double beta  = settings.beta;
@@ -71,14 +76,16 @@ int main( int argc, char *argv[] )
     for ( int i = 0; i < settings.t_rec.size(); i++ )
     {
 
+        Eigen::VectorXd Rec_rho(Nr);
         Eigen::VectorXd Rec_rhoU(Nr);
         Eigen::VectorXd Rec_rhoV(Nr);
         Eigen::VectorXd Rec_rhoW(Nr);
+        Eigen::VectorXd Rec_rhoE(Nr);
 
         std::vector<int> pos = {};
         std::cout << " POD reconstruction at time : " << settings.t_rec[i] << std::endl;
 
-        for ( int iDim = 0; iDim < settings.ndim; iDim ++ )
+        for ( int iDim = 0; iDim < settings.ndim + 2; iDim ++ )
         {
 
 
@@ -120,28 +127,40 @@ int main( int argc, char *argv[] )
                                 "SCALAR",
                                 settings.flag_interp ) ;
 
-            if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(0,Nr);
-            if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(Nr,Nr);
-            if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+            if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.col(0) + Ic.middleRows(0,Nr);
+            if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(Nr,Nr);
+            if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
+            if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+            if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + Ic.middleRows(3*Nr,Nr);
+            if ( iDim == 4 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + Ic.middleRows(4*Nr,Nr);
 
+            if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.col(0) + mean.middleRows(0,Nr);
+            if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(Nr,Nr);
+            if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(2*Nr,Nr);
+            if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+            if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+            if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(4*Nr,Nr);
         }
         
-        Eigen::MatrixXd Rec_M(Nr, settings.ndim); 
+        Eigen::MatrixXd Rec_M(Nr, settings.ndim + 2);
         
         if ( settings.ndim == 2)
         {
-            Rec_M.col(0) = Rec_rhoU;
-            Rec_M.col(1) = Rec_rhoV;
+            Rec_M.col(0) = Rec_rho;
+            Rec_M.col(1) = Rec_rhoU;
+            Rec_M.col(2) = Rec_rhoV;
+            Rec_M.col(3) = Rec_rhoE;
         } else
         {
-            Rec_M.col(0) = Rec_rhoU;
-            Rec_M.col(1) = Rec_rhoV;
-            Rec_M.col(2) = Rec_rhoW;
+            Rec_M.col(0) = Rec_rho;
+            Rec_M.col(1) = Rec_rhoU;
+            Rec_M.col(2) = Rec_rhoV;
+            Rec_M.col(3) = Rec_rhoW;
+            Rec_M.col(4) = Rec_rhoE;
         }
         
         std::cout << "Writing reconstructed field ..." << "\t";
-        if (settings.ndim == 2) write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "VECTOR-2D", i );
-        if (settings.ndim == 3) write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "VECTOR-3D", i );
+        write_Reconstructed_fields ( Rec_M, Coords, settings.out_file, "CONSERVATIVE", i );
         std::cout << "Done" << std::endl << std::endl << std::endl;
 
     }
