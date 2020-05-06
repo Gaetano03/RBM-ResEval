@@ -310,8 +310,8 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.col(0) + mean.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(2*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
                 if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(4*Nr,Nr);
             }
 
@@ -424,8 +424,8 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.real().col(0) + mean.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.real().col(0) + mean.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.real().col(0) + mean.middleRows(2*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.real().col(0) + mean.middleRows(3*Nr,Nr);
                 if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.real().col(0) + mean.middleRows(4*Nr,Nr);
 
             }
@@ -490,8 +490,8 @@ int main( int argc, char *argv[] )
                 if ( iDim == 0 && settings.flag_mean == "YES" ) Rec_rho = Rec.col(0) + mean.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "YES" ) Rec_rhoU = Rec.col(0) + mean.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "YES" ) Rec_rhoV = Rec.col(0) + mean.middleRows(2*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "IC" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
-                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "IC" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(3*Nr,Nr);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "YES" ) Rec_rhoW = Rec.col(0) + mean.middleRows(3*Nr,Nr);
                 if ( iDim == 4 && settings.flag_mean == "YES" ) Rec_rhoE = Rec.col(0) + mean.middleRows(4*Nr,Nr);
 
             } 
