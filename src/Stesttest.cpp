@@ -58,7 +58,14 @@ int main () {
     else
         std::cout << "Element not found in myvector\n";
 
+    Eigen::VectorXd bb(3);
+    bb(0)=3.2;
+    bb(1)=3.2;
+    bb(2)=3.2;
+    int index;
+    double minval = bb.minCoeff(&index);
 
+    std::cout << "Min val in bb " << minval << " at " << index << std::endl;
 
     return 0;
 }

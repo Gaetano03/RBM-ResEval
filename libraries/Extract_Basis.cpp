@@ -418,10 +418,11 @@ Eigen::MatrixXcd DMD_basis ( const Eigen::MatrixXd &snap_set,
     // std::cout << "Atilde :\n " << Atilde << std::endl << std::endl; 
 
     //Eigen::VectorXcd Full_lam;
-    if ( Atilde.size() == 1 && Atilde(0,0) == 0.0 )
+    if ( Atilde.size() == 1 && std::abs(Atilde(0,0)) < 1e-15 )
     {
         lam = Eigen::VectorXcd::Zero(1);
         eig_vec = Eigen::MatrixXcd::Ones(1,1);
+        return phi;
     }
     else 
     {
@@ -909,7 +910,11 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                 for ( int k = 0; k < Np; k++ )
                     sum += Phi_r(k,j)*Phi_r(k,j);
 
-                Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+                if ( std::abs(sum) < 1e-15 ) {
+                    Phi_r.col(j) = Eigen::MatrixXd::Zero(Np,1);
+                } else {
+                    Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+                }
             }
 
             Eigen::VectorXd residual_average(Phi.cols());
@@ -971,7 +976,11 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
                 for ( int k = 0; k < Np; k++ )
                     sum += Phi_r(k,j)*Phi_r(k,j);
 
-                Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+                if ( std::abs(sum) < 1e-15 ) {
+                    Phi_r.col(j) = Eigen::MatrixXd::Zero(Np,1);
+                } else {
+                    Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+                }
             }
             Eigen::VectorXd residual_average(Phi.cols());
             int min_idx;
@@ -1480,7 +1489,7 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
 //                                                    eig_vec_POD,
 //                                                    tpos );
 
-        //Perform pure POD with non equal time shifts
+        //Perform pure DMD with non equal time shifts
         Eigen::VectorXi Ipos = Inverse_POS(res_set, Ns);
         Eigen::MatrixXd sub_res_set = indexing(res_set, Eigen::ArrayXi::LinSpaced(Np,0,Np-1),Ipos);
         Eigen::MatrixXcd Phi = DMD_basis(sub_res_set,
@@ -1494,7 +1503,7 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
         if ( count == 0)    svd_old = lam_POD.cwiseProduct(lam_POD);
         svd_new = lam_POD.cwiseProduct(lam_POD);
         eps = (svd_old.sum() - svd_new.sum())/svd_old.sum();
-
+//        std::cout << "lambdaPOD :" << lam_POD.transpose() << std::endl;
         if ( i > 0 )    K_pc(i-1) = eps;
 
         count ++;
@@ -1511,8 +1520,13 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
             for ( int k = 0; k < Np; k++ )
                 sum += Phi_r(k,j)*Phi_r(k,j);
 
-            Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+            if ( std::abs(sum) < 1e-15 ) {
+                Phi_r.col(j) = Eigen::MatrixXd::Zero(Np,1);
+            } else {
+                Phi_r.col(j) = Phi_r.col(j)/std::sqrt(sum);
+            }
         }
+
         Eigen::VectorXd residual_average(Phi.cols());
         int min_idx;
 
@@ -1522,22 +1536,18 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
                 residual_time = res_set.col(nt) - coef_mod(r_dmd, nt)*Phi_r.col(r_dmd);
                 residual_time_norm(nt) = residual_time.norm();
             }
-
             double mean = 0.0;
             for ( int m = 0; m < Ns; m++ )
                 mean += residual_time_norm(m);
 
             residual_average(r_dmd) = mean/Ns;
-
         }
-
+        std::cout << "ResAverage = : " << residual_average(0) <<  std::endl;
         double min_Val = residual_average.minCoeff( &min_idx );
-
         Phi_RDMD.col(i) = Phi_r.col(min_idx);
         Coefs.row(i) = coef_mod.row(min_idx);
 //        lambda(i) = lam_DMD(min_idx).real();
         res_set = res_set - Phi_RDMD.col(i)*Coefs.row(i);
-
     }
 
     return Phi_RDMD;
