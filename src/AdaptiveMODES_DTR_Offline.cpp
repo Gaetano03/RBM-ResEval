@@ -258,21 +258,21 @@ int main( int argc, char *argv[] )
             std::cout << "Processing conservative variable " << ncons << std::endl;
 //            std::cout << "Extracting basis DMD using rank " << std::min(settings.r, settings.Ns - 1) << "\t";
 
-            if (settings.r == 0) {
+//            if (settings.r == 0) {
                 Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
                                        lambda_DMD[ncons],
                                        eig_vec_DMD,
                                        lambda_POD,
                                        eig_vec_POD,
                                        -1);
-            } else {
-                Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
-                                       lambda_DMD[ncons],
-                                       eig_vec_DMD,
-                                       lambda_POD,
-                                       eig_vec_POD,
-                                       settings.r);
-            }
+//            } else {
+//                Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
+//                                       lambda_DMD[ncons],
+//                                       eig_vec_DMD,
+//                                       lambda_POD,
+//                                       eig_vec_POD,
+//                                       settings.r);
+//            }
 
             //         int Nm = Phi.cols();
             //         std::cout << "Number of modes extracted : " << Nm << std::endl;
@@ -343,9 +343,9 @@ int main( int argc, char *argv[] )
 
                             Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
                                                                       settings.Dt_cfd * settings.Ds,
-                                                                      alfa[ncons],
-                                                                      Phi[ncons],
-                                                                      lambda_DMD[ncons],
+                                                                      alfa[ncons].head(Nm[ncons]),
+                                                                      Phi[ncons].leftCols(Nm[ncons]),
+                                                                      lambda_DMD[ncons].head(Nm[ncons]),
                                                                       "SCALAR");
 
                             Sn_Cons_time.middleRows(ncons * Nr, Nr).col(j) = Rec.real();

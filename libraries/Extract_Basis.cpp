@@ -1503,7 +1503,6 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
         if ( count == 0)    svd_old = lam_POD.cwiseProduct(lam_POD);
         svd_new = lam_POD.cwiseProduct(lam_POD);
         eps = (svd_old.sum() - svd_new.sum())/svd_old.sum();
-//        std::cout << "lambdaPOD :" << lam_POD.transpose() << std::endl;
         if ( i > 0 )    K_pc(i-1) = eps;
 
         count ++;
@@ -1542,11 +1541,9 @@ Eigen::MatrixXd RDMD_Adaptive_basis ( const Eigen::MatrixXd &sn_set,
 
             residual_average(r_dmd) = mean/Ns;
         }
-        std::cout << "ResAverage = : " << residual_average(0) <<  std::endl;
         double min_Val = residual_average.minCoeff( &min_idx );
         Phi_RDMD.col(i) = Phi_r.col(min_idx);
         Coefs.row(i) = coef_mod.row(min_idx);
-//        lambda(i) = lam_DMD(min_idx).real();
         res_set = res_set - Phi_RDMD.col(i)*Coefs.row(i);
     }
 
