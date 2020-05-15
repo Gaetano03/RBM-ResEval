@@ -95,6 +95,58 @@ void dmd_sort( Eigen::VectorXd &En, Eigen::MatrixXcd &Phi, Eigen::VectorXcd &lam
 
 
 
+void dmd_tenvelope_sort( Eigen::MatrixXcd &Phi,
+                         Eigen::VectorXcd &omega,
+                         Eigen::VectorXcd &alfa,
+                         std::vector<double> t_vec )
+{
+    double dt = t_vec[1] - t_vec[0];
+    int Nm = Phi.cols();
+    int Np = Phi.rows();
+    int Nt = t_vec.size();
+    Eigen::MatrixXd Tdyn = Eigen::MatrixXd::Zero(Nm,Nt);
+
+    //Building matrix for time dynamics (absolute values)
+    for ( int i = 0; i < Nm; i++ ){
+        for ( int j = 0; j < Nt; j++ ){
+            Tdyn(i,j) = std::abs(alfa(i)*std::exp(omega(i)*t_vec[j]));
+        }
+    }
+
+//    std::cout << "Tdyn : \n " << Tdyn << std::endl;
+    int i_nm = 0;
+    std::vector<int> idx_sort = {};
+
+    //Ordering indices on the basis of time envelope
+    while ( i_nm < Nm ) {
+        int idxi, idxj;
+        Tdyn.maxCoeff(&idxi,&idxj);
+        Tdyn(idxi,idxj) = 0.0;
+        if ( std::find(idx_sort.begin(), idx_sort.end(), idxi) != idx_sort.end() ) {
+            continue;
+        } else {
+            idx_sort.push_back(idxi);
+            i_nm++;
+        }
+    }
+
+//    std::cout << "Modes DMD reordered with t-envelope:\n ";
+//    for ( int it = 0; it < idx_sort.size(); it++ ) std::cout << idx_sort[it] << ", ";
+//
+//    std::cout << std::endl;
+    //Redistributing modes and coeffs on the basis of time envelope
+    Eigen::VectorXcd temp_alfa = alfa;
+    Eigen::VectorXcd temp_omega = omega;
+    Eigen::MatrixXcd temp_Phi = Phi;
+    for ( int i = 0; i < Nm; i++ ){
+        alfa(i) = temp_alfa(idx_sort[i]);
+        omega(i) = temp_omega(idx_sort[i]);
+        Phi.col(i) = temp_Phi.col(idx_sort[i]);
+    }
+
+}
+
+
 // Should work only with singular values ( Not eigenvalues problems )
 int SVHT ( Eigen::VectorXd lam, int m, int n )
 {

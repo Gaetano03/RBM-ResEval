@@ -300,7 +300,8 @@ int main( int argc, char *argv[] )
 
             }
 
-            dmd_sort(En, Phi[ncons], lambda_DMD[ncons], alfa[ncons]);
+//            dmd_sort(En, Phi[ncons], lambda_DMD[ncons], alfa[ncons]);
+            dmd_tenvelope_sort( Phi[ncons], omega, alfa[ncons], t_vec );
             // std::cout << "Done" << std::endl;
 
             double sum = 0;

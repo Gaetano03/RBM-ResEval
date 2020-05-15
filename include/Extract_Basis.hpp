@@ -20,6 +20,12 @@ void dmd_sort( Eigen::VectorXd &En,
                 Eigen::VectorXcd &alfa );
 
 
+void dmd_tenvelope_sort( Eigen::MatrixXcd &Phi,
+                        Eigen::VectorXcd &omega,
+                        Eigen::VectorXcd &alfa,
+                        std::vector<double> t_vec);
+
+
 int SVHT ( Eigen::VectorXd lam, int m, int n );
 
 
