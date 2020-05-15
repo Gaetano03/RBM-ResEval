@@ -114,24 +114,26 @@ void dmd_tenvelope_sort( Eigen::MatrixXcd &Phi,
     }
 
 //    std::cout << "Tdyn : \n " << Tdyn << std::endl;
-    int i_nm = 0;
     std::vector<int> idx_sort = {};
 
     //Ordering indices on the basis of time envelope
-    while ( i_nm < Nm ) {
-        int idxi, idxj;
-        Tdyn.maxCoeff(&idxi,&idxj);
-        Tdyn(idxi,idxj) = 0.0;
-        if ( std::find(idx_sort.begin(), idx_sort.end(), idxi) != idx_sort.end() ) {
-            continue;
-        } else {
-            idx_sort.push_back(idxi);
-            i_nm++;
+
+    int idxi;
+    for ( int i_nm = 0; i_nm < Nm; i_nm++ ) {
+        for (int i_time = 0; i_time < Nt; i_time++) {
+            Eigen::VectorXd temp = Tdyn.col(i_time);
+            temp.maxCoeff(&idxi);
+            Tdyn(idxi, i_time) = 0.0;
+            if (std::find(idx_sort.begin(), idx_sort.end(), idxi) != idx_sort.end()) {
+                continue;
+            } else {
+                idx_sort.push_back(idxi);
+            }
         }
     }
-
+//    std::cout << "Tdyn should be all zero after the procedure, verify : \n " << Tdyn << std::endl << std::endl;
 //    std::cout << "Modes DMD reordered with t-envelope:\n ";
-//    for ( int it = 0; it < idx_sort.size(); it++ ) std::cout << idx_sort[it] << ", ";
+//    for ( int it = 0; it < idx_sort.size(); it++ ) std::cout << idx_sort[it] << " ";
 //
 //    std::cout << std::endl;
     //Redistributing modes and coeffs on the basis of time envelope
