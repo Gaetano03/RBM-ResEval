@@ -205,6 +205,15 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
+                //Preparing file for volume residual field
+                int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
+                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResPOD_" + buffer.str() + ".dat";
+                len_s = mv_res_string.length();
+                char mv_res_sys_call[len_s + 1];
+                strcpy(mv_res_sys_call, mv_res_string.c_str());
+
                 std::string mv_string;
                 if (settings.Ns == settings.r)
                     mv_string = "mv history_rbm_00002.csv history_pod_AllModes_" +
@@ -222,6 +231,7 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
+                opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
 
@@ -258,21 +268,21 @@ int main( int argc, char *argv[] )
             std::cout << "Processing conservative variable " << ncons << std::endl;
 //            std::cout << "Extracting basis DMD using rank " << std::min(settings.r, settings.Ns - 1) << "\t";
 
-//            if (settings.r == 0) {
+            if (settings.r == 0) {
                 Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
                                        lambda_DMD[ncons],
                                        eig_vec_DMD,
                                        lambda_POD,
                                        eig_vec_POD,
                                        -1);
-//            } else {
-//                Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
-//                                       lambda_DMD[ncons],
-//                                       eig_vec_DMD,
-//                                       lambda_POD,
-//                                       eig_vec_POD,
-//                                       settings.r);
-//            }
+            } else {
+                Phi[ncons] = DMD_basis(sn_set.middleRows(ncons * Nr, Nr),
+                                       lambda_DMD[ncons],
+                                       eig_vec_DMD,
+                                       lambda_POD,
+                                       eig_vec_POD,
+                                       settings.r);
+            }
 
             //         int Nm = Phi.cols();
             //         std::cout << "Number of modes extracted : " << Nm << std::endl;
@@ -301,7 +311,7 @@ int main( int argc, char *argv[] )
             }
 
 //            dmd_sort(En, Phi[ncons], lambda_DMD[ncons], alfa[ncons]);
-            dmd_tenvelope_sort( Phi[ncons], omega, alfa[ncons], t_vec );
+//            dmd_tenvelope_sort( Phi[ncons], omega, alfa[ncons], t_vec );
             // std::cout << "Done" << std::endl;
 
             double sum = 0;
@@ -361,6 +371,15 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
+                //Preparing file for volume residual field
+                int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
+                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResDMD_" + buffer.str() + ".dat";
+                len_s = mv_res_string.length();
+                char mv_res_sys_call[len_s + 1];
+                strcpy(mv_res_sys_call, mv_res_string.c_str());
+
                 std::string mv_string;
                 if (settings.Ns == settings.r)
                     mv_string = "mv history_rbm_00002.csv history_dmd_AllModes_" + std::to_string(settings.Dt_res[idtr]) + "_" +
@@ -379,8 +398,10 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
+                opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
+
 
                 std::cout << std::endl << std::endl;
             }
@@ -480,6 +501,15 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
+                //Preparing file for volume residual field
+                int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
+                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResRDMD_" + buffer.str() + ".dat";
+                len_s = mv_res_string.length();
+                char mv_res_sys_call[len_s + 1];
+                strcpy(mv_res_sys_call, mv_res_string.c_str());
+
                 std::string mv_string;
                 if (settings.Ns == settings.r)
                     mv_string = "mv history_rbm_00002.csv history_rdmd_AllModes_" +
@@ -498,6 +528,7 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
+                opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
 
