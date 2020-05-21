@@ -231,7 +231,7 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
-                opt = std::system(mv_res_sys_call);
+                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
 
@@ -398,7 +398,7 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
-                opt = std::system(mv_res_sys_call);
+                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
 
@@ -528,7 +528,7 @@ int main( int argc, char *argv[] )
                 //Executing SU2, removing all useless files, renaming files with residuals
                 std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
                 auto opt = std::system(su2_sys_call);
-                opt = std::system(mv_res_sys_call);
+                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
                 opt = std::system(rmf_sys_call);
                 opt = std::system(mv_sys_call);
 
