@@ -552,7 +552,10 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 }
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res, double t_res, double U_inf ) {
+void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf ) {
+
+    int itrestart = int(settings.t_res[it2]/settings.Dt_cfd + 0.5);
+    double gust_loc = 0.0;
 
     std::ifstream inFile ( file_in );
     std::ofstream outFile ( file_out );
@@ -574,10 +577,27 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res, 
             name = line.substr(0, delimiterPos);
 
             if ( name == "UNST_TIMESTEP" ) {
-                outFile << "UNST_TIMESTEP=" << std::setprecision(16) << dt_res;
+                outFile << "UNST_TIMESTEP=" << std::setprecision(16) << settings.Dt_res[it1];
+
+            } else if ( name == "UNST_RESTART_ITER" ) {
+                outFile << "UNST_RESTART_ITER=" << itrestart;
+
+            } else if ( name == "EXT_ITER" ) {
+                outFile << "EXT_ITER=" << itrestart+1;
+
+            } else if ( name == "SOLUTION_FLOW_FILENAME" ) {
+                outFile << "SOLUTION_FLOW_FILENAME=" << settings.out_file;
+
+            } else if ( name == "RESTART_FLOW_FILENAME" ) {
+                outFile << "RESTART_FLOW_FILENAME=" << settings.out_file;
+
+            } else if ( name == "EXACT_FLOW_FILENAME" ) {
+                outFile << "EXACT_FLOW_FILENAME=" << settings.in_file;
+
             } else if ( name == "GUST_BEGIN_LOC" ) {
-                double gust_loc = std::stod(line.substr(delimiterPos + 1)) + t_res*U_inf;
+                gust_loc = std::stod(line.substr(delimiterPos + 1)) + settings.t_res[it2]*U_inf;
                 outFile << "GUST_BEGIN_LOC=" << std::setprecision(16) << gust_loc;
+
             } else {
                 outFile << line;
             }

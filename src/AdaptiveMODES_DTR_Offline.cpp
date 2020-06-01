@@ -7,6 +7,8 @@ Config File RBM + Config File SU2
 #include "Extract_Basis.hpp"
 #include "read_Inputs.hpp"
 #include "Pre-Process.hpp"
+#include "System_Calls.hpp"
+#include "Post-Process.hpp"
 #include "Generate_snset.hpp"
 #include "Reconstruction.hpp"
 #include "write_Outputs.hpp"
@@ -22,13 +24,6 @@ int main( int argc, char *argv[] )
     prob_settings settings;
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
-    std::string root_conf;
-    root_conf.assign ( su2_conf, 0, su2_conf.size() - 4);
-    std::string su2_conf_new = root_conf + "-reseval.cfg";
-    std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";
-    int len_s = su2dtr_string.length();
-    char su2_sys_call[len_s + 1];
-    strcpy(su2_sys_call, su2dtr_string.c_str());
     Read_cfg( filecfg, settings );
     std::string root_outputfile;
     root_outputfile.assign ( settings.out_file, 0, settings.out_file.size() - 4);
@@ -36,10 +31,7 @@ int main( int argc, char *argv[] )
     root_inputfile.assign ( settings.in_file, 0, settings.in_file.size() - 4);
     std::string input_format;
     input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
-    std::string rmf_string = "rm -f " + root_outputfile + "_*";
-    len_s = rmf_string.length();
-    char rmf_sys_call[len_s + 20];
-    strcpy(rmf_sys_call, rmf_string.c_str());
+    bool direct_error = true;
 
     std::cout << "Initializing Vector of times ... " << std::endl;
     std::vector<double> t_vec( settings.Ns );
@@ -96,10 +88,6 @@ int main( int argc, char *argv[] )
                                                    settings.flag_prob);
 
     std::cout << std::endl;
-    // std::vector<double> t_evaluate(2*settings.Ns-1);
-    // t_evaluate[0] = settings.nstart*settings.Dt_cfd;
-    // for ( int i = 1; i < t_evaluate.size(); i++)
-    //     t_evaluate[i] = t_evaluate[i-1] + settings.Dt_cfd*(double)settings.Ds/2.0;
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
@@ -116,14 +104,6 @@ int main( int argc, char *argv[] )
         std::cout << "Using data without subtracting any reference state" << std::endl << std::endl;
     }
 
-    //If gust is active we need free stream velocity
-    double M = settings.Mach;
-    double T = settings.T;
-    double alpha = M_PI*settings.alpha/double(180);
-    double R = 287.058;
-    double gamma = 1.4;
-
-    double V_inf = M*std::sqrt(gamma*R*T)*std::cos(alpha);
 
     auto methods = settings.flag_method;
     //Defining common scope for POD-SPOD
@@ -172,16 +152,11 @@ int main( int argc, char *argv[] )
 
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
+
                 for (int ncons = 0; ncons < nC; ncons++) {
 
                     Eigen::MatrixXd coef_t(3, Nm[ncons]);
-                    //if (settings.t_res[itr] - 2.0 * settings.Dt_res[idtr] < t_vec[0] &&
-                       // settings.t_res[itr] > t_vec[t_vec.size() - 1] && 2 * settings.Dt_res[idtr] > settings.Dt_cfd) {
-                        //std::cout
-                        //        << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                       // exit(EXIT_FAILURE);
-                   // } else {
+
                     std::vector<double> tr(1);
                     std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
                                                       settings.t_res[itr] - settings.Dt_res[idtr],
@@ -205,36 +180,11 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
-                //Preparing file for volume residual field
+                //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
-                std::stringstream buffer;
-                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
-                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResPOD_" + buffer.str() + ".dat";
-                len_s = mv_res_string.length();
-                char mv_res_sys_call[len_s + 1];
-                strcpy(mv_res_sys_call, mv_res_string.c_str());
-
-                std::string mv_string;
-                if (settings.Ns == settings.r)
-                    mv_string = "mv history_rbm_00002.csv history_pod_AllModes_" +
-                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
-                else
-                    mv_string = "mv history_rbm_00002.csv history_pod_" +
-                                std::to_string(Nm[0]) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
-                                ".csv";
-
-                len_s = mv_string.length();
-                char mv_sys_call[len_s + 10];
-                strcpy(mv_sys_call, mv_string.c_str());
-                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
-                //Executing SU2, removing all useless files, renaming files with residuals
-                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                auto opt = std::system(su2_sys_call);
-                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
-                opt = std::system(rmf_sys_call);
-                opt = std::system(mv_sys_call);
-
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
+                SU2_DTR(settings, su2_conf, "POD", idtr, itr);
+                Write_History_ResError(settings, "POD", idtr, itr);
                 std::cout << std::endl;
             }
         }
@@ -284,20 +234,14 @@ int main( int argc, char *argv[] )
                                        settings.r);
             }
 
-            //         int Nm = Phi.cols();
-            //         std::cout << "Number of modes extracted : " << Nm << std::endl;
-
             Eigen::VectorXcd omega(Phi[ncons].cols());
             for (int i = 0; i < Phi[ncons].cols(); i++)
                 omega(i) = std::log(lambda_DMD[ncons](i)) / (settings.Dt_cfd * settings.Ds);
 
-            // std::cout << "Calculating coefficients DMD ... " << "\t";
             alfa[ncons] = Calculate_Coefs_DMD_exact(sn_set.middleRows(ncons * Nr, Nr).leftCols(settings.Ns - 1),
                                                     lambda_DMD[ncons],
                                                     Phi[ncons]);
-            // std::cout << " Done! " << std::endl;
 
-            // std::cout << "Reordering modes DMD ... " << "\t";
             Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi[ncons].cols());
             double T = t_vec[t_vec.size() - 1];
 
@@ -310,9 +254,8 @@ int main( int argc, char *argv[] )
 
             }
 
-//            dmd_sort(En, Phi[ncons], lambda_DMD[ncons], alfa[ncons]);
+            dmd_sort(En, Phi[ncons], lambda_DMD[ncons], alfa[ncons]);
 //            dmd_tenvelope_sort( Phi[ncons], omega, alfa[ncons], t_vec );
-            // std::cout << "Done" << std::endl;
 
             double sum = 0;
             Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
@@ -337,18 +280,12 @@ int main( int argc, char *argv[] )
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residual at time t = " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
+
                 std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
                                                   settings.t_res[itr] - settings.Dt_res[idtr],
                                                   settings.t_res[itr]};
 
                 for (int ncons = 0; ncons < nC; ncons++) {
-
-                    //if (((settings.t_res[itr] - 2.0 * settings.Dt_res[idtr]) < t_vec[0]) 
-                      //  (settings.t_res[itr] > t_vec[t_vec.size() - 1]) &&)  {
-                       // std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                        //exit(EXIT_FAILURE);
-                   // } else {
 
                         for (int j = 0; j < 3; j++) {
 
@@ -362,7 +299,6 @@ int main( int argc, char *argv[] )
                             Sn_Cons_time.middleRows(ncons * Nr, Nr).col(j) = Rec.real();
 
                         }
-                    //}
 
                 }
 
@@ -371,39 +307,12 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
-                //Preparing file for volume residual field
+                //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
-                std::stringstream buffer;
-                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
-                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResDMD_" + buffer.str() + ".dat";
-                len_s = mv_res_string.length();
-                char mv_res_sys_call[len_s + 1];
-                strcpy(mv_res_sys_call, mv_res_string.c_str());
-
-                std::string mv_string;
-                if (settings.Ns == settings.r)
-                    mv_string = "mv history_rbm_00002.csv history_dmd_AllModes_" + std::to_string(settings.Dt_res[idtr]) + "_" +
-                                std::to_string(itr) + ".csv";
-                else
-                    mv_string = "mv history_rbm_00002.csv history_dmd_" + std::to_string(Nm[0]) + "_" +
-                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
-
-                len_s = mv_string.length();
-                char mv_sys_call[len_s + 1];
-                strcpy(mv_sys_call, mv_string.c_str());
-
-                std::cout << "Writing time reconstruction " << std::endl;
-                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
-                //Executing SU2, removing all useless files, renaming files with residuals
-                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                auto opt = std::system(su2_sys_call);
-                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
-                opt = std::system(rmf_sys_call);
-                opt = std::system(mv_sys_call);
-
-
-                std::cout << std::endl << std::endl;
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
+                SU2_DTR(settings, su2_conf, "DMD", idtr, itr);
+                Write_History_ResError(settings, "DMD", idtr, itr);
+                std::cout << std::endl;
             }
         }
 
@@ -470,27 +379,21 @@ int main( int argc, char *argv[] )
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
             for (int itr = 0; itr < settings.t_res.size(); itr++) {
                 std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
 
                 for (int ncons = 0; ncons < nC; ncons++) {
 
                     Eigen::MatrixXd coef_t(3, Nm);
-                   // if (((settings.t_res[itr] - 2.0 * settings.Dt_res[idtr]) < t_vec[0]) &&
-                    //    (settings.t_res[itr] > t_vec[t_vec.size() - 1]) && (2 * settings.Dt_res[idtr] > settings.Dt_cfd)) {
-                     //   std::cout << "Define proper Delta_t_res and T_RES vector " << std::endl;
-                      //  exit(EXIT_FAILURE);
-                   // } else {
-                        std::vector<double> tr(1);
-                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
-                                                          settings.t_res[itr] - settings.Dt_res[idtr],
-                                                          settings.t_res[itr]};
 
-                        for (int j = 0; j < 3; j++) {
-                            tr[0] = t_evaluate[j];
-                            for (int i = 0; i < Nm; i++)
-                                surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
-                        }
-                    //}
+                    std::vector<double> tr(1);
+                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                      settings.t_res[itr] - settings.Dt_res[idtr],
+                                                      settings.t_res[itr]};
+
+                    for (int j = 0; j < 3; j++) {
+                        tr[0] = t_evaluate[j];
+                        for (int i = 0; i < Nm; i++)
+                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                    }
 
                     Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm) * coef_t.transpose();
 
@@ -501,38 +404,12 @@ int main( int argc, char *argv[] )
                         Sn_Cons_time.col(it) += Ic;
                 }
 
-                //Preparing file for volume residual field
+                //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
-                std::stringstream buffer;
-                buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
-                std::string mv_res_string = "mv " + root_outputfile + "_00002.dat RecResRDMD_" + buffer.str() + ".dat";
-                len_s = mv_res_string.length();
-                char mv_res_sys_call[len_s + 1];
-                strcpy(mv_res_sys_call, mv_res_string.c_str());
-
-                std::string mv_string;
-                if (settings.Ns == settings.r)
-                    mv_string = "mv history_rbm_00002.csv history_rdmd_AllModes_" +
-                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
-                else
-                    mv_string = "mv history_rbm_00002.csv history_rdmd_" +
-                                std::to_string(Nm) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
-                                ".csv";
-
-                len_s = mv_string.length();
-                char mv_sys_call[len_s + 1];
-                strcpy(mv_sys_call, mv_string.c_str());
-                std::cout << "Writing time reconstruction " << std::endl;
-                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
-                //Executing SU2, removing all useless files, renaming files with residuals
-                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                auto opt = std::system(su2_sys_call);
-                if ( settings.flag_rec == "YES" ) opt = std::system(mv_res_sys_call);
-                opt = std::system(rmf_sys_call);
-                opt = std::system(mv_sys_call);
-
-                std::cout << std::endl << std::endl;
+                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
+                SU2_DTR(settings, su2_conf, "RDMD", idtr, itr);
+                Write_History_ResError(settings, "RDMD", idtr, itr);
+                std::cout << std::endl;
 
             }
 
@@ -541,210 +418,210 @@ int main( int argc, char *argv[] )
 
 
     //Defining scope for GPOD
-    std::vector<std::string>::iterator itGPOD;
-    itGPOD = std::find (methods.begin(), methods.end(), "GPOD");
-    if (itGPOD != methods.end()) {
-        std::cout << "--------------------------------------" << std::endl ;
-        std::cout << "---Performing Gradient POD ResEval----" << std::endl ;
-        std::cout << "--------------------------------------" << std::endl ;
-        //Vector of MatrixXd where to store the evolution in time of conservative variables
-        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
-        std::vector<Eigen::MatrixXd> Phi(nC);
-        std::vector<Eigen::VectorXd> lambda(nC);
-
-        std::vector< std::vector<rbf> > surr_coefs(nC);
-        Eigen::VectorXd K_pc(settings.Ns);
-        Eigen::MatrixXd Coeffs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
-        std::vector<int> Nm(nC);
-        int N_notZero;
-        //Check only for POD for now
-        for (int i = 0; i < nC; i++) {
-            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
-            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
-        }
-        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
-        for ( int ncons = 0; ncons < nC; ncons ++ ) {
-            std::cout << "Processing conservative variable " << ncons << std::endl;
-            Phi[ncons] = GPOD_basis( settings.Dt_cfd*settings.Ds,
-                                 sn_set.middleRows(ncons * Nr, Nr),
-                                      lambda[ncons], Coeffs, settings.r );
-            N_notZero = Phi[ncons].cols();
-            if (settings.r == 0) Nm[ncons] = Nmod(settings.En, K_pc);
-            else Nm[ncons] = std::min(settings.r, N_notZero);
-            std::cout << "Size of matrix Coeffs : [" << Coeffs.rows() << "; " << Coeffs.cols() << "]" << std::endl;
-            std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
-            surr_coefs[ncons] = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
-        }
-        std::cout << std::endl;
-
-//        std::cout << "Computing SPOD " << Nf[nfj] << " reconstruction for each conservative variable ... " << "\n";
-
-        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
-            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-
-            for (int itr = 0; itr < settings.t_res.size(); itr++) {
-                std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
-                for (int ncons = 0; ncons < nC; ncons++) {
-
-                    Eigen::MatrixXd coef_t(3, Nm[ncons]);
-                    std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
-                                                      settings.t_res[itr] - settings.Dt_res[idtr],
-                                                      settings.t_res[itr]};
-                    for (int j = 0; j < 3; j++) {
-                        tr[0] = t_evaluate[j];
-                        for (int i = 0; i < Nm[ncons]; i++)
-                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
-                    }
-
-                    //    }
-                    Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm[ncons]) * coef_t.transpose();
-                }
-
-                if (settings.flag_mean == "IC") {
-                    for (int it = 0; it < 3; it++)
-                        Sn_Cons_time.col(it) += Ic;
-                }
-
-                std::string mv_string;
-                if (settings.Ns == settings.r)
-                    mv_string = "mv history_rbm_00002.csv history_gpod_AllModes_" +
-                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
-                else
-                    mv_string = "mv history_rbm_00002.csv history_gpod_" +
-                                std::to_string(Nm[0]) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
-                                ".csv";
-
-                len_s = mv_string.length();
-                char mv_sys_call[len_s + 10];
-                strcpy(mv_sys_call, mv_string.c_str());
-                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
-                //Executing SU2, removing all useless files, renaming files with residuals
-                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                auto opt = std::system(su2_sys_call);
-                opt = std::system(rmf_sys_call);
-                opt = std::system(mv_sys_call);
-
-                std::cout << std::endl;
-            }
-        }
-    }
-
-    //Defining scope for DMD adaptive sampling
-    std::vector<std::string>::iterator itDMD_adaptsample;
-    itDMD_adaptsample = std::find (methods.begin(), methods.end(), "DMD-AS");
-    if (itDMD_adaptsample != methods.end()) {
-
-        int nVar = settings.t_pos.size();
-
-        if ( nVar != settings.r ) std::cout << "-----------------WARNING-----------------\n "
-                                       "number of samples different from rank, resetting to number of samples!" << std::endl << std::endl;
-
-        int Nm = nVar;
-        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
-        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
-
-
-        //Vector of MatrixXd where to store the evolution in time of conservative variables
-        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
-        Eigen::MatrixXd Phi_POD = Eigen::MatrixXd::Zero(Nr,nVar);
-        Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(nVar);
-        Eigen::MatrixXcd Phi_DMD = Eigen::MatrixXd::Zero(Nr,settings.Ns);
-        Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(settings.Ns);
-        Eigen::VectorXd K_pc(nVar);
-        Eigen::MatrixXd eig_vec(nVar, nVar);
-
-        std::vector<smartuq::surrogate::rbf> surr_coefs_POD ;
-        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
-        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
-
-        int N_notZero;
-
-        Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
-
-        Eigen::MatrixXcd eig_vec_DMD;
-        std::cout << "Computing adaptive DMD modes" << std::endl;
-//            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
-//            else Nm = std::min(settings.r, settings.Ns);
-        Phi_DMD = DMD_Adaptive_basis(sn_set,
-                                     lambda_DMD,
-                                     eig_vec_DMD,
-                                     lambda_POD,
-                                     eig_vec,
-                                     Ipos);
-
-        Eigen::MatrixXcd PhiTPhi = Phi_DMD.transpose()*Phi_DMD;
-        Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);
-        surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
-        surr_coefs_DMD_i = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
-
-        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
-            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
-
-            for (int itr = 0; itr < settings.t_res.size(); itr++) {
-                std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
-                Modify_su2_cfg ( su2_conf, su2_conf_new, settings.Dt_res[idtr], settings.t_res[itr], V_inf );
-
-                    Eigen::MatrixXcd coef_t(3, Nm);
-
-                    std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
-                                                      settings.t_res[itr] - settings.Dt_res[0],
-                                                      settings.t_res[itr]};
-
-                    double tmp_r, tmp_i;
-                    for (int j = 0; j < 3; j++) {
-                        tr[0] = t_evaluate[j];
-                        for (int i = 0; i < Nm; i++) {
-                            surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
-                            surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
-                            std::complex<double> c(tmp_r, tmp_i);
-                            coef_t(j, i) = c;
-                        }
-                    }
-
-                    Eigen::MatrixXcd Appo = Phi_DMD * coef_t.transpose();
-                    Sn_Cons_time = Appo.real();
-
-
-                //Introduce an if on the number of conservative variables
-//                Sn_Cons_time.middleRows(0, Nr) =
-//                        Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3) * rho_min;
-//                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) +
-//                                                  Eigen::MatrixXd::Ones(Nr, 3) * rhoU_min;
-//                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) +
-//                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoV_min;
-//                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) +
-//                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoE_min;
-
-                if (settings.flag_mean == "IC") {
-                    for (int it = 0; it < 3; it++)
-                        Sn_Cons_time.col(it) += Ic;
-                } else if (settings.flag_mean == "YES") {
-                    for (int it = 0; it < 3; it++)
-                        Sn_Cons_time.col(it) += mean;
-                }
-
-                std::string mv_string = "mv history_rbm_00002.csv history_dmd_adapt_" +
-                            std::to_string(Nm) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
-                            ".csv";
-
-                len_s = mv_string.length();
-                char mv_sys_call[len_s + 1];
-                strcpy(mv_sys_call, mv_string.c_str());
-                std::cout << "Writing time reconstruction " << std::endl;
-                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
-                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
-                //Executing SU2, removing all useless files, renaming files with residuals
-                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
-                auto otp = std::system(su2_sys_call);
-                otp = std::system(rmf_sys_call);
-                otp = std::system(mv_sys_call);
-            }
-        }
-    }
+//    std::vector<std::string>::iterator itGPOD;
+//    itGPOD = std::find (methods.begin(), methods.end(), "GPOD");
+//    if (itGPOD != methods.end()) {
+//        std::cout << "--------------------------------------" << std::endl ;
+//        std::cout << "---Performing Gradient POD ResEval----" << std::endl ;
+//        std::cout << "--------------------------------------" << std::endl ;
+//        //Vector of MatrixXd where to store the evolution in time of conservative variables
+//        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
+//        std::vector<Eigen::MatrixXd> Phi(nC);
+//        std::vector<Eigen::VectorXd> lambda(nC);
+//
+//        std::vector< std::vector<rbf> > surr_coefs(nC);
+//        Eigen::VectorXd K_pc(settings.Ns);
+//        Eigen::MatrixXd Coeffs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+//        std::vector<int> Nm(nC);
+//        int N_notZero;
+//        //Check only for POD for now
+//        for (int i = 0; i < nC; i++) {
+//            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+//            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
+//        }
+//        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
+//        for ( int ncons = 0; ncons < nC; ncons ++ ) {
+//            std::cout << "Processing conservative variable " << ncons << std::endl;
+//            Phi[ncons] = GPOD_basis( settings.Dt_cfd*settings.Ds,
+//                                 sn_set.middleRows(ncons * Nr, Nr),
+//                                      lambda[ncons], Coeffs, settings.r );
+//            N_notZero = Phi[ncons].cols();
+//            if (settings.r == 0) Nm[ncons] = Nmod(settings.En, K_pc);
+//            else Nm[ncons] = std::min(settings.r, N_notZero);
+//            std::cout << "Size of matrix Coeffs : [" << Coeffs.rows() << "; " << Coeffs.cols() << "]" << std::endl;
+//            std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
+//            surr_coefs[ncons] = getSurrCoefs(t_vec, Coeffs.transpose(), settings.flag_interp);
+//        }
+//        std::cout << std::endl;
+//
+////        std::cout << "Computing SPOD " << Nf[nfj] << " reconstruction for each conservative variable ... " << "\n";
+//
+//        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
+//            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+//
+//            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+//                std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+//                Modify_su2_cfg ( su2_conf, su2_conf_new, settings, idtr, itr, V_inf );
+//                for (int ncons = 0; ncons < nC; ncons++) {
+//
+//                    Eigen::MatrixXd coef_t(3, Nm[ncons]);
+//                    std::vector<double> tr(1);
+//                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+//                                                      settings.t_res[itr] - settings.Dt_res[idtr],
+//                                                      settings.t_res[itr]};
+//                    for (int j = 0; j < 3; j++) {
+//                        tr[0] = t_evaluate[j];
+//                        for (int i = 0; i < Nm[ncons]; i++)
+//                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+//                    }
+//
+//                    //    }
+//                    Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm[ncons]) * coef_t.transpose();
+//                }
+//
+//                if (settings.flag_mean == "IC") {
+//                    for (int it = 0; it < 3; it++)
+//                        Sn_Cons_time.col(it) += Ic;
+//                }
+//
+//                std::string mv_string;
+//                if (settings.Ns == settings.r)
+//                    mv_string = "mv history_rbm_00002.csv history_gpod_AllModes_" +
+//                                std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) + ".csv";
+//                else
+//                    mv_string = "mv history_rbm_00002.csv history_gpod_" +
+//                                std::to_string(Nm[0]) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
+//                                ".csv";
+//
+//                len_s = mv_string.length();
+//                char mv_sys_call[len_s + 10];
+//                strcpy(mv_sys_call, mv_string.c_str());
+//                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
+//                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
+//                //Executing SU2, removing all useless files, renaming files with residuals
+//                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
+//                auto opt = std::system(su2_sys_call);
+//                opt = std::system(rmf_sys_call);
+//                opt = std::system(mv_sys_call);
+//
+//                std::cout << std::endl;
+//            }
+//        }
+//    }
+//
+//    //Defining scope for DMD adaptive sampling
+//    std::vector<std::string>::iterator itDMD_adaptsample;
+//    itDMD_adaptsample = std::find (methods.begin(), methods.end(), "DMD-AS");
+//    if (itDMD_adaptsample != methods.end()) {
+//
+//        int nVar = settings.t_pos.size();
+//
+//        if ( nVar != settings.r ) std::cout << "-----------------WARNING-----------------\n "
+//                                       "number of samples different from rank, resetting to number of samples!" << std::endl << std::endl;
+//
+//        int Nm = nVar;
+//        Eigen::VectorXi Ipos = Eigen::VectorXi::Zero(nVar);
+//        for ( int ipos = 0; ipos < nVar; ipos++ ) Ipos(ipos) = settings.t_pos[ipos];
+//
+//
+//        //Vector of MatrixXd where to store the evolution in time of conservative variables
+//        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
+//        Eigen::MatrixXd Phi_POD = Eigen::MatrixXd::Zero(Nr,nVar);
+//        Eigen::VectorXd lambda_POD = Eigen::VectorXd::Zero(nVar);
+//        Eigen::MatrixXcd Phi_DMD = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+//        Eigen::VectorXcd lambda_DMD = Eigen::VectorXd::Zero(settings.Ns);
+//        Eigen::VectorXd K_pc(nVar);
+//        Eigen::MatrixXd eig_vec(nVar, nVar);
+//
+//        std::vector<smartuq::surrogate::rbf> surr_coefs_POD ;
+//        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_r;
+//        std::vector<smartuq::surrogate::rbf> surr_coefs_DMD_i;
+//
+//        int N_notZero;
+//
+//        Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
+//
+//        Eigen::MatrixXcd eig_vec_DMD;
+//        std::cout << "Computing adaptive DMD modes" << std::endl;
+////            if (settings.r == 0) Nm = Nmod(settings.En, K_pc);
+////            else Nm = std::min(settings.r, settings.Ns);
+//        Phi_DMD = DMD_Adaptive_basis(sn_set,
+//                                     lambda_DMD,
+//                                     eig_vec_DMD,
+//                                     lambda_POD,
+//                                     eig_vec,
+//                                     Ipos);
+//
+//        Eigen::MatrixXcd PhiTPhi = Phi_DMD.transpose()*Phi_DMD;
+//        Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi_DMD.transpose()*sn_set);
+//        surr_coefs_DMD_r = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
+//        surr_coefs_DMD_i = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
+//
+//        for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
+//            std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
+//
+//            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+//                std::cout << " Computing residuals at time : " << settings.t_res[itr] << std::endl;
+//                Modify_su2_cfg ( su2_conf, su2_conf_new, settings, idtr, itr, V_inf );
+//
+//                    Eigen::MatrixXcd coef_t(3, Nm);
+//
+//                    std::vector<double> tr(1);
+//                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[0],
+//                                                      settings.t_res[itr] - settings.Dt_res[0],
+//                                                      settings.t_res[itr]};
+//
+//                    double tmp_r, tmp_i;
+//                    for (int j = 0; j < 3; j++) {
+//                        tr[0] = t_evaluate[j];
+//                        for (int i = 0; i < Nm; i++) {
+//                            surr_coefs_DMD_r[i].evaluate(tr, tmp_r);
+//                            surr_coefs_DMD_i[i].evaluate(tr, tmp_i);
+//                            std::complex<double> c(tmp_r, tmp_i);
+//                            coef_t(j, i) = c;
+//                        }
+//                    }
+//
+//                    Eigen::MatrixXcd Appo = Phi_DMD * coef_t.transpose();
+//                    Sn_Cons_time = Appo.real();
+//
+//
+//                //Introduce an if on the number of conservative variables
+////                Sn_Cons_time.middleRows(0, Nr) =
+////                        Sn_Cons_time.middleRows(0, Nr) * (rho_max - rho_min) + Eigen::MatrixXd::Ones(Nr, 3) * rho_min;
+////                Sn_Cons_time.middleRows(Nr, Nr) = Sn_Cons_time.middleRows(Nr, Nr) * (rhoU_max - rhoU_min) +
+////                                                  Eigen::MatrixXd::Ones(Nr, 3) * rhoU_min;
+////                Sn_Cons_time.middleRows(2 * Nr, Nr) = Sn_Cons_time.middleRows(2 * Nr, Nr) * (rhoV_max - rhoV_min) +
+////                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoV_min;
+////                Sn_Cons_time.middleRows(3 * Nr, Nr) = Sn_Cons_time.middleRows(3 * Nr, Nr) * (rhoE_max - rhoE_min) +
+////                                                      Eigen::MatrixXd::Ones(Nr, 3) * rhoE_min;
+//
+//                if (settings.flag_mean == "IC") {
+//                    for (int it = 0; it < 3; it++)
+//                        Sn_Cons_time.col(it) += Ic;
+//                } else if (settings.flag_mean == "YES") {
+//                    for (int it = 0; it < 3; it++)
+//                        Sn_Cons_time.col(it) += mean;
+//                }
+//
+//                std::string mv_string = "mv history_rbm_00002.csv history_dmd_adapt_" +
+//                            std::to_string(Nm) + "_" + std::to_string(settings.Dt_res[idtr]) + "_" + std::to_string(itr) +
+//                            ".csv";
+//
+//                len_s = mv_string.length();
+//                char mv_sys_call[len_s + 1];
+//                strcpy(mv_sys_call, mv_string.c_str());
+//                std::cout << "Writing time reconstruction " << std::endl;
+//                // Write_Restart_Cons_Time( Sn_Cons_time, Coords, settings.out_file, t_evaluate.size(), nC, alpha );
+//                Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, 3, nC, settings.alpha, settings.beta, binary);
+//                //Executing SU2, removing all useless files, renaming files with residuals
+//                std::cout << "Calling SU2 for residual evaluation and writing file to history " << std::endl;
+//                auto otp = std::system(su2_sys_call);
+//                otp = std::system(rmf_sys_call);
+//                otp = std::system(mv_sys_call);
+//            }
+//        }
+//    }
 
 
     std::cout << "MODES Adaptive Residual Evaluation ends" << std::endl << std::endl;

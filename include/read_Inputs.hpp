@@ -173,7 +173,7 @@ keywords read_keyword_type( const std::string &key_string );
 void Read_cfg ( std::string filename, prob_settings &settings );
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, double dt_res, double t_res = 0.0, double U_inf = 0.0 );
+void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf = 0.0 );
 
 //Get Number of grid points
 int N_gridpoints ( const std::string file_in );

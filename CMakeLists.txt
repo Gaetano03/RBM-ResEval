@@ -58,7 +58,7 @@ include_directories(${HEADERS})
 file(GLOB_RECURSE SOURCES "libraries/*.cpp")
 
 #add library
-add_library (MODES SHARED ${SOURCES})
+add_library (MODES SHARED ${SOURCES} libraries/System_Calls.cpp include/Post-Process.hpp libraries/Post-Process.cpp)
 target_link_libraries(MODES ${MANDATORY_LIBRARIES})
 set_target_properties(MODES PROPERTIES
         VERSION ${PROJECT_VERSION}

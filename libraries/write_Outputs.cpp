@@ -915,13 +915,15 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
     int Nr = Rec.rows()/nC;
     char str_buf[CGNS_STRING_SIZE];
 
-    for ( int it = 0; it < nt; it++ )
+    int file_id = nt - 2;
+    //3 solutions required from dual time stepping
+    for ( int it = 0; it < 3; it++ )
     {
         
         std::ofstream restart_file;
         //Numbering the output format for unsteady reconstruction
         std::stringstream buffer;
-        buffer << std::setfill('0') << std::setw(5) << std::to_string(it);
+        buffer << std::setfill('0') << std::setw(5) << std::to_string(file_id);
         file_temp = root_outputfile + "_" + buffer.str() + ".dat";
 //        std::cout << "Writing reconstruction file at time instant " << it << std::endl;
 
@@ -1045,6 +1047,8 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
             //delete [] buf;
 
         }
+
+        file_id++;
     }
 }
 
