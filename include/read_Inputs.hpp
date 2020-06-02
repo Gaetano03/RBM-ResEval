@@ -16,6 +16,8 @@
 #include "LinearAlgebra/Eigen/Dense"
 #include "LinearAlgebra/Eigen/Eigenvalues"
 
+#define EPS = 1e-16;
+
 using namespace Eigen;
 
 //defining class and function for matrix indexing

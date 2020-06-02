@@ -39,7 +39,7 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
 
     double temp;
     if(std::modf(settings.t_res[it2]/settings.Dt_cfd, &temp) != 0) {
-        std::cout << "WARNING! You can't compute direct error for this time instant" << std::endl;
+        std::cout << "temp = " << temp << " WARNING! You can't compute direct error for this time instant" << std::endl;
         direct_error = false;
     }
 
