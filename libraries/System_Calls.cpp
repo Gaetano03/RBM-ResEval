@@ -2,7 +2,7 @@
 
 void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, int it1, int it2 ){
 
-    bool direct_error;
+    bool direct_error = true;
     /*------------Defining all necessary strings----------------*/
 
     //New cfg file SU2 for residual evaluation and modification for SU2_DTR
@@ -18,7 +18,16 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
     double gamma = 1.4;
 
     double V_inf = M*std::sqrt(gamma*R*T)*std::cos(alpha);
-    Modify_su2_cfg ( su2_conf, su2_conf_new, settings, it1, it2, V_inf );
+
+    //Check if you can compute also direct error
+    int iter = std::round(settings.t_res[it2]/settings.Dt_cfd);
+    double temp;
+    if( std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) > 1e-5 ) {
+        std::cout << "lack = " << std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) << " WARNING! You can't compute direct error for this time instant" << std::endl;
+        direct_error = false;
+    }
+
+    Modify_su2_cfg ( su2_conf, su2_conf_new, settings, it1, it2, V_inf, direct_error );
 
     //String to launch SU2_DTR from terminal
     std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";
@@ -35,16 +44,8 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
     char rmf_sys_call[len_s + 20];
     strcpy(rmf_sys_call, rmf_string.c_str());
 
-    //Check if you can compute also direct error
-
-    double temp;
-    if(std::modf(settings.t_res[it2]/settings.Dt_cfd, &temp) != 0) {
-        std::cout << "temp = " << temp << " WARNING! You can't compute direct error for this time instant" << std::endl;
-        direct_error = false;
-    }
 
     //String for saving reconstructions when flag rec is set to yes
-    int iter = std::round(settings.t_res[it2]/settings.Dt_cfd);
     std::stringstream buffer;
     buffer << std::setfill('0') << std::setw(5) << std::to_string(iter);
     std::string mv_resrec_string = "mv " + root_outputfile + "_" + buffer.str() + ".dat  RecRes" + method + "_" + buffer.str() + ".dat";
@@ -62,6 +63,7 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
     }
     opt = std::system(rmf_sys_call);
 
+    Write_History_ResError(settings, method, it1, it2, direct_error);
 
     std::cout << std::endl;
 }

@@ -552,7 +552,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 }
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf ) {
+void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf, bool d_err ) {
 
     int itrestart = int(settings.t_res[it2]/settings.Dt_cfd + 0.5);
     double gust_loc = 0.0;
@@ -584,6 +584,10 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings s
 
             } else if ( name == "EXT_ITER" ) {
                 outFile << "EXT_ITER=" << itrestart+1;
+
+            } else if ( name == "DIRECT_ERROR" ) {
+                if ( d_err ) { outFile << "DIRECT_ERROR=YES";}
+                else {outFile << "DIRECT_ERROR=NO";}
 
             } else if ( name == "SOLUTION_FLOW_FILENAME" ) {
                 outFile << "SOLUTION_FLOW_FILENAME=" << settings.out_file;

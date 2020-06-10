@@ -6,6 +6,7 @@
 #define SYSTEM_CALLS_HPP
 
 #include "read_Inputs.hpp"
+#include "Post-Process.hpp"
 #include <cmath>
 
 void SU2_DTR(prob_settings settings, std::string su2_conf, std::string method, int it1, int it2);
