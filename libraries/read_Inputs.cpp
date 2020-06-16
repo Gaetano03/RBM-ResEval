@@ -85,6 +85,8 @@ keywords read_keyword_type( const std::string &key_string )
         return MAX_LEVELS;
     else if( key_string == "TOL" )
         return TOL;
+    else if( key_string == "DIRECT_ERROR" )
+        return DIRECT_ERROR;
     else
     {
         std::cout << key_string << " Not Available ... Something wrong in cfg file" << std::endl;
@@ -136,7 +138,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.flag_interp = "NONE";       
     settings.t_rec = {};                  
     settings.tol = 0.0;                    
-
+    settings.direct_error = false;
 
     std::ifstream cFile ( filename );
     if ( cFile.is_open() )
@@ -158,6 +160,15 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
             switch (read_keyword_type(name))
             {
+                case DIRECT_ERROR:
+                {
+                    std::string temp = value;
+                    if ( temp == "YES") settings.direct_error = true;
+                    else settings.direct_error = false;
+                    //std::cout << "Problem flag : " << value << std::endl;
+                    break;
+                }
+
                 case SOLVER:
                 {
                     settings.solver = value;

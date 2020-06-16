@@ -1,8 +1,7 @@
 #include "System_Calls.hpp"
 
-void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, int it1, int it2 ){
+void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, int it1, int it2, bool direct_error ){
 
-    bool direct_error = true;
     /*------------Defining all necessary strings----------------*/
 
     //New cfg file SU2 for residual evaluation and modification for SU2_DTR
@@ -23,7 +22,7 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
     int iter = std::round(settings.t_res[it2]/settings.Dt_cfd);
     double temp;
     if( std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) > 1e-5 ) {
-        std::cout << "lack = " << std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) << " WARNING! You can't compute direct error for this time instant" << std::endl;
+        std::cout << "lack = " << std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) << " WARNING! Not computing direct error for this time instant" << std::endl;
         direct_error = false;
     }
 

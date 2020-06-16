@@ -31,7 +31,6 @@ int main( int argc, char *argv[] )
     root_inputfile.assign ( settings.in_file, 0, settings.in_file.size() - 4);
     std::string input_format;
     input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
-    bool direct_error = true;
 
     std::cout << "Initializing Vector of times ... " << std::endl;
     std::vector<double> t_vec( settings.Ns );
@@ -183,7 +182,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "POD", idtr, itr);
+                SU2_DTR(settings, su2_conf, "POD", idtr, itr, settings.direct_error);
 //                Write_History_ResError(settings, "POD", idtr, itr);
                 std::cout << std::endl;
             }
@@ -310,7 +309,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "DMD", idtr, itr);
+                SU2_DTR(settings, su2_conf, "DMD", idtr, itr, settings.direct_error);
 //                Write_History_ResError(settings, "DMD", idtr, itr);
                 std::cout << std::endl;
             }
@@ -407,7 +406,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "RDMD", idtr, itr);
+                SU2_DTR(settings, su2_conf, "RDMD", idtr, itr, settings.direct_error);
 //                Write_History_ResError(settings, "RDMD", idtr, itr);
                 std::cout << std::endl;
 

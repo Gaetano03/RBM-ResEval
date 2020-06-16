@@ -90,12 +90,13 @@ int main( int argc, char *argv[] )
     Eigen::MatrixXd Err_RBM_rhoW = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
     Eigen::MatrixXd Err_RBM_rhoE = Eigen::MatrixXd::Zero(settings.t_res.size(), Nmethods);
 
-    Eigen::MatrixXi Idx_RBM = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-    Eigen::MatrixXi Idx_RBM_rho = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-    Eigen::MatrixXi Idx_RBM_rhoV = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-    Eigen::MatrixXi Idx_RBM_rhoU = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-    Eigen::MatrixXi Idx_RBM_rhoW = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
-    Eigen::MatrixXi Idx_RBM_rhoE = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+    //That was to consider also the Number of modes as parameter variable
+//    Eigen::MatrixXi Idx_RBM = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+//    Eigen::MatrixXi Idx_RBM_rho = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+//    Eigen::MatrixXi Idx_RBM_rhoV = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+//    Eigen::MatrixXi Idx_RBM_rhoU = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+//    Eigen::MatrixXi Idx_RBM_rhoW = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
+//    Eigen::MatrixXi Idx_RBM_rhoE = Eigen::MatrixXi::Zero(settings.t_res.size(), Nmethods);
 
 
     for ( int i = 0; i < resfilename.size(); i++ )
@@ -127,28 +128,37 @@ int main( int argc, char *argv[] )
                 idx = std::stoi(token);
 
                 if (settings.ndim == 3) {
-                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
-                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
-                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
-                    if (count == 4) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
-                    if (count == 5) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
-                    if (count == 6) Idx_RBM_rho(n_row, i) = idx;
-                    if (count == 7) Idx_RBM_rhoU(n_row, i) = idx;
-                    if (count == 8) Idx_RBM_rhoV(n_row, i) = idx;
-                    if (count == 9) Idx_RBM_rhoW(n_row, i) = idx;
-                    if (count == 10) Idx_RBM_rhoE(n_row, i) = idx;
+                    if (count == 17) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+                    if (count == 18) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 19) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 20) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
+                    if (count == 21) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+//                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+//                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+//                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+//                    if (count == 4) Err_RBM_rhoW(n_row, i) = std::pow(10.0, err);
+//                    if (count == 5) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+//                    if (count == 6) Idx_RBM_rho(n_row, i) = idx;
+//                    if (count == 7) Idx_RBM_rhoU(n_row, i) = idx;
+//                    if (count == 8) Idx_RBM_rhoV(n_row, i) = idx;
+//                    if (count == 9) Idx_RBM_rhoW(n_row, i) = idx;
+//                    if (count == 10) Idx_RBM_rhoE(n_row, i) = idx;
 
                 }
 
                 if (settings.ndim == 2) {
-                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
-                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
-                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
-                    if (count == 4) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
-                    if (count == 5) Idx_RBM_rho(n_row, i) = idx;
-                    if (count == 6) Idx_RBM_rhoU(n_row, i) = idx;
-                    if (count == 7) Idx_RBM_rhoV(n_row, i) = idx;
-                    if (count == 8) Idx_RBM_rhoE(n_row, i) = idx;
+                    if (count == 17) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+                    if (count == 18) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+                    if (count == 19) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+                    if (count == 20) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+//                    if (count == 1) Err_RBM_rho(n_row, i) = std::pow(10.0, err);
+//                    if (count == 2) Err_RBM_rhoU(n_row, i) = std::pow(10.0, err);
+//                    if (count == 3) Err_RBM_rhoV(n_row, i) = std::pow(10.0, err);
+//                    if (count == 4) Err_RBM_rhoE(n_row, i) = std::pow(10.0, err);
+//                    if (count == 5) Idx_RBM_rho(n_row, i) = idx;
+//                    if (count == 6) Idx_RBM_rhoU(n_row, i) = idx;
+//                    if (count == 7) Idx_RBM_rhoV(n_row, i) = idx;
+//                    if (count == 8) Idx_RBM_rhoE(n_row, i) = idx;
                 }
 
                 count ++;
@@ -210,27 +220,27 @@ int main( int argc, char *argv[] )
 
             if (iDim == 0) {
                 Err_RBM = Err_RBM_rho;
-                Idx_RBM = Idx_RBM_rho;
+//                Idx_RBM = Idx_RBM_rho;
             }
             if (iDim == 1) {
                 Err_RBM = Err_RBM_rhoU;
-                Idx_RBM = Idx_RBM_rhoU;
+//                Idx_RBM = Idx_RBM_rhoU;
             }
             if (iDim == 2) {
                 Err_RBM = Err_RBM_rhoV;
-                Idx_RBM = Idx_RBM_rhoV;
+//                Idx_RBM = Idx_RBM_rhoV;
             }
             if (iDim == 3 && settings.ndim == 2) {
                 Err_RBM = Err_RBM_rhoE;
-                Idx_RBM = Idx_RBM_rhoE;
+//                Idx_RBM = Idx_RBM_rhoE;
             }
             if (iDim == 3 && settings.ndim == 3) {
                 Err_RBM = Err_RBM_rhoW;
-                Idx_RBM = Idx_RBM_rhoW;
+//                Idx_RBM = Idx_RBM_rhoW;
             }
             if (iDim == 4 ) {
                 Err_RBM = Err_RBM_rhoE;
-                Idx_RBM = Idx_RBM_rhoE;
+//                Idx_RBM = Idx_RBM_rhoE;
             }
 
 
@@ -247,11 +257,12 @@ int main( int argc, char *argv[] )
             //FIX THIS FUNCTION
             std::string method = method_selected(best_method_idx, Nf_SPOD, Nf);
 //            std::cout << "Best method is " << method << " and Nf ( value meaningful only for SPOD ) : " << Nf_SPOD << std::endl;
-            std::cout << "Best method is " << method << " using a number of modes equal to : "
-                      << Idx_RBM(index1, best_method_idx) << std::endl;
+            std::cout << "Best method is " << method << std::endl; //" using a number of modes equal to : "
+//                      << Idx_RBM(index1, best_method_idx) << std::endl;
             std::cout << " Error : " << Err_interp(best_method_idx) << std::endl;
 
             std::cout << "Computing Reconstruction using selected methods " << std::endl;
+            int Nm;
 
             if ( method == "SPOD" )
             {
@@ -266,26 +277,26 @@ int main( int argc, char *argv[] )
                                         settings.flag_filter,
                                         settings.sigma);
 
-                int temp2 = Idx_RBM(index1,best_method_idx);
-                int temp1 = Phi.cols();
+//                int temp2 = Idx_RBM(index1,best_method_idx);
+//                int temp1 = Phi.cols();
+//
+//                if ( temp2 > temp1 ) {
+//                    std::cout << "Something wrong in residual evaluation\n Exiting ... " << std::endl;
+//                    exit(EXIT_FAILURE);
+//                }
+//
+//                int Nm = std::min(temp1, temp2);
 
-                if ( temp2 > temp1 ) {
-                    std::cout << "Something wrong in residual evaluation\n Exiting ... " << std::endl;
-                    exit(EXIT_FAILURE);
+                if ( settings.r == 0 )
+                {
+                    Nm = Nmod(settings.En, K_pc);
+                    std::cout << "Number of modes for desired energetic content: " << Nm << std::endl;
                 }
-
-                int Nm = std::min(temp1, temp2);
-
-//                if ( settings.r == 0 )
-//                {
-//                    Nm = Nmod(settings.En, K_pc);
-//                    std::cout << "Number of modes for desired energetic content: " << Nm << std::endl;
-//                }
-//                else
-//                {
-//                    Nm = std::min(settings.r,settings.Ns);
-//                    std::cout << "Number of modes (fixed): " << Nm << std::endl;
-//                }
+                else
+                {
+                    Nm = std::min(settings.r,settings.Ns);
+                    std::cout << "Number of modes (fixed): " << Nm << std::endl;
+                }
 
                 std::vector<double> t_v( settings.Ns );
                 t_v[0] = (double)settings.nstart*settings.Dt_cfd;
@@ -326,30 +337,30 @@ int main( int argc, char *argv[] )
                 Eigen::MatrixXcd Phi;
                 Eigen::VectorXcd alfa;
 
-                Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
-                                 lambda_DMD,
-                                 eig_vec_DMD,
-                                 lambda_POD,
-                                 eig_vec_POD,
-                                 Idx_RBM(index1,best_method_idx));
-//                if ( settings.r == 0 )
-//                {
-//                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
-//                                    lambda_DMD,
-//                                    eig_vec_DMD,
-//                                    lambda_POD,
-//                                    eig_vec_POD,
-//                                    -1 );
-//                }
-//                else
-//                {
-//                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
-//                                    lambda_DMD,
-//                                    eig_vec_DMD,
-//                                    lambda_POD,
-//                                    eig_vec_POD,
-//                                    settings.r );
-//                }
+//                Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+//                                 lambda_DMD,
+//                                 eig_vec_DMD,
+//                                 lambda_POD,
+//                                 eig_vec_POD,
+//                                 Idx_RBM(index1,best_method_idx));
+                if ( settings.r == 0 )
+                {
+                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+                                    lambda_DMD,
+                                    eig_vec_DMD,
+                                    lambda_POD,
+                                    eig_vec_POD,
+                                    -1 );
+                }
+                else
+                {
+                    Phi = DMD_basis( sn_set.middleRows(iDim*Nr,Nr),
+                                    lambda_DMD,
+                                    eig_vec_DMD,
+                                    lambda_POD,
+                                    eig_vec_POD,
+                                    settings.r );
+                }
 
                 alfa = Calculate_Coefs_DMD_exact ( sn_set.middleRows(iDim*Nr,Nr).leftCols(settings.Ns-1),  
                                                                     lambda_DMD,  
@@ -444,7 +455,8 @@ int main( int argc, char *argv[] )
                 std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";        
                 //You can define rank DMD at each time step from the config file ( use -1 for the adaptive study adviced)
 
-                int Nm = Idx_RBM(index1,best_method_idx);
+//                int Nm = Idx_RBM(index1,best_method_idx);
+                int Nm = settings.r_RDMD;
                 Phi = RDMD_modes_coefs ( sn_set.middleRows(iDim*Nr,Nr),
                                         Coefs,
                                         lambda,

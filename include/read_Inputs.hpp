@@ -64,6 +64,7 @@ struct prob_settings
     int Ds;                         //Delta between snapshots
     int nstart;                     //starting snapshot number
     int ndim;
+    bool direct_error;
     std::string solver;
     std::string in_file;            //Input filename
     std::string out_file;           //Output filename (for reconstruction)
@@ -163,7 +164,8 @@ enum keywords
                 HO_D,
                 MAX_LEVELS,
                 MAX_CYCLES,
-                TOL
+                TOL,
+                DIRECT_ERROR
             };
 
 
