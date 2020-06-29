@@ -25,18 +25,28 @@ int main( int argc, char *argv[] )
     std::string filecfg = argv[1];
     std::string su2_conf = argv[2];
     Read_cfg( filecfg, settings );
-    std::string root_outputfile;
-    root_outputfile.assign ( settings.out_file, 0, settings.out_file.size() - 4);
-    std::string root_inputfile;
-    root_inputfile.assign ( settings.in_file, 0, settings.in_file.size() - 4);
-    std::string input_format;
-    input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
 
-    std::cout << "Initializing Vector of times ... " << std::endl;
-    std::vector<double> t_vec( settings.Ns );
-    t_vec[0] = settings.nstart*settings.Dt_cfd;
-    for ( int i = 1; i < settings.Ns; i++ )
-        t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
+
+    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
+    std::vector<int> Nf(s_Nf);
+    Nf[0] = 0;
+    //Nf[1] = std::ceil(settings.Ns/10.0);
+    //Nf[2] = std::ceil(settings.Ns/2.0);
+    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+//     Nf[1] = settings.Ns;
+    int nfj = 0;
+
+    int nC = settings.Cols.size();
+    std::vector<double> Dt_res = settings.Dt_res;
+
+    // Pre-processing common vars
+
+    int Nr;
+    Eigen::MatrixXd Coords;
+    std::vector<double> t_vec(settings.Ns);
+    common_vars( Nr, Coords, t_vec, settings);
+
+
 
     std::cout << t_vec[0] << "-------time of first snapshot" << std::endl;
     std::cout << t_vec[t_vec.size()-1] <<"-------time of last snapshot" << std::endl;
@@ -54,37 +64,12 @@ int main( int argc, char *argv[] )
         { std::cout << "Perfect usage of time... chapeau "<< std::endl;}
     }
 
-    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
-    std::vector<int> Nf(s_Nf);
-    Nf[0] = 0;
-    //Nf[1] = std::ceil(settings.Ns/10.0);
-    //Nf[2] = std::ceil(settings.Ns/2.0);
-    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-//     Nf[1] = settings.Ns;
-    int nfj = 0;
 
-    int nC = settings.Cols.size();
-    std::vector<double> Dt_res = settings.Dt_res;
-
-    std::stringstream buffer;
-    buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
-    std::string file_1 = root_inputfile + "_" + buffer.str() + "." + input_format;
-
-    // Calculate number of grid points
-    int Nr = N_gridpoints ( file_1 );
-    std::cout << "Number of grid points : " << Nr << std::endl;
-
-    std::cout << "Reading Coordinates ... \t ";
-    Eigen::MatrixXd Coords = read_col( file_1, Nr, settings.Cols_coords );
-    std::cout << "Done " << std::endl;
 
 // How we upload the snapshot matrix in the most efficient way?
 // By now one big igen Matrix where each column has all the vectors of the conservative variables
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings.Ns, settings.Ds, settings.nstart,
-                                                   settings.Cols,
-                                                   settings.in_file,
-                                                   settings.flag_prob);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
 
     std::cout << std::endl;
 
@@ -206,6 +191,11 @@ int main( int argc, char *argv[] )
         std::vector<Eigen::VectorXcd> alfa(nC);
         std::vector<int> Nm(nC);
 
+        //Defining quantities needed for uniform interpolation
+        std::vector<std::vector<smartuq::surrogate::rbf> > surr_coefs_DMD_r(nC);
+        std::vector<std::vector<smartuq::surrogate::rbf> > surr_coefs_DMD_i(nC);
+
+
         for ( int i = 0; i < nC; i++ ) {
             Phi[i] = Eigen::MatrixXcd::Zero(Nr, settings.Ns);
             alfa[i] = Eigen::VectorXcd::Zero(settings.Ns);
@@ -231,15 +221,27 @@ int main( int argc, char *argv[] )
                                        lambda_POD,
                                        eig_vec_POD,
                                        settings.r);
+
+                std::cout << "Number of DMD modes extracted : " << Phi[ncons].cols() << std::endl;
             }
 
             Eigen::VectorXcd omega(Phi[ncons].cols());
             for (int i = 0; i < Phi[ncons].cols(); i++)
                 omega(i) = std::log(lambda_DMD[ncons](i)) / (settings.Dt_cfd * settings.Ds);
 
-            alfa[ncons] = Calculate_Coefs_DMD_exact(sn_set.middleRows(ncons * Nr, Nr).leftCols(settings.Ns - 1),
-                                                    lambda_DMD[ncons],
-                                                    Phi[ncons]);
+            //Computing alpha if exponential rec is needed
+            if ( settings.dmd_coef_flag == "OPT") {
+
+                alfa[ncons] = Calculate_Coefs_DMD_exact(sn_set.middleRows(ncons * Nr, Nr).leftCols(settings.Ns - 1),
+                                                        lambda_DMD[ncons],
+                                                        Phi[ncons]);
+            } else if ( settings.dmd_coef_flag == "LS") {
+
+                Eigen::VectorXcd b = Eigen::VectorXcd::Zero(sn_set.rows());
+                for ( int k = 0; k < sn_set.rows(); k++ ) b(k).real(sn_set(k,0));
+                alfa[ncons] = Phi[ncons].jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+            }
 
             Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi[ncons].cols());
             double T = t_vec[t_vec.size() - 1];
@@ -269,10 +271,21 @@ int main( int argc, char *argv[] )
                 Nm[ncons] = std::min(settings.r, settings.Ns - 1);
                 std::cout << "Number of modes (fixed) : " << Nm[ncons] << std::endl;
             }
+            //Defining quantities to get a uniform DMD reconstruction if needed (not using exprec)
+//            Eigen::MatrixXcd PhiTPhi = Phi[ncons].leftCols(Nm[ncons]).transpose()*Phi[ncons].leftCols(Nm[ncons]);
+//            Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi[ncons].leftCols(Nm[ncons]).transpose()*sn_set.middleRows(ncons*Nr,Nr));
+            Eigen::MatrixXcd PhiTPhi = Phi[ncons].transpose()*Phi[ncons];
+            Eigen::MatrixXcd Coeffs = PhiTPhi.inverse()*(Phi[ncons].transpose()*sn_set.middleRows(ncons*Nr,Nr));
+//            surr_coefs_DMD_r[ncons].resize(Nm[ncons]);
+//            surr_coefs_DMD_i[ncons].resize(Nm[ncons]);
+            surr_coefs_DMD_r[ncons] = getSurrCoefs(t_vec, Coeffs.real().transpose(), settings.flag_interp);
+            surr_coefs_DMD_i[ncons] = getSurrCoefs(t_vec, Coeffs.imag().transpose(), settings.flag_interp);
 
         }
 
         std::cout << std::endl;
+
+
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
 
@@ -286,6 +299,30 @@ int main( int argc, char *argv[] )
 
                 for (int ncons = 0; ncons < nC; ncons++) {
 
+
+                    if ( settings.flag_rec == "UNIFORM" ) {
+                        std::cout << "Using POD reconstruction formula for DMD" << std::endl;
+                        double tmp_r, tmp_i;
+                        std::vector<double> tr(1);
+                        Eigen::MatrixXcd coef_t(3, Nm[ncons]);
+                        //DMD using same rec formula as POD
+//                        --------------------------------------------------------------------------------------------
+                        for (int j = 0; j < 3; j++) {
+                            tr[0] = t_evaluate[j];
+                            for (int i = 0; i < Nm[ncons]; i++) {
+                                surr_coefs_DMD_r[ncons][i].evaluate(tr, tmp_r);
+                                surr_coefs_DMD_i[ncons][i].evaluate(tr, tmp_i);
+                                std::complex<double> c(tmp_r,tmp_i);
+                                coef_t(j,i) = c;
+                            }
+                        }
+
+                        Eigen::MatrixXcd Appo = Phi[ncons].leftCols(Nm[ncons]) * coef_t.transpose();
+                        Sn_Cons_time.middleRows(ncons * Nr, Nr) = Appo.real();
+//                      ----------------------------------------------------------------------------------------------
+                    } else {
+                        std::cout << "Using exponential DMD reconstruction" << std::endl;
+
                         for (int j = 0; j < 3; j++) {
 
                             Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
@@ -298,7 +335,7 @@ int main( int argc, char *argv[] )
                             Sn_Cons_time.middleRows(ncons * Nr, Nr).col(j) = Rec.real();
 
                         }
-
+                    }
                 }
 
                 if (settings.flag_mean == "IC") {

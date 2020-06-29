@@ -49,10 +49,7 @@ int main( int argc, char *argv[] )
 
     //Storing complete snapshot matrix
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Np, settings.Ns, settings.Ds, settings.nstart,
-                                                settings.Cols,
-                                                settings.in_file,
-                                                settings.flag_prob);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Np, settings);
 
     std::cout << "Initializing Vector of times ... " << std::endl; 
     std::vector<double> t_vec( settings.Ns );
@@ -216,7 +213,7 @@ int main( int argc, char *argv[] )
         int nVar_ub = settings.Ns;
         int nVar_Opt = 41;//Nmod(1.0 - thr * thr, K_pc) - 2;//std::round(settings.Ns/3);
         double fVal = 1.0;
-        size_t Npop = 300;
+        size_t Npop = 30;
         int Ngen = 2000;
         int Nf = 0; //Filter for POD
 

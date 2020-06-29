@@ -458,4 +458,135 @@ std::vector<double> SPOD_Adapt_Samp_Int_::fitness(const std::vector<double> &var
 
 }
 
+
+
+std::pair<std::vector<double>, std::vector<double> > DMD_Best_Modes::get_bounds() const {
+    return {problemBounds_[0], problemBounds_[1]};
+}
+
+//Fitness Function:
+std::vector<double> DMD_Best_Modes::fitness(const std::vector<double> &variables) const {
+
+    int Np = m_sn_set.rows();
+    int Ns = m_sn_set.cols();
+    int N_Var = static_cast<int>(variables.size());
+    std::vector<int> bool_mode(N_Var);
+    Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(Ns);
+    for ( int it = 0; it < Ns; it ++)
+        norm_sn_set(it) = m_sn_set.col(it).norm();
+
+    for ( int iMode = 0; iMode < N_Var; iMode++ ) bool_mode[iMode] = static_cast<int> (variables[iMode]);
+
+    int Nm = 0;
+    for ( int ibool = 0; ibool < N_Var; ibool++) Nm += bool_mode[ibool];
+//    std::cout << "Nm = " << Nm << std::endl;
+    Eigen::MatrixXcd Phi_Best = Eigen::MatrixXcd::Zero(Np,Nm);
+    Eigen::MatrixXcd Coefs_Best = Eigen::MatrixXcd::Zero(Nm,Ns);
+    std::vector<int> idx_Best = {};
+    int iMBest = 0;
+    for ( int iMode = 0; iMode < N_Var; iMode++ ){
+        if ( bool_mode[iMode] == 1) {
+            Phi_Best.col(iMBest) = m_Phi.col(iMode);
+            Coefs_Best.row(iMBest) = m_Coefs.row(iMode);
+            idx_Best.push_back(iMode);
+            iMBest++;
+        }
+    }
+//    std::cout << "In fitness " << std::endl;
+//    if ( iMBest > Nm-1 ) std::cout << "Warning! Constraint not verified. Nm = " << iMBest << std::endl;
+
+    //Computing projection error
+
+    Eigen::MatrixXd ErrP_DMD_map = Eigen::MatrixXd::Zero(Np, Ns);
+    Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(Ns);
+
+    Eigen::MatrixXcd P_u = Phi_Best * Coefs_Best;
+    ErrP_DMD_map = m_sn_set - P_u.real();
+
+    for ( int it = 0; it < Ns; it++ ) {
+        int count = 0;
+        for ( int iP = 0; iP < Np; iP++ )
+            ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+
+        ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+    }
+
+    std::vector<double> fitness_vector;
+    //Integral
+//    fitness_vector.push_back(ErrP_DMD_time.norm());
+    //Maximum
+    fitness_vector.push_back(ErrP_DMD_time.maxCoeff());
+
+//    fitness_vector.push_back(Nm - m_settings.r);
+
+    return fitness_vector;
+
+}
+
+
+std::pair<std::vector<double>, std::vector<double> > Best_Modes::get_bounds() const {
+    return {problemBounds_[0], problemBounds_[1]};
+}
+
+//Fitness Function:
+std::vector<double> Best_Modes::fitness(const std::vector<double> &variables) const {
+
+    int Np = m_sn_set.rows();
+    int Ns = m_sn_set.cols();
+    int N_Var = static_cast<int>(variables.size());
+    std::vector<int> bool_mode(N_Var);
+    Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(Ns);
+    for ( int it = 0; it < Ns; it ++)
+        norm_sn_set(it) = m_sn_set.col(it).norm();
+
+    for ( int iMode = 0; iMode < N_Var; iMode++ ) bool_mode[iMode] = static_cast<int> (variables[iMode]);
+
+    int Nm = 0;
+    for ( int ibool = 0; ibool < N_Var; ibool++) Nm += bool_mode[ibool];
+//    std::cout << "Nm = " << Nm << std::endl;
+    Eigen::MatrixXd Phi_Best = Eigen::MatrixXd::Zero(Np,Nm);
+    Eigen::MatrixXd Coefs_Best = Eigen::MatrixXd::Zero(Nm,Ns);
+    std::vector<int> idx_Best = {};
+    int iMBest = 0;
+    for ( int iMode = 0; iMode < N_Var; iMode++ ){
+        if ( bool_mode[iMode] == 1) {
+            Phi_Best.col(iMBest) = m_Phi.col(iMode);
+            Coefs_Best.row(iMBest) = m_Coefs.row(iMode);
+            idx_Best.push_back(iMode);
+            iMBest++;
+        }
+    }
+//    std::cout << "In fitness " << std::endl;
+//    if ( iMBest > Nm-1 ) std::cout << "Warning! Constraint not verified. Nm = " << iMBest << std::endl;
+
+    //Computing projection error
+
+    Eigen::MatrixXd ErrP_DMD_map = Eigen::MatrixXd::Zero(Np, Ns);
+    Eigen::VectorXd ErrP_DMD_time = Eigen::VectorXd::Zero(Ns);
+
+    Eigen::MatrixXd P_u = Phi_Best * Coefs_Best;
+    ErrP_DMD_map = m_sn_set - P_u;
+
+    for ( int it = 0; it < Ns; it++ ) {
+        int count = 0;
+        for ( int iP = 0; iP < Np; iP++ )
+            ErrP_DMD_time(it) += ErrP_DMD_map(iP,it)*ErrP_DMD_map(iP,it);
+
+        ErrP_DMD_time(it) = std::sqrt(ErrP_DMD_time(it))/norm_sn_set(it);
+    }
+
+    std::vector<double> fitness_vector;
+    //Integral
+//    fitness_vector.push_back(ErrP_DMD_time.norm());
+    //Maximum
+    fitness_vector.push_back(ErrP_DMD_time.maxCoeff());
+
+//    fitness_vector.push_back(Nm - m_settings.r);
+
+    return fitness_vector;
+
+}
+
+
+
 #endif

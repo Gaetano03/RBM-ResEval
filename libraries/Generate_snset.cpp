@@ -1,14 +1,24 @@
 #include "read_Inputs.hpp"
 #include "Generate_snset.hpp"
 
-Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, const int init,
-                                        std::vector<int> Cols,
-                                        std::string inputfile,
-                                        std::string flag_prob,
-                                        std::string solver )
+Eigen::MatrixXd generate_snap_matrix( const int Nr, prob_settings settings, bool check  )
 {
 
     std::string file_temp;
+    int Ns = settings.Ns;
+    int ds = settings.Ds;
+    int init = settings.nstart;
+    int nDim = settings.ndim;
+    std::vector<int> Cols = settings.Cols;
+    std::string inputfile = settings.in_file;
+    std::string flag_prob = settings.flag_prob;
+    std::string solver = settings.solver;
+
+    if ( check ){
+        Ns = settings.Ns-1;
+        init =  settings.nstart + settings.Ds/2;
+    }
+
     int k = 0;
     std::string root_inputfile;
     std::string input_format;
@@ -151,6 +161,37 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, const int Ns, const int ds, 
                 std::cout << "Complete!" << std::endl;
 
                 snap.col(k) = field.col(0);
+
+                k++;
+
+            }
+
+            return snap;
+
+
+        } else if ( flag_prob == "GRADIENTS" )
+        {
+
+            Eigen::MatrixXd snap(Nr*nDim, Ns);
+
+            for( int i = init; i < (Ns*ds + init); i += ds )
+            {
+
+                std::stringstream buffer;
+                buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
+                file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
+                std::cout << "Reading fields from : " << file_temp << "\t";
+                field = read_col(file_temp, Nr, Cols);
+                std::cout << "Complete!" << std::endl;
+
+                if ( nDim == 2) {
+                    snap.col(k) << field.col(0),
+                            field.col(1);
+                } else {
+                    snap.col(k) << field.col(0),
+                            field.col(1),
+                            field.col(2);
+                }
 
                 k++;
 

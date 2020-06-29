@@ -57,10 +57,8 @@ int main( int argc, char *argv[] )
     std::cout << "Done " << std::endl;
 
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings.Ns, settings.Ds, settings.nstart,
-                                        settings.Cols,
-                                        settings.in_file,
-                                        settings.flag_prob);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
+
     // Eigen::MatrixXd sn_set = Eigen::MatrixXd::Zero(settings.ndim*Nr, settings.Ns);
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Mean/Initial condition
@@ -125,7 +123,7 @@ int main( int argc, char *argv[] )
             while( getline( iss, token, ',') )
             {
                 err = std::stod(token);
-                idx = std::stoi(token);
+//                idx = std::stoi(token);
 
                 if (settings.ndim == 3) {
                     if (count == 17) Err_RBM_rho(n_row, i) = std::pow(10.0, err);

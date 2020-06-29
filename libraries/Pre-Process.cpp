@@ -1,5 +1,31 @@
 #include "Pre-Process.hpp"
 
+void common_vars( int &Nr, Eigen::MatrixXd &Coords, std::vector<double> &t_vec, prob_settings settings){
+
+    std::cout << "Initializing Vector of times ... " << std::endl;
+
+    t_vec[0] = settings.nstart*settings.Dt_cfd;
+    for ( int i = 1; i < settings.Ns; i++ )
+        t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
+
+    std::string root_inputfile;
+    root_inputfile.assign ( settings.in_file, 0, settings.in_file.size() - 4);
+    std::string input_format;
+    input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
+
+    std::stringstream buffer;
+    buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
+    std::string file_1 = root_inputfile + "_" + buffer.str() + "." + input_format;
+
+    // Calculate number of grid points
+    Nr = N_gridpoints ( file_1 );
+    std::cout << "Number of grid points : " << Nr << std::endl;
+
+    std::cout << "Reading Coordinates ... \t ";
+    Coords = read_col( file_1, Nr, settings.Cols_coords );
+    std::cout << "Done " << std::endl;
+
+}
 
 void get_MinMax_ConsVar (const Eigen::MatrixXd sn_set, const prob_settings &settings, const int nC, double &rho_max,
                          double &rho_min, double &rhoU_max, double &rhoU_min, double &rhoV_max, double &rhoV_min,

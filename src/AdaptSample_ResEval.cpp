@@ -90,10 +90,7 @@ int main( int argc, char *argv[] )
  // How we upload the snapshot matrix in the most efficient way?
  // By now one big igen Matrix where each column has all the vectors of the conservative variables
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings.Ns, settings.Ds, settings.nstart,
-                                                   settings.Cols,
-                                                   settings.in_file,
-                                                   settings.flag_prob);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
 
     // std::vector<double> t_evaluate(2*settings.Ns-1);
     // t_evaluate[0] = settings.nstart*settings.Dt_cfd;

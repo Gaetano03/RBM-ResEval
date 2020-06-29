@@ -11,6 +11,7 @@
 #include "pagmo.hpp"
 
 // Define the problem PaGMO-style
+using namespace Eigen;
 
 
 //POD on absolute positions
@@ -93,14 +94,6 @@ private:
 };
 
 
-
-
-
-
-
-
-
-
 // Pagmo problem with integers for POD
 
 struct SPOD_Adapt_Samp_Int {
@@ -165,6 +158,74 @@ private:
     const std::vector< std::vector< double > > problemBounds_;
     int m_Nf;
 };
+
+
+struct DMD_Best_Modes {
+
+    // Empty constructor
+    DMD_Best_Modes( ){ }
+
+    DMD_Best_Modes( std::vector< std::vector< double > > &bounds, Eigen::MatrixXd &sn_set, Eigen::MatrixXcd &Phi,
+            Eigen::MatrixXcd &Coefs, prob_settings &settings ) : problemBounds_(bounds), m_sn_set(sn_set),
+            m_Phi(Phi), m_Coefs(Coefs), m_settings(settings) {
+    }
+    // Fitness:
+    std::vector<double> fitness(const std::vector<double> &variables) const;
+    // Boundaries of the problem
+    std::pair<std::vector<double>, std::vector<double>> get_bounds() const;
+    //! Serialization function for Pagmo compatibility
+
+    //Number of equality and inequality constraints
+    pagmo::vector_double::size_type get_nec() const {return 0;}
+    pagmo::vector_double::size_type get_nic() const {return 0;}
+    //Number of continuous and integer variables
+    pagmo::vector_double::size_type get_ncx() const {return 0;}
+    pagmo::vector_double::size_type get_nix() const {return problemBounds_[0].size();}
+
+private:
+
+    Eigen::MatrixXd m_sn_set;
+    Eigen::MatrixXcd m_Phi;
+    Eigen::MatrixXcd m_Coefs;
+    prob_settings m_settings;
+    const std::vector< std::vector< double > > problemBounds_;
+};
+
+
+
+
+struct Best_Modes {
+
+    // Empty constructor
+    Best_Modes( ){ }
+
+    Best_Modes( std::vector< std::vector< double > > &bounds, Eigen::MatrixXd &sn_set, Eigen::MatrixXd &Phi,
+                Eigen::MatrixXd &Coefs, prob_settings &settings ) : problemBounds_(bounds), m_sn_set(sn_set),
+                                                                         m_Phi(Phi), m_Coefs(Coefs), m_settings(settings) {
+    }
+    // Fitness:
+    std::vector<double> fitness(const std::vector<double> &variables) const;
+    // Boundaries of the problem
+    std::pair<std::vector<double>, std::vector<double>> get_bounds() const;
+    //! Serialization function for Pagmo compatibility
+
+    //Number of equality and inequality constraints
+    pagmo::vector_double::size_type get_nec() const {return 0;}
+    pagmo::vector_double::size_type get_nic() const {return 0;}
+    //Number of continuous and integer variables
+    pagmo::vector_double::size_type get_ncx() const {return 0;}
+    pagmo::vector_double::size_type get_nix() const {return problemBounds_[0].size();}
+
+private:
+
+    Eigen::MatrixXd m_sn_set;
+    Eigen::MatrixXd m_Phi;
+    Eigen::MatrixXd m_Coefs;
+    prob_settings m_settings;
+    const std::vector< std::vector< double > > problemBounds_;
+};
+
+
 
 #endif
 

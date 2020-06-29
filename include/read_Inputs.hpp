@@ -12,7 +12,7 @@
 
 //#include "Eigen/Dense"
 //#include "Eigen/Eigenvalues"
-
+#include "LinearAlgebra/Eigen/Core"
 #include "LinearAlgebra/Eigen/Dense"
 #include "LinearAlgebra/Eigen/Eigenvalues"
 

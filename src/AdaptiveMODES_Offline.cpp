@@ -68,10 +68,7 @@ int main( int argc, char *argv[] )
     std::cout << "Done " << std::endl;
 
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings.Ns, settings.Ds, settings.nstart,
-                                        settings.Cols,
-                                        settings.in_file,
-                                        settings.flag_prob);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
 
     std::cout << "Initializing Vector of time ... " << std::endl; 
     std::vector<double> t_vec( settings.Ns );
@@ -89,10 +86,7 @@ int main( int argc, char *argv[] )
     Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(settings.Ns-1);
 
     std::cout << "Reading matrix for check ... " << std::endl;
-    Eigen::MatrixXd sn_set_check = generate_snap_matrix( Nr, settings.Ns-1, settings.Ds, settings.nstart + settings.Ds/2,
-                                                        settings.Cols,
-                                                        settings.in_file,
-                                                        settings.flag_prob);
+    Eigen::MatrixXd sn_set_check = generate_snap_matrix( Nr, settings, true);
     // Eigen::VectorXd mean_check = sn_set_check.rowwise().mean();
     // Eigen::VectorXd mean_check = sn_set.rowwise().mean();
 
@@ -813,6 +807,7 @@ int main( int argc, char *argv[] )
     chrono_end = clock();
     comp_time = ((double)(chrono_end-chrono_begin))/CLOCKS_PER_SEC;
     std::cout << "Elapsed time : " << comp_time << std::endl;
+
 
     return 0;
 

@@ -57,11 +57,7 @@ int main(int argc, char *argv[]) {
     int Nr = 0;
     // Create matrix of snapshots
     std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings.Ns, settings.Ds, settings.nstart,
-                                        settings.Cols,
-                                        settings.in_file,
-                                        settings.flag_prob,
-                                        settings.solver);
+    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
 
     //Eigen::VectorXd mean = sn_set.rowwise().mean();
 

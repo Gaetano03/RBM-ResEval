@@ -609,6 +609,10 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings s
             } else if ( name == "EXACT_FLOW_FILENAME" ) {
                 outFile << "EXACT_FLOW_FILENAME=" << settings.in_file;
 
+            } else if ( name == "WRT_SOL_FREQ_DUALTIME" ) {
+                if ( settings.flag_rec == "YES" ) {outFile << "WRT_SOL_FREQ_DUALTIME=1";}
+                else {outFile << "WRT_SOL_FREQ_DUALTIME=1000";}
+
             } else if ( name == "GUST_BEGIN_LOC" ) {
                 gust_loc = std::stod(line.substr(delimiterPos + 1)) + settings.t_res[it2]*U_inf;
                 outFile << "GUST_BEGIN_LOC=" << std::setprecision(16) << gust_loc;
