@@ -9,7 +9,7 @@
 #include "Post-Process.hpp"
 #include <cmath>
 
-void SU2_DTR(prob_settings settings, std::string su2_conf, std::string method, int it1, int it2, bool direct_error = false);
+void SU2_DTR(prob_settings settings, std::string su2_conf, std::string method, int it1, int it2);
 
 
 

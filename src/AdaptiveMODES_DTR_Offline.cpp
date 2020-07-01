@@ -167,7 +167,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "POD", idtr, itr, settings.direct_error);
+                SU2_DTR(settings, su2_conf, "POD", idtr, itr);
 //                Write_History_ResError(settings, "POD", idtr, itr);
                 std::cout << std::endl;
             }
@@ -346,7 +346,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "DMD", idtr, itr, settings.direct_error);
+                SU2_DTR(settings, su2_conf, "DMD", idtr, itr);
 //                Write_History_ResError(settings, "DMD", idtr, itr);
                 std::cout << std::endl;
             }
@@ -443,7 +443,7 @@ int main( int argc, char *argv[] )
                 //Launching SU2_DTR and saving errors and Residuals to file
                 int iter = std::round(settings.t_res[itr]/settings.Dt_cfd);
                 Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha, settings.beta, binary);
-                SU2_DTR(settings, su2_conf, "RDMD", idtr, itr, settings.direct_error);
+                SU2_DTR(settings, su2_conf, "RDMD", idtr, itr);
 //                Write_History_ResError(settings, "RDMD", idtr, itr);
                 std::cout << std::endl;
 

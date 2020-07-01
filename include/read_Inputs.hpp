@@ -63,6 +63,7 @@ struct prob_settings
     int nstart;                     //starting snapshot number
     int ndim;
     bool direct_error;
+    bool surf_res;
     std::string solver;
     std::string in_file;            //Input filename
     std::string out_file;           //Output filename (for reconstruction)
@@ -163,7 +164,8 @@ enum keywords
                 MAX_LEVELS,
                 MAX_CYCLES,
                 TOL,
-                DIRECT_ERROR
+                DIRECT_ERROR,
+                SURF_RESEVAL
             };
 
 
@@ -175,7 +177,7 @@ keywords read_keyword_type( const std::string &key_string );
 void Read_cfg ( std::string filename, prob_settings &settings );
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf = 0.0, bool d_err = true );
+void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf = 0.0 );
 
 //Get Number of grid points
 int N_gridpoints ( const std::string file_in );

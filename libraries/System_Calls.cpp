@@ -1,7 +1,9 @@
 #include "System_Calls.hpp"
 
-void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, int it1, int it2, bool direct_error ){
+void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, int it1, int it2 ){
 
+    bool direct_error = settings.direct_error;
+    bool surf_res = settings.surf_res;
     /*------------Defining all necessary strings----------------*/
 
     //New cfg file SU2 for residual evaluation and modification for SU2_DTR
@@ -26,7 +28,7 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
         direct_error = false;
     }
 
-    Modify_su2_cfg ( su2_conf, su2_conf_new, settings, it1, it2, V_inf, direct_error );
+    Modify_su2_cfg ( su2_conf, su2_conf_new, settings, it1, it2, V_inf );
 
     //String to launch SU2_DTR from terminal
     std::string su2dtr_string = "mpirun -np 6 ./SU2_DTR " + su2_conf_new + " > SU2.log"; // + " > resEval_su2.log";

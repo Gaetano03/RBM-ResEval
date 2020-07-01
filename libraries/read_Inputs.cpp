@@ -87,6 +87,8 @@ keywords read_keyword_type( const std::string &key_string )
         return TOL;
     else if( key_string == "DIRECT_ERROR" )
         return DIRECT_ERROR;
+    else if( key_string == "SURF_RESEVAL" )
+        return SURF_RESEVAL;
     else
     {
         std::cout << key_string << " Not Available ... Something wrong in cfg file" << std::endl;
@@ -139,6 +141,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.t_rec = {};                  
     settings.tol = 0.0;                    
     settings.direct_error = false;
+    settings.surf_res = false;
 
     std::ifstream cFile ( filename );
     if ( cFile.is_open() )
@@ -165,7 +168,14 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                     std::string temp = value;
                     if ( temp == "YES") settings.direct_error = true;
                     else settings.direct_error = false;
-                    //std::cout << "Problem flag : " << value << std::endl;
+                    break;
+                }
+
+                case SURF_RESEVAL:
+                {
+                    std::string temp = value;
+                    if ( temp == "YES") settings.surf_res = true;
+                    else settings.surf_res = false;
                     break;
                 }
 
@@ -563,9 +573,10 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 }
 
 // Read and change su2 file
-void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf, bool d_err ) {
+void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings settings, int it1, int it2, double U_inf) {
 
     int itrestart = int(settings.t_res[it2]/settings.Dt_cfd + 0.5);
+    int count_derr = 0, count_surfres = 0, count_exactflow = 0;
     double gust_loc = 0.0;
 
     std::ifstream inFile ( file_in );
@@ -590,15 +601,39 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings s
             if ( name == "UNST_TIMESTEP" ) {
                 outFile << "UNST_TIMESTEP=" << std::setprecision(16) << settings.Dt_res[it1];
 
+            } else if ( name == "RESTART_SOL" ) {
+                outFile << "RESTART_SOL=YES";
+
+            } else if ( name == "READ_BINARY_RESTART" ) {
+                outFile << "READ_BINARY_RESTART=YES";
+
+            } else if ( name == "UNST_INT_ITER" ) {
+                outFile << "UNST_INT_ITER= 1";
+
             } else if ( name == "UNST_RESTART_ITER" ) {
                 outFile << "UNST_RESTART_ITER=" << itrestart;
+
+            } else if ( name == "TIME_DISCRE_FLOW" ) {
+                outFile << "TIME_DISCRE_FLOW= NO_T_INTEGRATION";
+
+            }  else if ( name == "TIME_DISCRE_TURB" ) {
+                outFile << "TIME_DISCRE_TURB= NO_T_INTEGRATION";
+
+            }  else if ( name == "CONV_FILENAME" ) {
+                outFile << "CONV_FILENAME= history_rbm";
 
             } else if ( name == "EXT_ITER" ) {
                 outFile << "EXT_ITER=" << itrestart+1;
 
             } else if ( name == "DIRECT_ERROR" ) {
-                if ( d_err ) { outFile << "DIRECT_ERROR=YES";}
+                if ( settings.direct_error ) { outFile << "DIRECT_ERROR=YES";}
                 else {outFile << "DIRECT_ERROR=NO";}
+                count_derr++;
+
+            } else if ( name == "SURF_RESEVAL" ) {
+                if ( settings.surf_res ) { outFile << "SURF_RESEVAL=YES";}
+                else {outFile << "SURF_RESEVAL=NO";}
+                count_surfres++;
 
             } else if ( name == "SOLUTION_FLOW_FILENAME" ) {
                 outFile << "SOLUTION_FLOW_FILENAME=" << settings.out_file;
@@ -608,6 +643,7 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings s
 
             } else if ( name == "EXACT_FLOW_FILENAME" ) {
                 outFile << "EXACT_FLOW_FILENAME=" << settings.in_file;
+                count_exactflow++;
 
             } else if ( name == "WRT_SOL_FREQ_DUALTIME" ) {
                 if ( settings.flag_rec == "YES" ) {outFile << "WRT_SOL_FREQ_DUALTIME=1";}
@@ -623,6 +659,24 @@ void Modify_su2_cfg ( std::string file_in, std::string file_out, prob_settings s
 
             outFile << std::endl;
 
+        }
+
+        //Adding missing options
+        if ( count_derr == 0 ){
+            if ( settings.direct_error ) { outFile << "DIRECT_ERROR=YES";}
+            else {outFile << "DIRECT_ERROR=NO";}
+            outFile << std::endl;
+        }
+
+        if ( count_surfres == 0 ){
+            if ( settings.surf_res ) { outFile << "SURF_RESEVAL=YES";}
+            else {outFile << "SURF_RESEVAL=NO";}
+            outFile << std::endl;
+        }
+
+        if ( count_exactflow == 0 ){
+            outFile << "EXACT_FLOW_FILENAME=" << settings.in_file;
+            outFile << std::endl;
         }
 
         outFile.close();
