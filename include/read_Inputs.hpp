@@ -10,11 +10,9 @@
 #include <vector>
 #include <iomanip>
 
-//#include "Eigen/Dense"
-//#include "Eigen/Eigenvalues"
-#include "LinearAlgebra/Eigen/Core"
-#include "LinearAlgebra/Eigen/Dense"
-#include "LinearAlgebra/Eigen/Eigenvalues"
+#include "Eigen/Core"
+#include "Eigen/Dense"
+#include "Eigen/Eigenvalues"
 
 #define EPS = 1e-16;
 

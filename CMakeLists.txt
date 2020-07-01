@@ -58,7 +58,7 @@ include_directories(${HEADERS})
 file(GLOB_RECURSE SOURCES "libraries/*.cpp")
 
 #add library
-add_library (MODES SHARED ${SOURCES} libraries/System_Calls.cpp include/Post-Process.hpp libraries/Post-Process.cpp)
+add_library (MODES SHARED ${SOURCES})
 target_link_libraries(MODES ${MANDATORY_LIBRARIES})
 set_target_properties(MODES PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -72,14 +72,6 @@ if(BUILD_STATIC)
             SOVERSION ${PROJECT_VERSION}
             OUTPUT_NAME MODES)
     add_dependencies(MODES-static MODES)
-endif()
-
-if (SMART_UQ_EXTERNAL)
-    add_dependencies(MODES smart-uq)
-endif()
-
-if (SMART_MATH_EXTERNAL)
-    add_dependencies(MODES smart-math)
 endif()
 
 if ( BUILD_EXAMPLES )
