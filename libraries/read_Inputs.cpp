@@ -124,7 +124,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.Re = 0.0;                    
     settings.mu = 0.0;                    
     settings.T = 0.0;                     
-    settings.Nf = -1;                    
+    settings.Nf = {};
     settings.En = -1.0;                  
     settings.sigma = -1.0;               
     settings.flag_filter = "NONE";    
@@ -346,8 +346,19 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                 case NF:
                 {
-                    settings.Nf = std::stoi(value);
-                    //std::cout << "Filter size for feature extraction : " << value << std::endl;
+                    std::string str = value;
+                    std::stringstream ss(str);
+
+                    int i;
+
+                    while (ss >> i) {
+
+                        settings.Dt_res.push_back(i);
+
+                        if (ss.peek() != ',' || ss.peek() != ' ')
+                            ss.ignore();
+                    }
+
                     break;
                 }
 

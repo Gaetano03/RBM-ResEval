@@ -215,7 +215,7 @@ int main( int argc, char *argv[] )
             {
 
                 std::cout << "Writing modes ..." << "\t";
-                std::string filename = "Modes_sPOD" + std::to_string(settings.Nf) + ".dat";
+                std::string filename = "Modes_sPOD" + std::to_string(settings.Nf[0]) + ".dat";
                 std::ofstream flow_data;
                 flow_data.open(filename.c_str());
                 std::string phi;

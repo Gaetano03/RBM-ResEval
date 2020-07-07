@@ -143,7 +143,7 @@ int main( int argc, char *argv[] ) {
 
         Eigen::MatrixXd PhiPOD = SPOD_basis(sn_set,
                                             lambda, K_pc, eig_vec,
-                                            settings.Nf,
+                                            settings.Nf[0],
                                             settings.flag_bc,
                                             settings.flag_filter,
                                             settings.sigma);
@@ -201,7 +201,7 @@ int main( int argc, char *argv[] ) {
 
         Eigen::MatrixXd PhiPOD = SPOD_basis(sn_set_improved,
                                             lambda, K_pc, eig_vec,
-                                            settings.Nf,
+                                            settings.Nf[0],
                                             settings.flag_bc,
                                             settings.flag_filter,
                                             settings.sigma);

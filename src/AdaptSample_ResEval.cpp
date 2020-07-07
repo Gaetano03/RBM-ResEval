@@ -175,10 +175,10 @@ int main( int argc, char *argv[] )
 
         if ( settings.flag_method[0] == "SPOD" ){
 
-            std::cout << "Computing uniform SPOD modes with Nf : " << settings.Nf << "\n";
+            std::cout << "Computing uniform SPOD modes with Nf : " << settings.Nf[0]; << "\n";
             Phi = SPOD_basis(sn_set,
                                  lambda_POD, K_pc, eig_vec,
-                                 settings.Nf,
+                                 settings.Nf[0],
                                  settings.flag_bc,
                                  settings.flag_filter,
                                  settings.sigma);
@@ -430,10 +430,10 @@ int main( int argc, char *argv[] )
         Eigen::MatrixXd sub_sn_set = indexing(sn_set, Eigen::ArrayXi::LinSpaced(nC*Nr,0,nC*Nr-1),Ipos);
 
         if ( settings.flag_method[0] == "SPOD") {
-            std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf << "\n";
+            std::cout << "Computing adaptive SPOD modes with Nf : " << settings.Nf[0] << "\n";
             Phi = SPOD_basis(sub_sn_set,
                                  lambda_POD, K_pc, eig_vec,
-                                 settings.Nf,
+                                 settings.Nf[0],
                                  settings.flag_bc,
                                  settings.flag_filter,
                                  settings.sigma);

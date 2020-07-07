@@ -86,7 +86,7 @@ struct prob_settings
     double Rho;                     //Density
 
     //------Parameters for POD-SPOD---------
-    int Nf;                     //filter size for SPOD
+    std::vector<int> Nf;                     //filter size for SPOD
     double En;                  //Energetic content desired for reconstruction
     
     double sigma;               //sigma value in case of Gaussian filter

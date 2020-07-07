@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
 
     Eigen::MatrixXd Phi = SPOD_basis( sn_set,
                                       lambda, K_pc, eig_vec,
-                                      settings.Nf,
+                                      settings.Nf[0],
                                       settings.flag_bc,
                                       settings.flag_filter,
                                       settings.sigma);
@@ -391,7 +391,7 @@ int main( int argc, char *argv[] )
 
             Eigen::MatrixXd Phi_temp = SPOD_basis(sub_sn_set_,
                                                   lambda, K_pc, eig_vec,
-                                                  settings.Nf,
+                                                  settings.Nf[0],
                                                   settings.flag_bc,
                                                   settings.flag_filter,
                                                   settings.sigma);
@@ -519,7 +519,7 @@ int main( int argc, char *argv[] )
 
             }
 
-            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf)};
+            pagmo::problem prob{SPOD_Adapt_Samp(bounds, sn_set, settings, settings.Nf[0])};
 //            pagmo::algorithm algo{pagmo::pso(1u,0.7298,2.05,2.05,0.5,
 //                                             5u,2u,4u,true,1)};
             pagmo::algorithm algo{pagmo::sade(1u,2u,1u,1e-6,1e-6,

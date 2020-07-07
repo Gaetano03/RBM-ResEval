@@ -27,14 +27,14 @@ int main( int argc, char *argv[] )
     Read_cfg( filecfg, settings );
 
 
-    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
-    std::vector<int> Nf(s_Nf);
-    Nf[0] = 0;
-    //Nf[1] = std::ceil(settings.Ns/10.0);
-    //Nf[2] = std::ceil(settings.Ns/2.0);
-    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-//     Nf[1] = settings.Ns;
-    int nfj = 0;
+//    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
+//    std::vector<int> Nf(s_Nf);
+//    Nf[0] = 0;
+//    //Nf[1] = std::ceil(settings.Ns/10.0);
+//    //Nf[2] = std::ceil(settings.Ns/2.0);
+//    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
+////     Nf[1] = settings.Ns;
+//    int nfj = 0;
 
     int nC = settings.Cols.size();
     std::vector<double> Dt_res = settings.Dt_res;
@@ -117,7 +117,7 @@ int main( int argc, char *argv[] )
             std::cout << "Processing conservative variable " << ncons << std::endl;
             Phi[ncons] = SPOD_basis(sn_set.middleRows(ncons * Nr, Nr),
                                     lambda[ncons], K_pc, eig_vec,
-                                    Nf[nfj],
+                                    0,
                                     settings.flag_bc,
                                     settings.flag_filter,
                                     settings.sigma);
@@ -171,6 +171,98 @@ int main( int argc, char *argv[] )
 //                Write_History_ResError(settings, "POD", idtr, itr);
                 std::cout << std::endl;
             }
+        }
+    }
+
+    //Defining scope for SPOD
+    std::vector<std::string>::iterator itSPOD;
+    itSPOD = std::find (methods.begin(), methods.end(), "SPOD");
+    if (itPOD != methods.end()) {
+        std::cout << "--------------------------------------" << std::endl ;
+        std::cout << "-------Performin SPOD ResEval----------" << std::endl ;
+        std::cout << "--------------------------------------" << std::endl ;
+        //Vector of MatrixXd where to store the evolution in time of conservative variables
+        Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
+        std::vector<Eigen::MatrixXd> Phi(nC);
+        std::vector<Eigen::VectorXd> lambda(nC);
+
+        std::vector< std::vector<rbf> > surr_coefs(nC);
+        Eigen::VectorXd K_pc(settings.Ns);
+        Eigen::MatrixXd eig_vec(settings.Ns, settings.Ns);
+        std::vector<int> Nm(nC);
+        int N_notZero;
+        //Check only for POD for now
+        for (int i = 0; i < nC; i++) {
+            Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
+        }
+
+        for ( int iNf = 0; iNf < settings.Nf.size(); iNf++ ) {
+
+            std::cout << std::endl << "Extraction of the basis for Nf " << settings.Nf[iNf] << std::endl << std::endl;
+            std::string method = "SPOD" + std::to_string(settings.Nf[iNf]);
+            for (int ncons = 0; ncons < nC; ncons++) {
+                std::cout << "Processing conservative variable " << ncons << std::endl;
+                Phi[ncons] = SPOD_basis(sn_set.middleRows(ncons * Nr, Nr),
+                                        lambda[ncons], K_pc, eig_vec,
+                                        settings.Nf[iNf],
+                                        settings.flag_bc,
+                                        settings.flag_filter,
+                                        settings.sigma);
+                N_notZero = Phi[ncons].cols();
+                if (settings.r == 0) Nm[ncons] = Nmod(settings.En, K_pc);
+                else Nm[ncons] = std::min(settings.r, N_notZero);
+                std::cout << "Number of modes used in reconstruction " << Nm[ncons] << std::endl;
+                surr_coefs[ncons] = getSurrCoefs(t_vec, eig_vec, settings.flag_interp);
+            }
+            std::cout << std::endl;
+
+//        std::cout << "Computing SPOD " << Nf[nfj] << " reconstruction for each conservative variable ... " << "\n";
+
+            for (int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
+                std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
+
+                for (int itr = 0; itr < settings.t_res.size(); itr++) {
+                    std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
+
+                    for (int ncons = 0; ncons < nC; ncons++) {
+
+                        Eigen::MatrixXd coef_t(3, Nm[ncons]);
+
+                        std::vector<double> tr(1);
+                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                          settings.t_res[itr] - settings.Dt_res[idtr],
+                                                          settings.t_res[itr]};
+
+                        for (int j = 0; j < 3; j++) {
+                            tr[0] = t_evaluate[j];
+                            for (int i = 0; i < Nm[ncons]; i++)
+                                surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                        }
+
+                        //    }
+                        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm[ncons], Nm[ncons]);
+                        for (int i = 0; i < Nm[ncons]; i++)
+                            Sig(i, i) = std::sqrt(lambda[ncons](i));
+                        Sn_Cons_time.middleRows(ncons * Nr, Nr) =
+                                Phi[ncons].leftCols(Nm[ncons]) * Sig * coef_t.transpose();
+                    }
+
+                    if (settings.flag_mean == "IC") {
+                        for (int it = 0; it < 3; it++)
+                            Sn_Cons_time.col(it) += Ic;
+                    }
+
+                    //Launching SU2_DTR and saving errors and Residuals to file
+                    int iter = std::round(settings.t_res[itr] / settings.Dt_cfd);
+                    Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha,
+                                            settings.beta, binary);
+                    SU2_DTR(settings, su2_conf, method, idtr, itr);
+//                Write_History_ResError(settings, "POD", idtr, itr);
+                    std::cout << std::endl;
+                }
+            }
+
         }
     }
 

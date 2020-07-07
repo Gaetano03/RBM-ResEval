@@ -14,7 +14,7 @@ void Config_stream ( prob_settings settings )
 
     if ( settings.flag_method[0] == "SPOD" )
     {
-        std::cout << " Filter size : " << settings.Nf << std::endl;
+        std::cout << " Filter size : " << settings.Nf[0] << std::endl;
         std::cout << " Filter type : " << settings.flag_filter << std::endl;
         std::cout << " Energy level desired : " << settings.En*100 << "%" << std::endl;
     }   
