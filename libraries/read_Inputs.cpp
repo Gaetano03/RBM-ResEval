@@ -353,7 +353,7 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                     while (ss >> i) {
 
-                        settings.Dt_res.push_back(i);
+                        settings.Nf.push_back(i);
 
                         if (ss.peek() != ',' || ss.peek() != ' ')
                             ss.ignore();

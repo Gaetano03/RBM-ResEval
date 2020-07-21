@@ -9,7 +9,7 @@ void Config_stream ( prob_settings settings )
     std::cout << " Starting snapshot index : " << settings.nstart << std::endl;
     std::cout << " Data-type to be processed : " << settings.flag_prob << std::endl << std::endl;
 
-    std::cout << "----------- Performing " << settings.flag_method[0][0] << " --------------" << std::endl;
+    std::cout << "----------- Performing " << settings.flag_method[0] << " --------------" << std::endl;
     std::cout << " Subtracting mean from snapshot = " << settings.flag_mean << std::endl << std::endl;
 
     if ( settings.flag_method[0] == "SPOD" )

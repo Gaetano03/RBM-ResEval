@@ -26,48 +26,14 @@ int main( int argc, char *argv[] )
     std::string su2_conf = argv[2];
     Read_cfg( filecfg, settings );
 
-
-//    int s_Nf = 1;   //Number of values for the SPOD filter (POD included)
-//    std::vector<int> Nf(s_Nf);
-//    Nf[0] = 0;
-//    //Nf[1] = std::ceil(settings.Ns/10.0);
-//    //Nf[2] = std::ceil(settings.Ns/2.0);
-//    //Nf[3] = std::ceil(2.0*settings.Ns/3.0);
-////     Nf[1] = settings.Ns;
-//    int nfj = 0;
-
+    // Pre-processing common vars
     int nC = settings.Cols.size();
     std::vector<double> Dt_res = settings.Dt_res;
-
-    // Pre-processing common vars
-
     int Nr;
     Eigen::MatrixXd Coords;
     std::vector<double> t_vec(settings.Ns);
     common_vars( Nr, Coords, t_vec, settings);
 
-
-
-    std::cout << t_vec[0] << "-------time of first snapshot" << std::endl;
-    std::cout << t_vec[t_vec.size()-1] <<"-------time of last snapshot" << std::endl;
-    std::cout << settings.t_res[0] <<"----time of first residual evaluation"<< std::endl;
-    std::cout << settings.t_res[settings.t_res.size()-1]<< "----time of last residual evaluation"<< std::endl;
-
-    for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ){
-        std::cout<< "for this DT_res=" << settings.Dt_res[idtr]<<"......."<< std::endl;
-        if ( ((settings.t_res[0] - (2.0 * settings.Dt_res[idtr])) < t_vec[0]) ||  (settings.t_res[settings.t_res.size()-1] > t_vec[t_vec.size() - 1]))
-        {
-            std::cout
-                    << "Define proper Delta_t_res and T_RES vector " << std::endl;
-            exit(EXIT_FAILURE);
-        }else
-        { std::cout << "Perfect usage of time... chapeau "<< std::endl;}
-    }
-
-
-
-// How we upload the snapshot matrix in the most efficient way?
-// By now one big igen Matrix where each column has all the vectors of the conservative variables
     std::cout << "Storing snapshot Matrix ... \n ";
     Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
 
