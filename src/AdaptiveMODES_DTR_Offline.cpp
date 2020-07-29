@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
     //Defining scope for SPOD
     std::vector<std::string>::iterator itSPOD;
     itSPOD = std::find (methods.begin(), methods.end(), "SPOD");
-    if (itPOD != methods.end()) {
+    if (itSPOD != methods.end()) {
         std::cout << "--------------------------------------" << std::endl ;
         std::cout << "-------Performin SPOD ResEval----------" << std::endl ;
         std::cout << "--------------------------------------" << std::endl ;

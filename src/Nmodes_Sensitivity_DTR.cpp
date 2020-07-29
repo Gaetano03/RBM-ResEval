@@ -1,5 +1,5 @@
 /*
-CODE FOR RESIDUAL EVALUATION OF DIFFERENT RBM TECHNIQUES USING SU2 CODE
+CODE FOR PARETO FRONT ANALYSIS OF DIFFERENT RBM TECHNIQUES USING SU2 CODE
 INPUT ARGUMENTS
 Config File RBM + Config File SU2
 */
@@ -231,7 +231,7 @@ int main( int argc, char *argv[] )
                         int iter = std::round(settings.t_res[itr] / settings.Dt_cfd);
                         Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha,
                                                 settings.beta, binary);
-                        SU2_DTR(settings, su2_conf, "POD", idtr, itr);
+                        SU2_DTR(settings, su2_conf, method, idtr, itr);
 
                     }
                 }

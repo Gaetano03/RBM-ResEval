@@ -23,7 +23,7 @@ void SU2_DTR(prob_settings settings, std::string su2_conf,  std::string method, 
     //Check if you can compute also direct error
     int iter = std::round(settings.t_res[it2]/settings.Dt_cfd);
     double temp;
-    if( std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) > 1e-5 ) {
+    if( std::abs((double(iter) - settings.t_res[it2]/settings.Dt_cfd) > 1e-5) && settings.direct_error ) {
         std::cout << "lack = " << std::abs(double(iter) - settings.t_res[it2]/settings.Dt_cfd) << " WARNING! Not computing direct error for this time instant" << std::endl;
         direct_error = false;
     }
