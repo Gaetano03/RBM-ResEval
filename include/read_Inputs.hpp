@@ -61,6 +61,8 @@ struct prob_settings
     int Ns;                         //Number of snapshots
     int Ds;                         //Delta between snapshots
     int nstart;                     //starting snapshot number
+    int init_tres;
+    int init_imode;
     int ndim;
     bool direct_error;
     bool surf_res;
@@ -165,7 +167,9 @@ enum keywords
                 MAX_CYCLES,
                 TOL,
                 DIRECT_ERROR,
-                SURF_RESEVAL
+                SURF_RESEVAL,
+                INIT_TRES,
+                INIT_MODE
             };
 
 

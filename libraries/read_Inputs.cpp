@@ -89,6 +89,10 @@ keywords read_keyword_type( const std::string &key_string )
         return DIRECT_ERROR;
     else if( key_string == "SURF_RESEVAL" )
         return SURF_RESEVAL;
+    else if( key_string == "INIT_TRES" )
+        return INIT_TRES;
+    else if( key_string == "INIT_MODE" )
+        return INIT_MODE;
     else
     {
         std::cout << key_string << " Not Available ... Something wrong in cfg file" << std::endl;
@@ -142,6 +146,8 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.tol = 0.0;                    
     settings.direct_error = false;
     settings.surf_res = false;
+    settings.init_imode = 2;
+    settings.init_tres = 0;
 
     std::ifstream cFile ( filename );
     if ( cFile.is_open() )
@@ -560,6 +566,20 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
 
                     }
 
+                    break;
+                }
+
+                case INIT_TRES:
+                {
+                    settings.init_tres = std::stoi(value);
+                    //std::cout << "Number of snapshots : " << value << std::endl;
+                    break;
+                }
+
+                case INIT_MODE:
+                {
+                    settings.init_imode = std::stoi(value);
+                    //std::cout << "Number of snapshots : " << value << std::endl;
                     break;
                 }
 

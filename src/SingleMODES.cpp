@@ -17,23 +17,10 @@ int main(int argc, char *argv[]) {
     Read_cfg( filecfg, settings );
     Config_stream ( settings );
 
-    // Calculate number of grid points
-    std::string root_inputfile;
-    root_inputfile.assign ( settings.in_file, 0, settings.in_file.size() - 4);
-    std::string input_format;
-    input_format.assign ( settings.in_file, settings.in_file.size() - 3, 3);
-
-    std::stringstream buffer;
-    buffer << std::setfill('0') << std::setw(5) << std::to_string(settings.nstart);
-    std::string file_1 = root_inputfile + "_" + buffer.str() + "." + input_format;
-
-    int Nr = N_gridpoints ( file_1 );
-    std::cout << "Number of grid points : " << Nr << std::endl;
-    
-    // Reading coordinates
-    std::cout << "Reading Coordinates ... \t ";
-    Eigen::MatrixXd Coords = read_col( file_1, Nr, settings.Cols_coords );
-    std::cout << "Done " << std::endl;
+    int Nr;
+    Eigen::MatrixXd Coords;
+    std::vector<double> t_vec(settings.Ns);
+    common_vars( Nr, Coords, t_vec, settings);
 
     // Create matrix of snapshots
     std::cout << "Storing snapshot Matrix ... \n ";
@@ -53,7 +40,11 @@ int main(int argc, char *argv[]) {
 
     Eigen::VectorXd K_pc(settings.Ns);
 
-    if ( settings.flag_method[0] == "SPOD") {
+    auto methods = settings.flag_method;
+    //Defining common scope for POD-SPOD
+    std::vector<std::string>::iterator itSPOD;
+    itSPOD = std::find (methods.begin(), methods.end(), "SPOD");
+    if (itSPOD != methods.end()) {
 
         std::vector<double> t_vec( settings.Ns );
         t_vec[0] = 0.0;
@@ -132,7 +123,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ( settings.flag_method[0] == "DMD" || settings.flag_method[0] == "fbDMD" || settings.flag_method[0] == "HODMD" ) {
+    //Defining common scope for POD-SPOD
+    std::vector<std::string>::iterator itDMD;
+    itDMD = std::find (methods.begin(), methods.end(), "DMD");
+    if (itDMD != methods.end()) {
+
         double tol = 1e-8;
         double t_0 = 0.0;
         Eigen::VectorXd t_vec( settings.Ns );
@@ -325,7 +320,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ( settings.flag_method[0] == "mrDMD" ) {
+    //Defining common scope for mrDMD
+    std::vector<std::string>::iterator itmrDMD;
+    itmrDMD = std::find (methods.begin(), methods.end(), "mrDMD");
+    if (itmrDMD != methods.end()) {
 
         Eigen::VectorXd t_vec( settings.Ns );
         t_vec(0) = 0.0;
@@ -402,6 +400,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    //Defining common scope for RDMD
+    std::vector<std::string>::iterator itRDMD;
+    itRDMD = std::find (methods.begin(), methods.end(), "RDMD");
+    if (itRDMD != methods.end())
     if ( settings.flag_method[0] == "RDMD") {
 
         double t_0 = 0.0;

@@ -94,7 +94,7 @@ int main( int argc, char *argv[] )
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
 
-            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+            for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
                 std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
 
                 std::vector<Eigen::MatrixXd> Coef_Rec;
@@ -115,7 +115,7 @@ int main( int argc, char *argv[] )
                     Coef_Rec.push_back(coef_t);
                 }
 
-                for ( int in_mode = 2; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
+                for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
                     std::cout << "For iMode " << in_mode << std::endl;
                     //    }
                     for (int ncons = 0; ncons < nC; ncons++) {
@@ -187,7 +187,7 @@ int main( int argc, char *argv[] )
             for (int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
                 std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
 
-                for (int itr = 0; itr < settings.t_res.size(); itr++) {
+                for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
                     std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
                     std::vector<Eigen::MatrixXd> Coef_Rec;
                     for (int ncons = 0; ncons < nC; ncons++) {
@@ -207,7 +207,7 @@ int main( int argc, char *argv[] )
                         Coef_Rec.push_back(coef_t);
                     }
 
-                    for (int in_mode = 2; in_mode <= N_notZero.maxCoeff(); in_mode++) {
+                    for (int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++) {
                         std::cout << "For iMode " << in_mode << std::endl;
                         //    }
                         for (int ncons = 0; ncons < nC; ncons++) {
@@ -255,7 +255,7 @@ int main( int argc, char *argv[] )
         Eigen::MatrixXcd eig_vec_DMD;
         std::vector<Eigen::MatrixXcd> Phi(nC);
         std::vector<Eigen::VectorXcd> alfa(nC);
-        for ( int in_mode = 2; in_mode < settings.Ns; in_mode++ ) {
+        for ( int in_mode = settings.init_imode; in_mode < settings.Ns; in_mode++ ) {
 
             settings.r = in_mode;
             for (int i = 0; i < nC; i++) {
@@ -300,7 +300,7 @@ int main( int argc, char *argv[] )
             for (int idtr = 0; idtr < settings.Dt_res.size(); idtr++) {
 
                 std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------" << std::endl;
-                for (int itr = 0; itr < settings.t_res.size(); itr++) {
+                for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
                     std::cout << "Computing residual at time t = " << settings.t_res[itr] << std::endl;
 
                     std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
@@ -391,7 +391,7 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            for (int itr = 0; itr < settings.t_res.size(); itr++) {
+            for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
                 std::vector<Eigen::MatrixXd> Coefs_Rec;
                 std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
 
@@ -412,7 +412,7 @@ int main( int argc, char *argv[] )
                     Coefs_Rec.push_back(coef_t);
                 }
 
-                for ( int in_mode = 2; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
+                for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
                     std::cout << "For iMode " << in_mode << std::endl;
                     for (int ncons = 0; ncons < nC; ncons++) {
 
