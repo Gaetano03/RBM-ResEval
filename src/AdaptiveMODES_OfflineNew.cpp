@@ -77,12 +77,10 @@ int main( int argc, char *argv[] ) {
         count++;
     }
 
-    Eigen::MatrixXd norm_sn_set = Eigen::MatrixXd::Zero(nC, t_vec.size());
-    for (int j = 0; j < nC; j++) {
-        for (int i = 0; i < t_vec.size(); i++)
-            norm_sn_set(j, i) = sn_set.middleRows(j * Nr, Nr).col(i).norm();
+    Eigen::VectorXd norm_sn_set = Eigen::VectorXd::Zero(t_vec.size());
+    for (int i = 0; i < t_vec.size(); i++)
+        norm_sn_set(i) = sn_set.col(i).norm();
 
-    }
 
 //Defining common scope for POD
     auto methods = settings.flag_method;
@@ -93,87 +91,61 @@ int main( int argc, char *argv[] ) {
         Eigen::VectorXd lambda(Nsnap);
         Eigen::VectorXd K_pc(Nsnap);
         Eigen::MatrixXd eig_vec(Nsnap, Nsnap);
-        std::vector<Eigen::MatrixXd> Phi(nC);
-        std::vector<Eigen::MatrixXd> Coeffs_int(nC);
-        std::vector<Eigen::VectorXd> eigs(nC);
         int Nm;
-        std::vector<int> N_notZero(nC);
+        int N_notZero;
         //Check only for POD for now
 
-        for (int ncons = 0; ncons < nC; ncons++) {
-            std::cout << "Processing conservative variable " << ncons << std::endl;
-            Phi[ncons] = SPOD_basis(sn_set_p.middleRows(ncons * Nr, Nr),
+
+        Eigen::MatrixXd Phi = SPOD_basis(sn_set_p,
                                     lambda, K_pc, eig_vec,
                                     0,
                                     settings.flag_bc,
                                     settings.flag_filter,
                                     settings.sigma);
-            N_notZero[ncons] = Phi[ncons].cols();
+        N_notZero = Phi.cols();
 
-            std::vector<rbf> surr_coefs = getSurrCoefs(t_train, eig_vec, settings.flag_interp);
-            Eigen::MatrixXd coef_t(t_vec.size(), N_notZero[ncons]);
+        std::vector<rbf> surr_coefs = getSurrCoefs(t_train, eig_vec, settings.flag_interp);
+        Eigen::MatrixXd coef_t(t_vec.size(), N_notZero);
 
-            std::vector<double> tr(1);
-            for (int j = 0; j < t_vec.size(); j++) {
-                tr[0] = t_vec[j];
-                for (int i = 0; i < N_notZero[ncons]; i++)
-                    surr_coefs[i].evaluate(tr, coef_t(j, i));
-            }
+        std::vector<double> tr(1);
+        for (int j = 0; j < t_vec.size(); j++) {
+            tr[0] = t_vec[j];
+            for (int i = 0; i < N_notZero; i++)
+                surr_coefs[i].evaluate(tr, coef_t(j, i));
+        }
 
-            Coeffs_int[ncons] = coef_t;
-            eigs[ncons] = lambda;
+        std::cout << "Computing error of interpolation..." << "\t";
+
+        Nm = std::min(settings.r,N_notZero);
+        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
+        for (int i = 0; i < Nm; i++)
+            Sig(i, i) = std::sqrt(lambda(i));
+
+        Eigen::MatrixXd Err_SPOD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
+        Eigen::VectorXd Err_SPOD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
+
+        Err_SPOD_map = sn_set.leftCols(t_vec.size()) -
+                       Phi.leftCols(Nm) * Sig * coef_t.leftCols(Nm).transpose();
+
+        for (int i = 0; i < t_vec.size(); i++) {
+            for (int j = 0; j < Nr; j++)
+                Err_SPOD_Nm_time(i) += Err_SPOD_map(j, i) * Err_SPOD_map(j, i);
+
+            Err_SPOD_Nm_time(i) = std::sqrt(Err_SPOD_Nm_time(i)) / norm_sn_set(i);
 
         }
 
-        for (int imode = 2; imode < sn_set_p.cols() + 1; imode++) {
+        std::ofstream errfile;
+        std::string file_err_name = "ErrDirect_POD.dat";
+        errfile.open(file_err_name);
 
-            std::cout << "For iMode  " << imode << std::endl;
-            std::cout << "Computing error of interpolation..." << "\t";
+        for (int nm = 0; nm < t_vec.size(); nm++) {
+            errfile << std::setprecision(8) << Err_SPOD_Nm_time(nm) << "\t";
+            errfile << std::endl;
 
-            for ( int icons = 0; icons < nC; icons++ ) {
-
-                Nm = std::min(imode,N_notZero[icons]);
-                Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
-                for (int i = 0; i < Nm; i++)
-                    Sig(i, i) = std::sqrt(eigs[icons](i));
-
-                Eigen::MatrixXd Err_SPOD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
-                Eigen::VectorXd Err_SPOD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
-
-                Err_SPOD_map = sn_set.middleRows(icons * Nr, Nr).leftCols(t_vec.size()) -
-                               Phi[icons].leftCols(Nm) * Sig * Coeffs_int[icons].leftCols(Nm).transpose();
-
-                for (int i = 0; i < t_vec.size(); i++) {
-                    for (int j = 0; j < Nr; j++)
-                        Err_SPOD_Nm_time(i) += Err_SPOD_map(j, i) * Err_SPOD_map(j, i);
-
-                    Err_SPOD_Nm_time(i) = std::sqrt(Err_SPOD_Nm_time(i)) / norm_sn_set(icons, i);
-
-                }
-
-                Err_RBM_Nm_time.push_back(Err_SPOD_Nm_time);
-                EN.push_back(K_pc);
-
-            }
-
-            std::ofstream errfile;
-            std::string file_err_name = "Err_POD_" + std::to_string(imode) + ".dat";
-            errfile.open(file_err_name);
-
-            for (int nm = 0; nm < t_vec.size(); nm++) {
-                for (int j = 0; j < Err_RBM_Nm_time.size(); j++)
-                    errfile << std::setprecision(8) << Err_RBM_Nm_time[j](nm) << "\t";
-
-                errfile << std::endl;
-
-            }
-
-            errfile.close();
-
-            Err_RBM_Nm_time.clear();
-            ErrP_RBM_Nm_time.clear();
-            EN.clear();
         }
+
+        errfile.close();
 
     }
 
@@ -185,82 +157,57 @@ int main( int argc, char *argv[] ) {
         Eigen::VectorXd lambda =  Eigen::VectorXd::Zero(Nsnap);
         Eigen::VectorXd K_pc(Nsnap);
         Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
-        std::vector<Eigen::MatrixXd> Phi(nC);
-        std::vector<Eigen::MatrixXd> Coeffs_int(nC);
 
         int Nm;
         //Check only for POD for now
 
-        for (int ncons = 0; ncons < nC; ncons++) {
-            std::cout << "Processing conservative variable " << ncons << std::endl;
-            Phi[ncons] = RDMD_modes_coefs ( sn_set_p.middleRows(ncons*Nr,Nr),
-                                            Coefs,
-                                            lambda,
-                                            K_pc,
-                                            -1,
-                                            Nsnap,
-                                            settings.En );
+        Eigen::MatrixXd Phi = RDMD_modes_coefs ( sn_set_p,
+                                        Coefs,
+                                        lambda,
+                                        K_pc,
+                                        -1,
+                                        Nsnap,
+                                        settings.En );
 
-            std::vector<rbf> surr_coefs = getSurrCoefs(t_train, Coefs.transpose(), settings.flag_interp);
-            Eigen::MatrixXd coef_t(t_vec.size(), Nsnap);
+        std::vector<rbf> surr_coefs = getSurrCoefs(t_train, Coefs.transpose(), settings.flag_interp);
+        Eigen::MatrixXd coef_t(t_vec.size(), Nsnap);
 
-            std::vector<double> tr(1);
-            for (int j = 0; j < t_vec.size(); j++) {
-                tr[0] = t_vec[j];
-                for (int i = 0; i < Nsnap; i++)
-                    surr_coefs[i].evaluate(tr, coef_t(j, i));
-            }
+        std::vector<double> tr(1);
+        for (int j = 0; j < t_vec.size(); j++) {
+            tr[0] = t_vec[j];
+            for (int i = 0; i < Nsnap; i++)
+                surr_coefs[i].evaluate(tr, coef_t(j, i));
+        }
 
-            Coeffs_int[ncons] = coef_t;
+        std::cout << "Computing error of interpolation..." << std::endl;
+
+        int N_max = Phi.cols();
+        Nm = std::min(settings.r_RDMD,N_max);
+
+        Eigen::MatrixXd Err_RDMD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
+        Eigen::VectorXd Err_RDMD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
+
+        Err_RDMD_map = sn_set.leftCols(t_vec.size()) -
+                       Phi.leftCols(Nm) * coef_t.leftCols(Nm).transpose();
+
+        for (int i = 0; i < t_vec.size(); i++) {
+            for (int j = 0; j < Nr; j++)
+                Err_RDMD_Nm_time(i) += Err_RDMD_map(j, i) * Err_RDMD_map(j, i);
+
+            Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i)) / norm_sn_set(i);
 
         }
 
-        for (int imode = 2; imode < sn_set_p.cols() + 1; imode++) {
+        std::ofstream errfile;
+        std::string file_err_name = "ErrDirect_RDMD.dat";
+        errfile.open(file_err_name);
 
-            std::cout << "For iMode  " << imode << std::endl;
-            std::cout << "Computing error of interpolation..." << std::endl;
-
-            for ( int icons = 0; icons < nC; icons++ ) {
-
-                Nm = imode;
-
-                Eigen::MatrixXd Err_RDMD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
-                Eigen::VectorXd Err_RDMD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
-
-                Err_RDMD_map = sn_set.middleRows(icons * Nr, Nr).leftCols(t_vec.size()) -
-                               Phi[icons].leftCols(Nm) * Coeffs_int[icons].leftCols(Nm).transpose();
-
-                for (int i = 0; i < t_vec.size(); i++) {
-                    for (int j = 0; j < Nr; j++)
-                        Err_RDMD_Nm_time(i) += Err_RDMD_map(j, i) * Err_RDMD_map(j, i);
-
-                    Err_RDMD_Nm_time(i) = std::sqrt(Err_RDMD_Nm_time(i)) / norm_sn_set(icons, i);
-
-                }
-
-                Err_RBM_Nm_time.push_back(Err_RDMD_Nm_time);
-                EN.push_back(K_pc);
-
-            }
-
-            std::ofstream errfile;
-            std::string file_err_name = "Err_RDMD_" + std::to_string(imode) + ".dat";
-            errfile.open(file_err_name);
-
-            for (int nm = 0; nm < t_vec.size(); nm++) {
-                for (int j = 0; j < Err_RBM_Nm_time.size(); j++)
-                    errfile << std::setprecision(8) << Err_RBM_Nm_time[j](nm) << "\t";
-
-                errfile << std::endl;
-
-            }
-
-            errfile.close();
-
-            Err_RBM_Nm_time.clear();
-            ErrP_RBM_Nm_time.clear();
-            EN.clear();
+        for (int nm = 0; nm < t_vec.size(); nm++) {
+            errfile << std::setprecision(8) << Err_RDMD_Nm_time(nm) << "\t";
+            errfile << std::endl;
         }
+
+        errfile.close();
 
     }
 
@@ -273,80 +220,69 @@ int main( int argc, char *argv[] ) {
         Eigen::MatrixXd eig_vec_POD;
         Eigen::VectorXcd lambda_DMD;
         Eigen::MatrixXcd eig_vec_DMD;
+        Eigen::MatrixXcd Phi;
+        Eigen::VectorXcd alfa;
 
-        for (int imode = 2; imode < sn_set_p.cols() ; imode++) {
-            std::cout << "For iMode " << imode << std::endl;
+        Phi = DMD_basis( sn_set_p,
+                         lambda_DMD,
+                         eig_vec_DMD,
+                         lambda_POD,
+                         eig_vec_POD,
+                         settings.r );
 
-            for (int ncons = 0; ncons < nC; ncons++) {
+        //         int Nm = Phi.cols();
+        //         std::cout << "Number of modes extracted : " << Nm << std::endl;
 
-                Eigen::MatrixXcd Phi;
-                Eigen::VectorXcd alfa;
+        Eigen::VectorXcd omega(Phi.cols());
+        for ( int i = 0; i < Phi.cols(); i++ )
+            omega(i) = std::log(lambda_DMD(i))/(settings.Dt_cfd*settings.Ds*2.0);
 
-                Phi = DMD_basis( sn_set_p.middleRows(ncons*Nr,Nr),
-                                 lambda_DMD,
-                                 eig_vec_DMD,
-                                 lambda_POD,
-                                 eig_vec_POD,
-                                 imode );
-
-                //         int Nm = Phi.cols();
-                //         std::cout << "Number of modes extracted : " << Nm << std::endl;
-
-                Eigen::VectorXcd omega(Phi.cols());
-                for ( int i = 0; i < Phi.cols(); i++ )
-                    omega(i) = std::log(lambda_DMD(i))/(settings.Dt_cfd*settings.Ds*2.0);
-
-                // std::cout << "Calculating coefficients DMD ... " << "\t";
-                alfa = Calculate_Coefs_DMD_exact (sn_set_p.middleRows(ncons*Nr,Nr).leftCols(Nsnap-1),
-                                                  lambda_DMD,
-                                                  Phi );
+        // std::cout << "Calculating coefficients DMD ... " << "\t";
+        alfa = Calculate_Coefs_DMD_exact (sn_set_p.leftCols(Nsnap-1),
+                                          lambda_DMD,
+                                          Phi );
 
 
-                Eigen::MatrixXcd V_and(lambda_DMD.size(), t_vec.size());
-                for ( int i = 0; i < lambda_DMD.size(); i++ ) {
-                    for ( int j = 0; j < t_vec.size(); j++ )
-                        V_and(i,j) = std::pow(lambda_DMD(i), (double)j/2.0);
-                }
+        Eigen::MatrixXcd V_and(lambda_DMD.size(), t_vec.size());
+        for ( int i = 0; i < lambda_DMD.size(); i++ ) {
+            for ( int j = 0; j < t_vec.size(); j++ )
+                V_and(i,j) = std::pow(lambda_DMD(i), (double)j/2.0);
+        }
 
-                Eigen::MatrixXcd Psi = Eigen::MatrixXcd::Zero(alfa.size(), t_vec.size());
-                for ( int i = 0; i < t_vec.size(); i++ )
-                    Psi.col(i) = alfa.cwiseProduct(V_and.col(i));
+        Eigen::MatrixXcd Psi = Eigen::MatrixXcd::Zero(alfa.size(), t_vec.size());
+        for ( int i = 0; i < t_vec.size(); i++ )
+            Psi.col(i) = alfa.cwiseProduct(V_and.col(i));
 
-                Eigen::MatrixXcd D_dmd = Phi*Psi;
-                Eigen::MatrixXd Err_DMD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
-                Eigen::VectorXd Err_DMD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
+        Eigen::MatrixXcd D_dmd = Phi*Psi;
+        Eigen::MatrixXd Err_DMD_map = Eigen::MatrixXd::Zero(Nr, t_vec.size());
+        Eigen::VectorXd Err_DMD_Nm_time = Eigen::VectorXd::Zero(t_vec.size());
 
-                Err_DMD_map = sn_set.middleRows(ncons*Nr,Nr).leftCols(t_vec.size()) - D_dmd.real();
+        Err_DMD_map = sn_set.leftCols(t_vec.size()) - D_dmd.real();
 
-                for ( int i = 0; i < t_vec.size(); i++ ) {
+        for ( int i = 0; i < t_vec.size(); i++ ) {
 
-                    for ( int j = 0; j < Nr; j++ ) {
-                        Err_DMD_Nm_time(i) += Err_DMD_map(j,i)*Err_DMD_map(j,i);
-                    }
-                    Err_DMD_Nm_time(i) = std::sqrt(Err_DMD_Nm_time(i))/norm_sn_set(ncons,i);
-                }
-                Err_RBM_Nm_time.push_back(Err_DMD_Nm_time);
+            for ( int j = 0; j < Nr; j++ ) {
+                Err_DMD_Nm_time(i) += Err_DMD_map(j,i)*Err_DMD_map(j,i);
             }
+            Err_DMD_Nm_time(i) = std::sqrt(Err_DMD_Nm_time(i))/norm_sn_set(i);
+        }
+        Err_RBM_Nm_time.push_back(Err_DMD_Nm_time);
 
-            std::ofstream errfile;
-            std::string file_err_name = "Err_DMD_" + std::to_string(imode) + ".dat";
-            errfile.open(file_err_name);
+        std::ofstream errfile;
+        std::string file_err_name = "ErrDirect_DMD.dat";
+        errfile.open(file_err_name);
 
-            for (int nm = 0; nm < t_vec.size(); nm++) {
-                for (int j = 0; j < Err_RBM_Nm_time.size(); j++)
-                    errfile << std::setprecision(8) << Err_RBM_Nm_time[j](nm) << "\t";
-
-                errfile << std::endl;
-
-            }
-
-            errfile.close();
-            Err_RBM_Nm_time.clear();
+        for (int nm = 0; nm < t_vec.size(); nm++) {
+            errfile << std::setprecision(8) << Err_DMD_Nm_time(nm) << "\t";
+            errfile << std::endl;
 
         }
+
+        errfile.close();
+
     }
 
 
-    std::cout << "-----------Pareto Front with direct error ends-----------" << std::endl << std::endl;
+    std::cout << "-----------Adaptive MODES with direct error ends-----------" << std::endl << std::endl;
     return 0;
 }
