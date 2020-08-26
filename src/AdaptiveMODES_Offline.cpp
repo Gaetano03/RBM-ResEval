@@ -194,7 +194,7 @@ int main( int argc, char *argv[] )
             {
 
                 int count = 0;
-                for ( int j = 0; j < settings.ndim*Nr; j++ )
+                for ( int j = 0; j < sn_set.rows(); j++ )
                 {
                     Err_SPOD_Nm_time(i) += Err_SPOD_map(j,i)*Err_SPOD_map(j,i);
                     J_SPOD_Nm_time(i) += Err_PSPOD_map(j,i)*Err_PSPOD_map(j,i);
@@ -407,7 +407,7 @@ int main( int argc, char *argv[] )
         for ( int i = 0; i < settings.Ns-1; i++ )
         {
             int count = 0;
-            for ( int j = 0; j < settings.ndim*Nr; j++ )
+            for ( int j = 0; j < sn_set.rows(); j++ )
             { 
                 Err_DMD_Nm_time(i) += Err_DMD_map(j,i)*Err_DMD_map(j,i);
                 J_DMD_Nm_time(i) += Err_PDMD_map(j,i)*Err_PDMD_map(j,i);
@@ -498,7 +498,7 @@ int main( int argc, char *argv[] )
             std::string file_modes = argv[2];
             std::string file_coefs = argv[3];
             std::string file_En = argv[4];
-            Phi = read_modes( file_modes, settings.ndim*Nr, settings.Ns );
+            Phi = read_modes( file_modes, sn_set.rows(), settings.Ns );
             Coefs = read_coefs( file_coefs, settings.Ns, settings.Ns );
 
 
@@ -574,7 +574,7 @@ int main( int argc, char *argv[] )
         {
             int count = 0;
 
-            for ( int j = 0; j < settings.ndim*Nr; j++ )
+            for ( int j = 0; j < sn_set.rows(); j++ )
             {
                 Err_RDMD_Nm_time(i) += Err_RDMD_map(j,i)*Err_RDMD_map(j,i);
                 J_RDMD_Nm_time(i) += Err_PRDMD_map(j,i)*Err_PRDMD_map(j,i);

@@ -233,7 +233,7 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, prob_settings settings, bool
             return snap;
 
 
-        } else if ( flag_prob == "CONSERVATIVE" )
+        } else if ( flag_prob == "CONSERVATIVE" || "DERIVED_PRESSURE" )
         {
 
             Eigen::MatrixXd snap(Cols.size()*Nr, Ns);
@@ -278,7 +278,17 @@ Eigen::MatrixXd generate_snap_matrix( const int Nr, prob_settings settings, bool
                                 field.col(4),
                                 field.col(5),
                                 field.col(6);
-                } else
+                } else if ( Cols.size() == 8 )
+                {
+                    snap.col(k) << field.col(0),
+                            field.col(1),
+                            field.col(2),
+                            field.col(3),
+                            field.col(4),
+                            field.col(5),
+                            field.col(6),
+                            field.col(7);
+                }  else
                 {
                     std::cout << "Check the number of conservtive variables in use " << std::endl;
                 }
