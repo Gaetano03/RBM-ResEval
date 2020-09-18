@@ -292,8 +292,8 @@ int main( int argc, char *argv[] )
                 std::cout << "Number of modes (fixed) : " << Nm << std::endl;
             }
         
-
-            Eigen::MatrixXcd Rec = Reconstruction_DMD ( settings.t_rec[i],
+            double t_dmd = settings.t_rec[i] - t_vec[0];
+            Eigen::MatrixXcd Rec = Reconstruction_DMD ( t_dmd,
                                                     settings.Dt_cfd*settings.Ds,
                                                     alfa.topRows(Nm),
                                                     Phi.leftCols(Nm),

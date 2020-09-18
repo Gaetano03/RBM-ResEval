@@ -430,8 +430,8 @@ int main( int argc, char *argv[] )
             {
                 Eigen::MatrixXcd Rec;
                 std::cout << "Reconstructing field at time : " << settings.t_rec[nt] << "\t";
-
-                Rec = Reconstruction_DMD ( settings.t_rec[nt],
+                double t_dmd = settings.t_rec[nt] - t_vec[0];
+                Rec = Reconstruction_DMD ( t_dmd,
                                         settings.Dt_cfd*settings.Ds,
                                         alfa.topRows(Nm),
                                         Phi.leftCols(Nm),

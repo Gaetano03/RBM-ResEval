@@ -382,8 +382,8 @@ int main( int argc, char *argv[] )
                         std::cout << "Using exponential DMD reconstruction" << std::endl;
 
                         for (int j = 0; j < 3; j++) {
-
-                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
+                            double t_dmd = t_evaluate[j] - t_vec[0];
+                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_dmd,
                                                                       settings.Dt_cfd * settings.Ds,
                                                                       alfa[ncons].head(Nm[ncons]),
                                                                       Phi[ncons].leftCols(Nm[ncons]),

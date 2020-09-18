@@ -416,7 +416,8 @@ int main( int argc, char *argv[] )
 //                                                        lambda_DMD.head(Nm),
 //                                                        "SCALAR" );
 
-                Eigen::MatrixXcd Rec = Reconstruction_DMD ( settings.t_rec[i],
+                double t_dmd = settings.t_rec[i] - t_vec(0);
+                Eigen::MatrixXcd Rec = Reconstruction_DMD ( t_dmd,
                                                             settings.Dt_cfd*settings.Ds,
                                                             alfa,
                                                             Phi,

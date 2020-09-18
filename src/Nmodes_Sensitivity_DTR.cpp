@@ -310,8 +310,8 @@ int main( int argc, char *argv[] )
                     for (int ncons = 0; ncons < nC; ncons++) {
 
                         for (int j = 0; j < 3; j++) {
-
-                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_evaluate[j],
+                            double t_dmd = t_evaluate[j] - t_vec[0];
+                            Eigen::MatrixXcd Rec = Reconstruction_DMD(t_dmd,
                                                                       settings.Dt_cfd * settings.Ds,
                                                                       alfa[ncons],
                                                                       Phi[ncons],

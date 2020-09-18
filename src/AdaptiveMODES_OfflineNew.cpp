@@ -166,7 +166,7 @@ int main( int argc, char *argv[] ) {
                                         lambda,
                                         K_pc,
                                         -1,
-                                        Nsnap,
+                                        settings.r_RDMD,
                                         settings.En );
 
         std::vector<rbf> surr_coefs = getSurrCoefs(t_train, Coefs.transpose(), settings.flag_interp);
