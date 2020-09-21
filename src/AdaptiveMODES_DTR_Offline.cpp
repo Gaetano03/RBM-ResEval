@@ -426,6 +426,7 @@ int main( int argc, char *argv[] )
         //Vector of MatrixXd where to store the evolution in time of conservative variables
         Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
         std::vector<Eigen::MatrixXd> Phi(nC);
+        std::vector<Eigen::MatrixXd> COEF(nC);
         std::vector< std::vector<rbf> > surr_coefs(nC);
         std::vector<Eigen::VectorXd> lambda(nC);
 
@@ -437,10 +438,13 @@ int main( int argc, char *argv[] )
 
         for (int i = 0; i < nC; i++) {
             Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            COEF[i] = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
             lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
         }
-        std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
-        for ( int ncons = 0; ncons < nC; ncons ++ ) {
+
+        if ( settings.flag_wdb_be == "WRITE" || settings.flag_wdb_be == "NO"){
+            std::cout << std::endl << "Extraction of the basis" << std::endl << std::endl;
+            for ( int ncons = 0; ncons < nC; ncons ++ ) {
 
                 std::cout << "Processing conservative variable " << ncons << std::endl;
                 Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
@@ -457,7 +461,7 @@ int main( int argc, char *argv[] )
 //                                              -1, //Performing singular value hard threshold for DMD reduction at each step
 //                                              settings.r_RDMD,
 //                                              settings.En);
-
+                COEF[ncons] = Coefs.transpose();
                 surr_coefs[ncons] = getSurrCoefs(t_vec,
                                                  Coefs.transpose(),
                                                  settings.flag_interp);
@@ -467,7 +471,24 @@ int main( int argc, char *argv[] )
                 else Nm = std::min(settings.r, N_notZero);
                 std::cout << "Number of modes used in reconstruction " << Nm << std::endl;
 
+            }
+
+            if ( settings.flag_wdb_be == "WRITE" ) ModesDB_Write( Phi, COEF, settings);
+
+        } else if ( settings.flag_wdb_be == "READ") {
+            std::cout << "Reading RDMD basis" << std::endl;
+            Nm = settings.r;
+            ModeDB_Read("ModesRDMD_", "CoefsRDMD_", Phi, COEF, settings);
+            std::cout << "Number of Modes to use in Reconstruction: " << Nm << std::endl;
+
+            for ( int icons = 0; icons < nC; icons++ ) {
+                surr_coefs[icons] = getSurrCoefs(t_vec,
+                                                 COEF[icons],
+                                                 settings.flag_interp);
+            }
+
         }
+
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;

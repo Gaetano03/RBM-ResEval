@@ -206,6 +206,9 @@ plot3d_info read_plot3d_info (std::string filename);
 // read .q (plot3d) file, fortran binary for flow field information
 std::vector<Eigen::VectorXd> read_plot3d (std::string filename, plot3d_info Info);
 
+// read modes
+void ModeDB_Read ( std::string root_file_m, std::string root_file_c, std::vector<Eigen::MatrixXd> &Phi, std::vector<Eigen::MatrixXd> &Coefs, prob_settings settings );
+
 
 
 #endif //READ_INPUTS_HPP

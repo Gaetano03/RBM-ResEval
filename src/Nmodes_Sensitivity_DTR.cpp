@@ -356,6 +356,7 @@ int main( int argc, char *argv[] )
         //Vector of MatrixXd where to store the evolution in time of conservative variables
         Eigen::MatrixXd Sn_Cons_time = Eigen::MatrixXd::Zero(nC*Nr, 3);
         std::vector<Eigen::MatrixXd> Phi(nC);
+        std::vector<Eigen::MatrixXd> COEF(nC);
         std::vector< std::vector<rbf> > surr_coefs(nC);
         std::vector<Eigen::VectorXd> lambda(nC);
 
@@ -367,25 +368,44 @@ int main( int argc, char *argv[] )
 
         for (int i = 0; i < nC; i++) {
             Phi[i] = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+            COEF[i] = Eigen::MatrixXd::Zero(settings.Ns,settings.Ns);
             lambda[i] = Eigen::VectorXd::Zero(settings.Ns);
         }
 
-        for ( int ncons = 0; ncons < nC; ncons ++ ) {
+        if ( settings.flag_wdb_be == "WRITE" || settings.flag_wdb_be == "NO") {
+            for (int ncons = 0; ncons < nC; ncons++) {
 
-            std::cout << "Processing conservative variable " << ncons << std::endl;
-            Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
-                                          Coefs,
-                                          lambda[ncons],
-                                          K_pc,
-                                          -1, //Performing singular value hard threshold for DMD reduction at each step
-                                          settings.Ns,
-                                          settings.En);
+                std::cout << "Processing conservative variable " << ncons << std::endl;
+                Phi[ncons] = RDMD_modes_coefs(sn_set.middleRows(ncons * Nr, Nr),
+                                              Coefs,
+                                              lambda[ncons],
+                                              K_pc,
+                                              -1, //Performing singular value hard threshold for DMD reduction at each step
+                                              settings.Ns,
+                                              settings.En);
 
-            surr_coefs[ncons] = getSurrCoefs(t_vec,
-                                             Coefs.transpose(),
-                                             settings.flag_interp);
+                COEF[ncons] = Coefs.transpose();
+                surr_coefs[ncons] = getSurrCoefs(t_vec,
+                                                 Coefs.transpose(),
+                                                 settings.flag_interp);
 
-            N_notZero(ncons) = Phi[ncons].cols();
+                N_notZero(ncons) = Phi[ncons].cols();
+
+            }
+
+            if (settings.flag_wdb_be == "WRITE") ModesDB_Write(Phi, COEF, settings);
+
+        } else if ( settings.flag_wdb_be == "READ") {
+            std::cout << "Reading RDMD basis" << std::endl;
+            Nm = settings.r;
+            ModeDB_Read("ModesRDMD_", "CoefsRDMD_", Phi, COEF, settings);
+
+            for ( int icons = 0; icons < nC; icons++ ) {
+                surr_coefs[icons] = getSurrCoefs(t_vec,
+                                                 COEF[icons],
+                                                 settings.flag_interp);
+                N_notZero(icons) = Phi[icons].cols();
+            }
 
         }
 
@@ -396,9 +416,7 @@ int main( int argc, char *argv[] )
                 std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
 
                 for (int ncons = 0; ncons < nC; ncons++) {
-
                     Eigen::MatrixXd coef_t(3, N_notZero(ncons));
-
                     std::vector<double> tr(1);
                     std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
                                                       settings.t_res[itr] - settings.Dt_res[idtr],
@@ -410,6 +428,7 @@ int main( int argc, char *argv[] )
                             surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
                     }
                     Coefs_Rec.push_back(coef_t);
+
                 }
 
                 for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
@@ -419,9 +438,9 @@ int main( int argc, char *argv[] )
                         int Nm = in_mode;
                         if (Nm > N_notZero[ncons]) Nm = N_notZero[ncons];
 
-                        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
-                        for (int i = 0; i < Nm; i++)
-                            Sig(i, i) = std::sqrt(lambda[ncons](i));
+//                        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
+//                        for (int i = 0; i < Nm; i++)
+//                            Sig(i, i) = std::sqrt(lambda[ncons](i));
                         Sn_Cons_time.middleRows(ncons * Nr, Nr) =
                                 Phi[ncons].leftCols(Nm) * Coefs_Rec[ncons].leftCols(Nm).transpose();
 

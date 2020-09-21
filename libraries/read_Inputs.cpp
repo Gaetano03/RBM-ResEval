@@ -863,6 +863,80 @@ Eigen::MatrixXd read_col( std::string filename, int Nr, std::vector<int> Cols )
 }
 
 
+void ModeDB_Read ( std::string root_file_m, std::string root_file_c, std::vector<Eigen::MatrixXd> &Phi, std::vector<Eigen::MatrixXd> &Coefs, prob_settings settings ){
+
+//    std::vector<Eigen::MatrixXd> Phi(nVar);
+//    for ( int iVar = 0; iVar < nVar; iVar++ ) Phi[iVar] = Eigen::MatrixXd::Zero(Nr,Nm);
+    int nVar = Phi.size();
+    int Nr = Phi[0].rows();
+    int Nm = settings.r;
+    int Nt = Coefs[0].rows();
+
+    for ( int iMode = 0 ; iMode < Nm; iMode++ ){
+        std::ifstream flow_data;
+        std::ifstream coef_data;
+        std::string filetemp1 = root_file_m + std::to_string(iMode+1) + ".dat";
+        std::string filetemp2 = root_file_c + std::to_string(iMode+1) + ".dat";
+        flow_data.open( filetemp1 );
+        coef_data.open( filetemp2 );
+
+        if ( !flow_data.is_open() || !coef_data.is_open() ) {
+            std::cout << "Files : " << filetemp1 << " or " << filetemp2 << " not found" << std::endl;
+            exit (EXIT_FAILURE);
+        }
+
+        //Reading file of Modes
+        //row of headers
+        std::string line_flow_data ;
+        getline( flow_data, line_flow_data );
+
+        for ( int iPoint = 0; iPoint < Nr; iPoint++ ){
+            getline( flow_data, line_flow_data );
+            std::istringstream iss(line_flow_data);
+            std::string token;
+            double count = 0;
+
+            while( getline( iss, token, ' ') ) {
+                 Phi[count](iPoint,iMode) = std::stod(token);
+                 count ++;
+            }
+            if ( count > nVar ){
+                std::cout << "Check correct number of variables! Exiting ... " << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+        }
+
+        flow_data.close();
+
+        //Reading file of Coefs
+        //row of headers
+        std::string line_coef_data ;
+        getline( coef_data, line_coef_data );
+
+        for ( int iTime = 0; iTime < Nt; iTime++ ){
+            getline( coef_data, line_coef_data );
+            std::istringstream iss(line_coef_data);
+            std::string token;
+            double count = 0;
+
+            while( getline( iss, token, ' ') ) {
+                Coefs[count](iTime,iMode) = std::stod(token);
+                count ++;
+            }
+            if ( count > nVar ){
+                std::cout << "Check correct number of variables! Exiting ... " << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+        }
+
+        coef_data.close();
+    }
+
+}
+
+
 Eigen::MatrixXd read_modes( std::string filename, int Nr, int r_RDMD )
 {
     Eigen::MatrixXd f(Nr, r_RDMD);

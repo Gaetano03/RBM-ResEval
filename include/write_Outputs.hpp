@@ -57,4 +57,6 @@ void Write_Plot3d_Modes( Eigen::MatrixXd Phi,           //Modes have to be scala
                         std::string filename, 
                         plot3d_info Info );
 
+void ModesDB_Write ( std::vector<Eigen::MatrixXd> Phi, std::vector<Eigen::MatrixXd> Coefs, prob_settings settings );
+
 #endif // WRITE_OUTPUTS_HPP

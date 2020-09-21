@@ -840,6 +840,63 @@ void write_modes ( const Eigen::MatrixXd &Phi_cut )
 
 }
 
+void ModesDB_Write ( std::vector<Eigen::MatrixXd> Phi, std::vector<Eigen::MatrixXd> Coefs, prob_settings settings )
+{
+
+    int Nr = Phi[0].rows();
+    int nVar = Phi.size();
+    int Nt = settings.Ns;
+
+    //Determining Number of min modes over the entire set of modes available
+    Eigen::VectorXd Nmodes(nVar);
+    for ( int iVar = 0; iVar < nVar; iVar++ ) Nmodes(iVar) = Phi[iVar].cols();
+    int Nmax = Nmodes.maxCoeff();
+    int Nm = std::min(Nmax, settings.r);
+
+    std::string root_filename_modes = "ModesRDMD_";
+    std::string root_filename_coefs = "CoefsRDMD_";
+
+    for ( int iMode = 0; iMode < Nm; iMode++ ){
+        std::ofstream flow_data;
+        std::ofstream coef_data;
+        std::string filetemp1 = root_filename_modes + std::to_string(iMode+1) + ".dat";
+        std::string filetemp2 = root_filename_coefs + std::to_string(iMode+1) + ".dat";
+        flow_data.open(filetemp1.c_str());
+        coef_data.open(filetemp2.c_str());
+
+        //Writting row of headers
+        for ( int iVar = 0; iVar < nVar; iVar++ ) {
+            flow_data << "\"PhiVar_" + std::to_string(iVar + 1) + "\"";
+            coef_data << "\"CoefVar_" + std::to_string(iVar + 1) + "\"";
+        }
+        flow_data << std::endl;
+        coef_data << std::endl;
+
+        //Writing mode fields
+        for ( int iPoint = 0; iPoint < Nr; iPoint++ ) {
+            for (int iVar = 0; iVar < nVar; iVar++){
+                if ( (iMode + 1) > Nmodes(iVar) ) flow_data << std::setprecision(12) << std::scientific << 0.0 <<  " ";
+                else    flow_data << std::setprecision(12) << std::scientific << Phi[iVar](iPoint,iMode) <<  " ";
+            }
+            flow_data << std::endl;
+        }
+        // Close file
+        flow_data.close();
+
+        //Writing Coefs field
+        for ( int iTime = 0; iTime < Nt; iTime++ ) {
+            for (int iVar = 0; iVar < nVar; iVar++){
+                if ( (iMode + 1) > Nmodes(iVar) ) coef_data << std::setprecision(12) << std::scientific << 0.0 <<  " ";
+                else    coef_data << std::setprecision(12) << std::scientific << Coefs[iVar](iTime,iMode) <<  " ";
+            }
+            coef_data << std::endl;
+        }
+        // Close file
+        coef_data.close();
+    }
+
+}
+
 
 void write_coefs ( const Eigen::MatrixXd &Coefs )
 {
