@@ -257,7 +257,7 @@ int main( int argc, char *argv[] )
         std::vector<Eigen::VectorXcd> alfa(nC);
         for ( int in_mode = settings.init_imode; in_mode < settings.Ns; in_mode++ ) {
 
-            settings.r = in_mode;
+//            settings.r = in_mode;
             for (int i = 0; i < nC; i++) {
                     Phi[i] = Eigen::MatrixXcd::Zero(Nr, settings.Ns);
                     alfa[i] = Eigen::VectorXcd::Zero(settings.Ns);
@@ -273,7 +273,7 @@ int main( int argc, char *argv[] )
                                        eig_vec_DMD,
                                        lambda_POD,
                                        eig_vec_POD,
-                                       settings.r);
+                                       in_mode);
 
                 std::cout << "Number of DMD modes extracted : " << Phi[ncons].cols() << std::endl;
 
