@@ -446,24 +446,40 @@ int main( int argc, char *argv[] )
             
                 Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
                 Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
-                Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+                Eigen::MatrixXd Coefs; // = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
                 Eigen::MatrixXd Phi;
 
-            
-                
-                std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";        
-                //You can define rank DMD at each time step from the config file ( use -1 for the adaptive study adviced)
+
+                if ( settings.flag_wdb_be == "READ") {
+                    std::vector<Eigen::MatrixXd> PHI(settings.ndim + 2);
+                    std::vector<Eigen::MatrixXd> COEF(settings.ndim + 2);
+
+                    for (int i = 0; i < settings.ndim + 2; i++) {
+                        PHI[i] = Eigen::MatrixXd::Zero(Nr,settings.r_RDMD);
+                        COEF[i] = Eigen::MatrixXd::Zero(settings.Ns, settings.r_RDMD);
+                    }
+
+
+                    std::cout << "Reading RDMD basis" << std::endl;
+                    Nm = settings.r_RDMD;
+                    ModeDB_Read("ModesRDMD_", "CoefsRDMD_", PHI, COEF, settings);
+                    std::cout << "Number of Modes to use in Reconstruction: " << Nm << std::endl;
+                    Coefs = COEF[iDim].transpose();
+                    Phi = PHI[iDim];
+                } else {
+
+                    std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";
 
 //                int Nm = Idx_RBM(index1,best_method_idx);
-                int Nm = settings.r_RDMD;
-                Phi = RDMD_modes_coefs ( sn_set.middleRows(iDim*Nr,Nr),
-                                        Coefs,
-                                        lambda,
-                                        K_pc,     
-                                        -1, //performing DMD with all non-zero eigenvalues
-                                        Nm,
-                                        settings.En );
-                
+                    int Nm = settings.r_RDMD;
+                    Phi = RDMD_modes_coefs(sn_set.middleRows(iDim * Nr, Nr),
+                                           Coefs,
+                                           lambda,
+                                           K_pc,
+                                           -1, //performing DMD with all non-zero eigenvalues
+                                           Nm,
+                                           settings.En);
+                }
 
 //                if ( settings.r == 0 )
 //                {

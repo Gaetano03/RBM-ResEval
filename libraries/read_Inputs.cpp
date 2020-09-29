@@ -896,7 +896,7 @@ void ModeDB_Read ( std::string root_file_m, std::string root_file_c, std::vector
             std::string token;
             double count = 0;
 
-            while( getline( iss, token, ' ') ) {
+            while( getline( iss, token, ' ') && count < nVar ) {
                  Phi[count](iPoint,iMode) = std::stod(token);
                  count ++;
             }
@@ -920,7 +920,7 @@ void ModeDB_Read ( std::string root_file_m, std::string root_file_c, std::vector
             std::string token;
             double count = 0;
 
-            while( getline( iss, token, ' ') ) {
+            while( getline( iss, token, ' ') && count < nVar ) {
                 Coefs[count](iTime,iMode) = std::stod(token);
                 count ++;
             }
