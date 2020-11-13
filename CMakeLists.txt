@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(MODES LANGUAGES CXX VERSION 0.0.1)
+project(MODES LANGUAGES C CXX VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_CXX_EXTENSIONS OFF)
@@ -30,7 +30,7 @@ endif()
 
 # set variables
 set (PROJECT_PATH                                "${CMAKE_CURRENT_SOURCE_DIR}")
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}      "${PROJECT_PATH}/cmake/Modules/")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}      "${PROJECT_PATH}/cmake/modules/")
 set (INCLUDE_PATH                                "${PROJECT_PATH}/include/")
 #set (LIB_PATH                                    "${PROJECT_BINARY_DIR}/lib")
 set (EXAMPLES_PATH                               "${PROJECT_PATH}/src/")
@@ -39,12 +39,13 @@ set (EXAMPLES_PATH                               "${PROJECT_PATH}/src/")
 option(BUILD_STATIC         "Build static library"     OFF)
 option(BUILD_EXAMPLES       "Build examples"           ON)
 option(ENABLE_UQ            "Use smartuq"              ON)
-option(ENABLE_GSL           "Use GSL"                  OFF)
-option(ENABLE_PAGMO           "Use pagmo"                  ON)
+option(ENABLE_GSL           "Use GSL"                  ON)
+option(ENABLE_HDF5           "Use HDF5"                  ON)
+option(ENABLE_PAGMO           "Use pagmo"                  OFF)
 
 #find_package(Threads REQUIRED)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+#list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 # Include external libraries
 set (MANDATORY_LIBRARIES "")

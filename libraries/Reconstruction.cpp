@@ -466,7 +466,7 @@ Eigen::MatrixXd Reconstruction_RDMD ( const double time,
     for ( int i = 0; i < Nm; i++ )
         surr_coefs[i].evaluate(t, coef_t(i));
 
-    Eigen::MatrixXd v_rec = Phi*coef_t;    
+    Eigen::MatrixXd v_rec = Phi*coef_t;
 
     if ( flag_prob == "SCALAR" ) {
         return v_rec;

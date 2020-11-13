@@ -1055,12 +1055,10 @@ Eigen::MatrixXd RDMD_modes_coefs ( const Eigen::MatrixXd &sn_set,
             }
 
             double min_Val = residual_average.minCoeff( &min_idx );
-
             Phi_RDMD.col(i) = Phi_r.col(min_idx);
             Coefs.row(i) = coef_mod.row(min_idx);
             lambda(i) = lam_DMD(min_idx).real();
             res_set = res_set - Phi_RDMD.col(i)*Coefs.row(i);
-
         }
     }
 

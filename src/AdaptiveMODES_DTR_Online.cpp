@@ -365,25 +365,25 @@ int main( int argc, char *argv[] )
                                                                     Phi );                    
 
                 // std::cout << "Reordering modes DMD ... " << "\t";
-//                Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi.cols());
-//                double T = t_vec[t_vec.size()];
+                Eigen::VectorXd En = Eigen::VectorXd::Zero(Phi.cols());
+                double T = t_vec[t_vec.size()-1];
 
-//                Eigen::VectorXcd omega(Phi.cols());
-//                for ( int idmd = 0; idmd < Phi.cols(); idmd++ )
-//                    omega(idmd) = std::log(lambda_DMD(idmd))/(settings.Dt_cfd*(double)settings.Ds);
+                Eigen::VectorXcd omega(Phi.cols());
+                for ( int idmd = 0; idmd < Phi.cols(); idmd++ )
+                    omega(idmd) = std::log(lambda_DMD(idmd))/(settings.Dt_cfd*(double)settings.Ds);
 //
-//
-//                for ( int idmd = 0 ; idmd < Phi.cols(); idmd ++ )
-//                {
-//
-//                    double alfa_i = alfa(idmd).imag();
-//                    double alfa_r = alfa(idmd).real();
-//                    double sigma = omega(idmd).real();
-//                    En(idmd) = (alfa_r*alfa_r + alfa_i*alfa_i)*(std::exp(2.0*sigma*T) - 1.0)/(2.0*sigma);
-//
-//                }
-//
-//                dmd_sort( En, Phi, lambda_DMD, alfa);
+//                std::cout << "Omega vector " << omega << std::endl;
+                for ( int idmd = 0 ; idmd < Phi.cols(); idmd ++ )
+                {
+
+                    double alfa_i = alfa(idmd).imag();
+                    double alfa_r = alfa(idmd).real();
+                    double sigma = omega(idmd).real();
+                    En(idmd) = (alfa_r*alfa_r + alfa_i*alfa_i)*(std::exp(2.0*sigma*T) - 1.0)/(2.0*sigma);
+
+                }
+
+                dmd_sort( En, Phi, lambda_DMD, alfa);
 //                // std::cout << "Done" << std::endl;
 //
 //                double sum = 0;
@@ -416,7 +416,7 @@ int main( int argc, char *argv[] )
 //                                                        lambda_DMD.head(Nm),
 //                                                        "SCALAR" );
 
-                double t_dmd = settings.t_rec[i] - t_vec(0);
+                double t_dmd = settings.t_rec[i] - (double)settings.nstart*settings.Dt_cfd;//t_vec(0);
                 Eigen::MatrixXcd Rec = Reconstruction_DMD ( t_dmd,
                                                             settings.Dt_cfd*settings.Ds,
                                                             alfa,
@@ -446,8 +446,8 @@ int main( int argc, char *argv[] )
             
                 Eigen::VectorXd lambda = Eigen::VectorXd::Zero(settings.Ns);
                 Eigen::VectorXd K_pc = Eigen::VectorXd::Zero(settings.Ns);
-                Eigen::MatrixXd Coefs; // = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
-                Eigen::MatrixXd Phi;
+                Eigen::MatrixXd Coefs = Eigen::MatrixXd::Zero(settings.Ns, settings.Ns);
+                Eigen::MatrixXd Phi = Eigen::MatrixXd::Zero(Nr,settings.Ns);;
 
 
                 if ( settings.flag_wdb_be == "READ") {
@@ -471,7 +471,7 @@ int main( int argc, char *argv[] )
                     std::cout << "Extracting basis and Coeffs RDMD ... " << "\t";
 
 //                int Nm = Idx_RBM(index1,best_method_idx);
-                    int Nm = settings.r_RDMD;
+                    Nm = settings.r_RDMD;
                     Phi = RDMD_modes_coefs(sn_set.middleRows(iDim * Nr, Nr),
                                            Coefs,
                                            lambda,
@@ -481,6 +481,18 @@ int main( int argc, char *argv[] )
                                            settings.En);
                 }
 
+//                std::cout << "Norm Phis" << std::endl;
+//                for ( int imode = 0; imode < Phi.cols(); imode++ ){
+//                    std::cout << Phi.col(i).norm() << ",";
+//                }
+//                std::cout << std::endl;
+//
+//                std::cout << "Norm Coefs" << std::endl;
+//                for ( int imode = 0; imode < Phi.cols(); imode++ ){
+//                    std::cout << Coefs.row(i).norm() << ",";
+//                }
+
+                std::cout << std::endl;
 //                if ( settings.r == 0 )
 //                {
 //                    Nm = Nmod(settings.En, K_pc);

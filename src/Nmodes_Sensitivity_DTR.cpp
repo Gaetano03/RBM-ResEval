@@ -34,14 +34,13 @@ int main( int argc, char *argv[] )
     std::vector<double> t_vec(settings.Ns);
     common_vars( Nr, Coords, t_vec, settings);
 
-    std::cout << "Storing snapshot Matrix ... \n ";
-    Eigen::MatrixXd sn_set = generate_snap_matrix( Nr, settings);
-
-    std::cout << std::endl;
+    std::cout << "Generating snapshot Matrix ... \n ";
+    Eigen::MatrixXd sn_set = Eigen::MatrixXd::Zero(Nr,settings.Ns);
+    if ( settings.flag_wdb_be == "READ" && settings.flag_method[0] == "RDMD") sn_set = generate_snap_matrix( Nr, settings);
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
-    Eigen::VectorXd mean = sn_set.rowwise().mean();
+//    Eigen::VectorXd mean = sn_set.rowwise().mean();
     Eigen::VectorXd Ic = Eigen::VectorXd::Zero(nC*Nr);
 
     std::string binary = "YES";
@@ -257,7 +256,7 @@ int main( int argc, char *argv[] )
         std::vector<Eigen::VectorXcd> alfa(nC);
         for ( int in_mode = settings.init_imode; in_mode < settings.Ns; in_mode++ ) {
 
-//            settings.r = in_mode;
+            settings.r = in_mode;
             for (int i = 0; i < nC; i++) {
                     Phi[i] = Eigen::MatrixXcd::Zero(Nr, settings.Ns);
                     alfa[i] = Eigen::VectorXcd::Zero(settings.Ns);
@@ -397,7 +396,7 @@ int main( int argc, char *argv[] )
 
         } else if ( settings.flag_wdb_be == "READ") {
             std::cout << "Reading RDMD basis" << std::endl;
-            Nm = settings.r;
+            settings.r = settings.Ns;
             ModeDB_Read("ModesRDMD_", "CoefsRDMD_", Phi, COEF, settings);
 
             for ( int icons = 0; icons < nC; icons++ ) {

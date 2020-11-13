@@ -47,7 +47,7 @@ void Write_Restart_Cons_Time ( const Eigen::MatrixXd &Rec,
                                     const double beta,
                                     const std::string flag = "NO" );
 
-void write_modes ( const Eigen::MatrixXd &Phi_cut ); //write modes RDMD
+void write_modes ( const Eigen::MatrixXd &Phi_cut, std::string filename = "Modes.dat" ); //write modes RDMD
 
 void write_coefs ( const Eigen::MatrixXd &Coefs ); //write coefs RDMD
 

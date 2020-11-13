@@ -4,7 +4,7 @@ void common_vars( int &Nr, Eigen::MatrixXd &Coords, std::vector<double> &t_vec, 
 
     std::cout << "Initializing Vector of times ... " << std::endl;
 
-    t_vec[0] = settings.nstart*settings.Dt_cfd;
+    t_vec[0] = (double)settings.nstart*settings.Dt_cfd;
     for ( int i = 1; i < settings.Ns; i++ )
         t_vec[i] = t_vec[i-1] + settings.Dt_cfd*settings.Ds;
 

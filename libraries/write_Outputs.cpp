@@ -807,11 +807,10 @@ void write_Reconstructed_fields ( Eigen::MatrixXd Rec,
 
 
 
-void write_modes ( const Eigen::MatrixXd &Phi_cut )
+void write_modes ( const Eigen::MatrixXd &Phi_cut, std::string filename )
 {
     
-    int Nr = Phi_cut.rows(); 
-    std::string filename = "ModesRDMD.dat";
+    int Nr = Phi_cut.rows();
     std::ofstream flow_data;
     flow_data.open(filename.c_str()); 
 

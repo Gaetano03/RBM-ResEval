@@ -285,7 +285,7 @@ int main( int argc, char *argv[] )
 
             Eigen::VectorXcd omega(Phi[ncons].cols());
             for (int i = 0; i < Phi[ncons].cols(); i++)
-                omega(i) = std::log(lambda_DMD[ncons](i)) / (settings.Dt_cfd * settings.Ds);
+                omega(i) = std::log(lambda_DMD[ncons](i)) / (settings.Dt_cfd * (double)settings.Ds);
 
             //Computing alpha if exponential rec is needed
             if ( settings.dmd_coef_flag == "OPT") {
