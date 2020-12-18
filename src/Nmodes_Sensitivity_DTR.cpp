@@ -16,7 +16,7 @@ Config File RBM + Config File SU2
 
 int main( int argc, char *argv[] )
 {
-
+    
     std::cout << "-----------MODES Sensitivity analysis starts-------------" << std::endl << std::endl;
 
     std::cout << "Initializing common variables ... " << std::endl << std::endl;
@@ -36,7 +36,14 @@ int main( int argc, char *argv[] )
 
     std::cout << "Generating snapshot Matrix ... \n ";
     Eigen::MatrixXd sn_set = Eigen::MatrixXd::Zero(Nr,settings.Ns);
-    if ( settings.flag_wdb_be == "READ" && settings.flag_method[0] == "RDMD") sn_set = generate_snap_matrix( Nr, settings);
+//    if ( settings.flag_wdb_be == "READ" && settings.flag_method[0] == "RDMD")
+//        sn_set = generate_snap_matrix( Nr, settings);
+
+    if ( settings.flag_wdb_be == "NO" || settings.flag_wdb_be == "WRITE"){
+        std::cout << "Storing snapshot Matrix ... \n ";
+        sn_set = generate_snap_matrix( Nr, settings);
+    }
+
 
     std::cout << "Computing mean/Initial Condition of CFD solution ... " << std::endl;
     //Defining Initial condition
@@ -92,52 +99,47 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
+            for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
+                std::cout << "For iMode " << in_mode << std::endl;
+                for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
+                    std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
 
-            for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
-                std::cout << "Computing residuals at time t = " << settings.t_res[itr] << std::endl;
-
-                std::vector<Eigen::MatrixXd> Coef_Rec;
-                for (int ncons = 0; ncons < nC; ncons++) {
-
-                    Eigen::MatrixXd coef_t(3, N_notZero(ncons));
-
-                    std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
-                                                      settings.t_res[itr] - settings.Dt_res[idtr],
-                                                      settings.t_res[itr]};
-
-                    for (int j = 0; j < 3; j++) {
-                        tr[0] = t_evaluate[j];
-                        for (int i = 0; i < N_notZero(ncons); i++)
-                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
-                    }
-                    Coef_Rec.push_back(coef_t);
-                }
-
-                for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
-                    std::cout << "For iMode " << in_mode << std::endl;
-                    //    }
+//                    std::vector<Eigen::MatrixXd> Coef_Rec;
                     for (int ncons = 0; ncons < nC; ncons++) {
 
                         int Nm = in_mode;
                         if ( Nm > N_notZero[ncons]) Nm = N_notZero[ncons];
+                        Eigen::MatrixXd coef_t(3, Nm);
+
+                        std::vector<double> tr(1);
+                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                          settings.t_res[itr] - settings.Dt_res[idtr],
+                                                          settings.t_res[itr]};
+
+                        for (int j = 0; j < 3; j++) {
+                            tr[0] = t_evaluate[j];
+                            for (int i = 0; i < Nm; i++)
+                                surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                        }
+//                        Coef_Rec.push_back(coef_t);
 
                         Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
                         for (int i = 0; i < Nm; i++)
                             Sig(i, i) = std::sqrt(lambda[ncons](i));
-                        Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm) * Sig * Coef_Rec[ncons].leftCols(Nm).transpose();
 
-                    }
-                    if (settings.flag_mean == "IC") {
-                        for (int it = 0; it < 3; it++)
-                            Sn_Cons_time.col(it) += Ic;
-                    }
-                    settings.r = in_mode;
-                    //Launching SU2_DTR and saving errors and Residuals to file
-                    int iter = std::round(settings.t_res[itr] / settings.Dt_cfd);
-                    Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha,
-                                            settings.beta, binary);
-                    SU2_DTR(settings, su2_conf, "POD", idtr, itr);
+                        Sn_Cons_time.middleRows(ncons * Nr, Nr) = Phi[ncons].leftCols(Nm) * (Sig * coef_t.transpose());
+
+                        }
+                        if (settings.flag_mean == "IC") {
+                            for (int it = 0; it < 3; it++)
+                                Sn_Cons_time.col(it) += Ic;
+                        }
+                        settings.r = in_mode;
+                        //Launching SU2_DTR and saving errors and Residuals to file
+                        int iter = std::round(settings.t_res[itr] / settings.Dt_cfd);
+                        Write_Restart_Cons_Time(Sn_Cons_time, Coords, settings.out_file, iter, nC, settings.alpha,
+                                                settings.beta, binary);
+                        SU2_DTR(settings, su2_conf, "POD", idtr, itr);
 
                 }
             }
@@ -410,38 +412,34 @@ int main( int argc, char *argv[] )
 
         for ( int idtr = 0; idtr < settings.Dt_res.size(); idtr++ ) {
             std::cout << " --------------DT_RES = " << settings.Dt_res[idtr] << "--------------"<< std::endl;
-            for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
-                std::vector<Eigen::MatrixXd> Coefs_Rec;
-                std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
+            for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
+                std::cout << "For iMode " << in_mode << std::endl;
+                for (int itr = settings.init_tres; itr < settings.t_res.size(); itr++) {
+//                    std::vector<Eigen::MatrixXd> Coefs_Rec;
+                    std::cout << " Computing residuals at time = " << settings.t_res[itr] << std::endl;
 
-                for (int ncons = 0; ncons < nC; ncons++) {
-                    Eigen::MatrixXd coef_t(3, N_notZero(ncons));
-                    std::vector<double> tr(1);
-                    std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
-                                                      settings.t_res[itr] - settings.Dt_res[idtr],
-                                                      settings.t_res[itr]};
-
-                    for (int j = 0; j < 3; j++) {
-                        tr[0] = t_evaluate[j];
-                        for (int i = 0; i < N_notZero(ncons); i++)
-                            surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
-                    }
-                    Coefs_Rec.push_back(coef_t);
-
-                }
-
-                for ( int in_mode = settings.init_imode; in_mode <= N_notZero.maxCoeff(); in_mode++ ) {
-                    std::cout << "For iMode " << in_mode << std::endl;
                     for (int ncons = 0; ncons < nC; ncons++) {
-
                         int Nm = in_mode;
                         if (Nm > N_notZero[ncons]) Nm = N_notZero[ncons];
+                        Eigen::MatrixXd coef_t(3, Nm);
+                        std::vector<double> tr(1);
+                        std::vector<double> t_evaluate = {settings.t_res[itr] - 2.0 * settings.Dt_res[idtr],
+                                                          settings.t_res[itr] - settings.Dt_res[idtr],
+                                                          settings.t_res[itr]};
 
-//                        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
-//                        for (int i = 0; i < Nm; i++)
-//                            Sig(i, i) = std::sqrt(lambda[ncons](i));
+                        for (int j = 0; j < 3; j++) {
+                            tr[0] = t_evaluate[j];
+                            for (int i = 0; i < Nm; i++)
+                                surr_coefs[ncons][i].evaluate(tr, coef_t(j, i));
+                        }
+//                        Coefs_Rec.push_back(coef_t);
+
+
+    //                        Eigen::MatrixXd Sig = Eigen::MatrixXd::Zero(Nm, Nm);
+    //                        for (int i = 0; i < Nm; i++)
+    //                            Sig(i, i) = std::sqrt(lambda[ncons](i));
                         Sn_Cons_time.middleRows(ncons * Nr, Nr) =
-                                Phi[ncons].leftCols(Nm) * Coefs_Rec[ncons].leftCols(Nm).transpose();
+                                Phi[ncons].leftCols(Nm) * coef_t.transpose();
 
                     }
                     if (settings.flag_mean == "IC") {
