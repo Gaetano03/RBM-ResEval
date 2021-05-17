@@ -38,9 +38,9 @@ set (EXAMPLES_PATH                               "${PROJECT_PATH}/src/")
 # options
 option(BUILD_STATIC         "Build static library"     OFF)
 option(BUILD_EXAMPLES       "Build examples"           ON)
-option(ENABLE_UQ            "Use smartuq"              ON)
-option(ENABLE_GSL           "Use GSL"                  ON)
-option(ENABLE_HDF5           "Use HDF5"                  ON)
+option(ENABLE_UQ            "Use smartuq"              OFF)
+option(ENABLE_GSL           "Use GSL"                  OFF)
+option(ENABLE_HDF5           "Use HDF5"                  OFF)
 option(ENABLE_PAGMO           "Use pagmo"                  OFF)
 
 #find_package(Threads REQUIRED)
