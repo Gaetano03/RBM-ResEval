@@ -313,6 +313,13 @@ int main( int argc, char *argv[] )
                                                              "SCALAR",
                                                              settings.flag_interp ) ;
 
+                if ( iDim == 0 && settings.flag_mean == "NO" ) Rec_rho = Rec.col(0);
+                if ( iDim == 1 && settings.flag_mean == "NO" ) Rec_rhoU = Rec.col(0);
+                if ( iDim == 2 && settings.flag_mean == "NO" ) Rec_rhoV = Rec.col(0);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.col(0);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "NO" ) Rec_rhoW = Rec.col(0);
+                if ( iDim == 4 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.col(0);
+
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(Nr,Nr);
                 if ( iDim == 2 && settings.flag_mean == "IC" ) Rec_rhoV = Rec.col(0) + Ic.middleRows(2*Nr,Nr);
@@ -337,6 +344,13 @@ int main( int argc, char *argv[] )
                                                             PhiDMD[iDim],
                                                             lambda_DMD[iDim],
                                                             "SCALAR" );
+
+                if ( iDim == 0 && settings.flag_mean == "NO" ) Rec_rho = Rec.real().col(0);
+                if ( iDim == 1 && settings.flag_mean == "NO" ) Rec_rhoU = Rec.real().col(0);
+                if ( iDim == 2 && settings.flag_mean == "NO" ) Rec_rhoV = Rec.real().col(0);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.real().col(0);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "NO" ) Rec_rhoW = Rec.real().col(0);
+                if ( iDim == 4 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.real().col(0);
 
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.real().col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.real().col(0) + Ic.middleRows(Nr,Nr);
@@ -366,6 +380,13 @@ int main( int argc, char *argv[] )
                                                             PhiRDMD[iDim].leftCols(NmRDMD[iDim]),
                                                             "SCALAR",
                                                             settings.flag_interp );
+
+                if ( iDim == 0 && settings.flag_mean == "NO" ) Rec_rho = Rec.col(0);
+                if ( iDim == 1 && settings.flag_mean == "NO" ) Rec_rhoU = Rec.col(0);
+                if ( iDim == 2 && settings.flag_mean == "NO" ) Rec_rhoV = Rec.col(0);
+                if ( iDim == 3 && settings.ndim == 2 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.col(0);
+                if ( iDim == 3 && settings.ndim == 3 && settings.flag_mean == "NO" ) Rec_rhoW = Rec.col(0);
+                if ( iDim == 4 && settings.flag_mean == "NO" ) Rec_rhoE = Rec.col(0);
 
                 if ( iDim == 0 && settings.flag_mean == "IC" ) Rec_rho = Rec.col(0) + Ic.middleRows(0,Nr);
                 if ( iDim == 1 && settings.flag_mean == "IC" ) Rec_rhoU = Rec.col(0) + Ic.middleRows(Nr,Nr);
