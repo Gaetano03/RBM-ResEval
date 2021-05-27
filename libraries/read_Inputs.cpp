@@ -93,6 +93,8 @@ keywords read_keyword_type( const std::string &key_string )
         return INIT_TRES;
     else if( key_string == "INIT_MODE" )
         return INIT_MODE;
+    else if( key_string == "POINT_SOURCE" )
+        return POINT_SOURCE;
     else
     {
         std::cout << key_string << " Not Available ... Something wrong in cfg file" << std::endl;
@@ -115,7 +117,8 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
     settings.out_file = "NONE";           
     settings.flag_dim = "NONE";           
     settings.flag_prob = "NONE";          
-    settings.Cols = {};          
+    settings.Cols = {};
+    settings.pointsource = {};
     settings.Cols_coords = {};    
 //    settings.flag_method[0] = "NONE";
     settings.flag_wdb_be = "NONE"; 
@@ -522,6 +525,25 @@ void Read_cfg ( const std::string filename, prob_settings &settings )
                     while ( ss >> i ) {
 
                         settings.Cols_coords.push_back(i);
+
+                        if (ss.peek() != ',' || ss.peek() != ' ')
+                            ss.ignore();
+
+                    }
+
+                    break;
+                }
+
+                case POINT_SOURCE:
+                {
+                    std::string str = value;
+                    std::stringstream ss(str);
+
+                    double i;
+
+                    while ( ss >> i ) {
+
+                        settings.pointsource.push_back(i);
 
                         if (ss.peek() != ',' || ss.peek() != ' ')
                             ss.ignore();

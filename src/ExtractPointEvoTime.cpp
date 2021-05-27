@@ -36,11 +36,10 @@ int main( int argc, char *argv[] )
 
     prob_settings settings;
     std::string filecfg = argv[1];
-    std::string iDpoint = argv[2];
 
     Read_cfg( filecfg, settings );
 
-    int iD = std::stoi(iDpoint);
+    int iD;
     int Ns = settings.Ns;
     int ds = settings.Ds;
     int init = settings.nstart;
@@ -57,6 +56,21 @@ int main( int argc, char *argv[] )
 
     int Nr = N_gridpoints ( file_1 );
     std::cout << "Number of grid points : " << Nr << std::endl;
+
+    std::cout << "Reading Coordinates ... \t ";
+    Eigen::MatrixXd Coords = read_col( file_1, Nr, settings.Cols_coords );
+    std::cout << "Done " << std::endl;
+    Eigen::VectorXd distSource(Nr);
+
+    std::cout << "Point source :" << std::endl;
+    for ( auto x : settings.pointsource ) std::cout << x << "\t";
+    std::cout << std::endl;
+    Eigen::RowVectorXd psource(settings.pointsource.size());
+    for ( int i = 0; i< settings.pointsource.size();i++ ) psource[i] = settings.pointsource[i];
+
+    for (int iPoint = 0; iPoint<Nr; iPoint++ ) distSource(iPoint) = (Coords.row(iPoint)-psource).norm();
+    double min_Val = distSource.minCoeff( &iD );
+    std::cout << "ID of minimum " << iD << std::endl;
 
     Eigen::MatrixXd field(Nr,Cols.size());
     Eigen::MatrixXd EvoQuantities(settings.Ns,Cols.size());

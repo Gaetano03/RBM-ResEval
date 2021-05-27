@@ -72,6 +72,7 @@ struct prob_settings
     std::string flag_dim;           //Problem dimension (2D/3D)
     std::string flag_prob;          //Type of problem (Vector, scalar)
     std::vector<int> Cols;          //Fields columns to porcess
+    std::vector<double> pointsource;
     std::vector<int> Cols_coords;   //Columns with coordinates 
     std::vector<std::string> flag_method;        //Method to use
     std::string flag_wdb_be;        //flag write database basis ectraction( modes and coefficients)
@@ -169,7 +170,8 @@ enum keywords
                 DIRECT_ERROR,
                 SURF_RESEVAL,
                 INIT_TRES,
-                INIT_MODE
+                INIT_MODE,
+                POINT_SOURCE
             };
 
 
