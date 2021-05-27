@@ -885,6 +885,54 @@ Eigen::MatrixXd read_col( std::string filename, int Nr, std::vector<int> Cols )
 }
 
 
+Eigen::MatrixXd read_colnew( std::string filename, int Nr, std::vector<int> Cols )
+{
+
+
+    Eigen::MatrixXd field (Nr, Cols.size());
+    std::ifstream flow_data;
+    flow_data.open( filename );
+
+    if ( !flow_data.is_open() ) {
+        std::cout << "File : " << filename << " not found" << std::endl;
+        exit (EXIT_FAILURE);
+    }
+
+    std::string line_flow_data ;
+    // Read row of headers
+    getline( flow_data, line_flow_data );
+
+    Eigen::RowVectorXd point(Cols.size());
+    long double rubbish;
+    int p, c;
+
+    for ( int iPoint = 0; iPoint<Nr; iPoint++ )
+    {
+        getline( flow_data, line_flow_data );
+        p = 0, c = 0;
+        std::istringstream sstream(line_flow_data);
+//
+        while ( sstream.good() ) {
+            sstream >> rubbish;
+
+            if ( p == Cols[c]) {
+                point(c) = rubbish;
+                c++;
+            }
+            p++;
+        }
+
+        field.row(iPoint) = point;
+
+    }
+
+    flow_data.close();
+
+    return field;
+
+}
+
+
 void ModeDB_Read ( std::string root_file_m, std::string root_file_c, std::vector<Eigen::MatrixXd> &Phi, std::vector<Eigen::MatrixXd> &Coefs, prob_settings settings ){
 
 //    std::vector<Eigen::MatrixXd> Phi(nVar);

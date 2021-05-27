@@ -58,7 +58,7 @@ int main( int argc, char *argv[] )
     std::cout << "Number of grid points : " << Nr << std::endl;
 
     std::cout << "Reading Coordinates ... \t ";
-    Eigen::MatrixXd Coords = read_col( file_1, Nr, settings.Cols_coords );
+    Eigen::MatrixXd Coords = read_colnew( file_1, Nr, settings.Cols_coords );
     std::cout << "Done " << std::endl;
     Eigen::VectorXd distSource(Nr);
 
@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
         buffer << std::setfill('0') << std::setw(5) << std::to_string(i);
         file_temp = root_inputfile + "_" + buffer.str() + "." + input_format;
         std::cout << "Reading fields from : " << file_temp << "\t";
-        field = read_col(file_temp, Nr, Cols);
+        field = read_colnew(file_temp, Nr, Cols);
         std::cout << "Complete!" << std::endl;
         for (int iVar = 0; iVar<Cols.size(); iVar++)
             EvoQuantities(count,iVar) = field(iD,iVar);

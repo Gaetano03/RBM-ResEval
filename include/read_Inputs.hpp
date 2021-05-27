@@ -192,6 +192,8 @@ int N_gridpoints ( const std::string file_in );
 // Get fields on the specified columns 
 Eigen::MatrixXd read_col( std::string filename, int Nr, std::vector<int> Cols );
 
+Eigen::MatrixXd read_colnew( std::string filename, int Nr, std::vector<int> Cols );
+
 
 // read modes for Recursive DMD
 Eigen::MatrixXd read_modes( std::string filename, int Nr, int r_RDMD );
